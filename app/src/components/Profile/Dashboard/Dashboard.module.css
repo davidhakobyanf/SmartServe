@@ -1,0 +1,222 @@
+.dashboard {
+    width: 100%;
+    height: 100%;
+    border-radius: 25px;
+}
+
+.header {
+    width: 100%;
+    height: 10%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 15px;
+}
+
+.title {
+    margin-left: 3rem;
+}
+
+.body {
+    width: 100%;
+    height: 40%;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.bodyLeft {
+    width: 50%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.bodyRight {
+    display: flex;
+    width: 60%;
+    height: 80%;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+}
+
+.footer {
+    height: 50%;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+}
+
+.footerLeft {
+    width: 70%;
+    height: 100%;
+    /*background-color: rgb(87, 201, 163);*/
+    border-radius: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.footerRight {
+    width: 30%;
+    height: 100%;
+    /*background-color: rgb(115, 41, 201);*/
+    border-radius: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.slide {
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    border-radius: 15px;
+}
+
+.swiper {
+    width: 70%;
+    margin-left: 1px;
+    margin-right: 1px;
+}
+
+.creditcard {
+    width: 350px;
+    height: 200px;
+    background-image: url('https://plitkazavr.ru/images/Aparici/Area/Negro-Ornato-31.6x59.2.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-radius: 15px;
+    box-shadow: 2px 2px 10px black;
+}
+
+.top {
+    height: 50%;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    font-family: sans-serif;
+}
+
+.bottom {
+    height: 50%;
+    width: 100%;
+    display: flex;
+    justify-content: space-evenly;
+    font-family: sans-serif;
+}
+
+.topLeft {
+    height: 100%;
+    width: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    font-family: sans-serif;
+    color: white;
+}
+
+.topRight {
+    height: 100%;
+    width: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    font-family: sans-serif;
+    color: white;
+}
+
+.bottomLeft {
+    height: 100%;
+    width: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    font-family: sans-serif;
+    color: white;
+}
+
+.bottomRight {
+    height: 100%;
+    width: 60%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    font-family: sans-serif;
+    color: white;
+}
+
+.miniLogo {
+    background-image: url('../../../images/miniLogo.png');
+    background-size: cover;
+    height: 100%;
+    width: 60%;
+}
+
+.cards {
+    display: flex;
+    justify-content: center;
+    height: 100%;
+    width: 60%;
+}
+
+.right {
+    width: 20%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.scrollableTable {
+    width: 95%;
+    height: 95%;
+    max-height: 100%;
+    overflow: auto;
+}
+
+
+.scrollableTable::-webkit-scrollbar {
+    width: 7px !important;
+}
+.scrollableTable::-webkit-scrollbar-track {
+    background: rgb(255, 255, 255);
+}
+.scrollableTable::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+.scrollableTable::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+
+.scrollableDiv::-webkit-scrollbar {
+    width: 7px !important;
+}
+.scrollableDiv::-webkit-scrollbar-track {
+    background: rgb(255, 255, 255);
+}
+.scrollableDiv::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+.scrollableDiv::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+/* .balance{
+    
+}
+.font_balance{
+
+} */
+
+

@@ -1,0 +1,8 @@
+.all_page{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #172333;
+    width: 100%;
+    height: 100vh;
+}

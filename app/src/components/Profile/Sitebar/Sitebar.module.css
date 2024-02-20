@@ -1,0 +1,9 @@
+.sitebar{
+    width: 10%;
+    height: 90%;
+    display: flex;
+    background-color: #172333;
+    flex-direction: column;
+    justify-content: center;
+}
+

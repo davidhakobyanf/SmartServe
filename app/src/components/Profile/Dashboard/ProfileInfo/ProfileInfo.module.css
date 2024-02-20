@@ -1,0 +1,29 @@
+.profile_name{
+    border: 2px solid black;
+    border-radius: 15px;
+    height:60px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-right: 3rem;
+}
+.text{
+    color: black;
+    font-family: Arial, sans-serif;
+    font-size: 22px;
+    padding: 1rem;
+}
+.profile_image{
+    background-image: url("../../../../images/black_profile.jpg");
+    border-radius: 50px;
+    border: 2px solid black;
+    width: 50px;
+    height: 50px;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+.profile_username{
+    font-size: 27px;
+    margin-left: 10px;
+}
