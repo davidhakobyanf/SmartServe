@@ -3,7 +3,6 @@ import Slider from 'react-slick';
 import css from './Dashboard.module.css';
 import ProfileInfo from './ProfileInfo/ProfileInfo';
 import clientAPI from "../../../api/api";
-import { Chart } from "react-google-charts";
 import { useProfileData } from "../../../context/ProfileDataContext";
 const Dashboard = () => {
     const { profileDataList, setProfileDataList } = useProfileData();

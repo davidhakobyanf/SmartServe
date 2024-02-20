@@ -9,6 +9,7 @@ import FormContainer from "./components/Form/FormContainer";
 import Profile from "./components/Profile/Profile";
 import Dashboard from "./components/Profile/Dashboard/Dashboard";
 import {ProfileDataProvider} from "./context/ProfileDataContext";
+import Icon from "./components/Profile/Dashboard/Icon";
 
 const router = createBrowserRouter([
     {
@@ -23,6 +24,10 @@ const router = createBrowserRouter([
                 path: "/profile/dashboard",
                 element: <Dashboard/>,
             },
+            {
+                path: "/profile/icon",
+                element: <Icon/>,
+            }
         ]
     },
 ]);
