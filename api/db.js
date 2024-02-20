@@ -2,7 +2,7 @@ const { MongoClient } = require('mongodb');
 let dbConnection
 module.exports = { 
     connectToDb: (cb) => { 
-        MongoClient.connect('mongodb://127.0.0.1:27017/WealthCraft')
+        MongoClient.connect('mongodb://127.0.0.1:27017/SmartServe')
             .then ((client) => { 
                 dbConnection = client.db()
                 return cb()
