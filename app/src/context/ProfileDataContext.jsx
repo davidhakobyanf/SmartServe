@@ -6,14 +6,12 @@ const ProfileDataContext = createContext();
 
 export const ProfileDataProvider = ({ children }) => {
     const [profileDataList, setProfileDataList] = useState([]);
-    const [profileTransaction, setProfileTransaction] = useState([]);
 
     const fetchProfile = async () => {
         try {
             const { data: res } = await clientAPI.getProfile();
             if (res) {
                 setProfileDataList(res);
-                setProfileTransaction(res.transaction)
             }
         } catch (error) {
             console.error('Error fetching profile:', error);
@@ -23,7 +21,7 @@ export const ProfileDataProvider = ({ children }) => {
         fetchProfile()
     }, []);
     return (
-        <ProfileDataContext.Provider value={{ profileDataList,profileTransaction, setProfileDataList, setProfileTransaction, fetchProfile }}>
+        <ProfileDataContext.Provider value={{ profileDataList, setProfileDataList, fetchProfile }}>
             {children}
         </ProfileDataContext.Provider>
     );
