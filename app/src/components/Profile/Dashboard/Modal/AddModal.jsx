@@ -3,7 +3,7 @@ import { Button, Input, Modal, Select, Form, Upload, message } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
 import { PlusOutlined } from '@ant-design/icons';
 
-const AddModal = ({ modalOpen }) => {
+const AddModal = ({ modalOpen,setModalOpen }) => {
     const [form] = Form.useForm();
     const [imageUrl, setImageUrl] = useState(null);
 
@@ -12,6 +12,7 @@ const AddModal = ({ modalOpen }) => {
     };
 
     const handleCancel = () => {
+        setModalOpen(false)
         // Handle cancel action
     };
 

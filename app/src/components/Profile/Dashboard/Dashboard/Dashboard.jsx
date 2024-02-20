@@ -30,7 +30,7 @@ const Dashboard = () => {
                 <ProfileInfo/>
             </div>
             <div className={css.body}>
-                <AddModal modalOpen={modalOpen}/>
+                <AddModal modalOpen={modalOpen} setModalOpen={setModalOpen}/>
             </div>
             <div className={css.footer}>
 
