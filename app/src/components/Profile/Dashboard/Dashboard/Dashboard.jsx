@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import Slider from 'react-slick';
 import css from './Dashboard.module.css';
-import ProfileInfo from './ProfileInfo/ProfileInfo';
-import clientAPI from "../../../api/api";
-import { useProfileData } from "../../../context/ProfileDataContext";
+import ProfileInfo from '../ProfileInfo/ProfileInfo';
+import clientAPI from "../../../../api/api";
+import { useProfileData } from "../../../../context/ProfileDataContext";
+import {ArrowUpOutlined, PlusCircleOutlined} from "@ant-design/icons";
+import {set} from "react-hook-form";
+import AddModal from "../Modal/AddModal";
 const Dashboard = () => {
     const { profileDataList, setProfileDataList } = useProfileData();
+    const [modalOpen, setModalOpen] = useState(false)
     const fetchProfile = async () => {
         try {
             const { data: res } = await clientAPI.getProfile();
@@ -26,9 +30,13 @@ const Dashboard = () => {
                 <ProfileInfo/>
             </div>
             <div className={css.body}>
-
+                <AddModal modalOpen={modalOpen}/>
             </div>
             <div className={css.footer}>
+
+            </div>
+            <div className={css.scrollToTop} onClick={() => setModalOpen(true)}>
+                +
             </div>
         </div>
     );

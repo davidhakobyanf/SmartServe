@@ -7,7 +7,7 @@ import {
 import "./index.css";
 import FormContainer from "./components/Form/FormContainer";
 import Profile from "./components/Profile/Profile";
-import Dashboard from "./components/Profile/Dashboard/Dashboard";
+import Dashboard from "./components/Profile/Dashboard/Dashboard/Dashboard";
 import {ProfileDataProvider} from "./context/ProfileDataContext";
 import Icon from "./components/Profile/Dashboard/Icon";
 
