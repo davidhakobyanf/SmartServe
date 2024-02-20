@@ -13,8 +13,8 @@ module.exports = class Profile {
 
             if (profiles.length > 0) {
                 const lastProfile = profiles[profiles.length - 1];
-                const { name, surname,card, transaction } = lastProfile;
-                res.json({ name, surname,card, transaction });
+                const { name, surname} = lastProfile;
+                res.json({ name, surname});
             } else {
                 res.status(404).json({ error: 'No profiles found' });
             }

@@ -27,7 +27,7 @@ function isValidPassword(password) {
 
 module.exports = class Register {
     async reg(req, res) {
-        const { name, surname, email, password, card = [], transaction = [] } = req.body;
+        const { name, surname, email, password} = req.body;
         try {
             // Validate password
             if (!isValidPassword(password)) {
@@ -44,7 +44,7 @@ module.exports = class Register {
 
             const hashedPassword = await bcrypt.hash(password, 10);
 
-            const user = { name, surname, email, card, transaction, password: hashedPassword };
+            const user = { name, surname, email, password: hashedPassword };
             await db.collection("users").insertOne(user);
 
             // Retrieve the registered user
