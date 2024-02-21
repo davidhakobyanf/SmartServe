@@ -70,8 +70,8 @@ const AddModal = ({ modalOpen,setModalOpen }) => {
     return (
         <div>
             <Modal
-                title="Create Transaction"
-                visible={modalOpen}
+                title="Create MenuCard"
+                open={modalOpen}
                 onOk={handleOk}
                 onCancel={handleCancel}
                 width={350}

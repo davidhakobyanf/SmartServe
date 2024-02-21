@@ -7,7 +7,6 @@ const loginRoute = require('./Route/loginRoute')
 const ProfileRoute = require('./Route/ProfileRoute');
 const userLoginRouter = require('./Route/UserLoginRoute');
 const AuthenticateRoute = require('./Route/AuthenticateRoute');
-const transaction = require('./Route/UserTransactionRoute')
 const app = express();
 const PORT = 8000;
 
@@ -19,7 +18,6 @@ app.use(AuthenticateRoute)
 app.use(registerRoute);
 app.use(loginRoute);
 app.use(ProfileRoute); 
-app.use(transaction)
 let db;
 connectToDb((error) => {
     if (!error) {

@@ -44,7 +44,7 @@ module.exports = class Register {
 
             const hashedPassword = await bcrypt.hash(password, 10);
 
-            const user = { name, surname, email, password: hashedPassword };
+            const user = { name, surname, email,  password: hashedPassword };
             await db.collection("users").insertOne(user);
 
             // Retrieve the registered user
