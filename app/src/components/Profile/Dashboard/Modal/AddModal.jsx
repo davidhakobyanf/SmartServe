@@ -1,12 +1,35 @@
 import React, { useState } from 'react';
 import { Button, Input, Modal, Select, Form, Upload, message } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
-import { PlusOutlined } from '@ant-design/icons';
-
+import ImgCrop from 'antd-img-crop';
+import img from '../../../../images/Screenshot 2024-02-20 231709.png'
 const AddModal = ({ modalOpen,setModalOpen }) => {
     const [form] = Form.useForm();
-    const [imageUrl, setImageUrl] = useState(null);
-
+    const [fileList, setFileList] = useState([
+        {
+            uid: '-1',
+            name: 'image.png',
+            status: 'done',
+            url: `${img}`,
+        },
+    ]);
+    const onChange = ({ fileList: newFileList }) => {
+        setFileList(newFileList);
+    };
+    const onPreview = async (file) => {
+        let src = file.url;
+        if (!src) {
+            src = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file.originFileObj);
+                reader.onload = () => resolve(reader.result);
+            });
+        }
+        const image = new Image();
+        image.src = src;
+        const imgWindow = window.open(src);
+        imgWindow?.document.write(image.outerHTML);
+    };
     const handleOk = () => {
         form.submit();
     };
@@ -16,11 +39,8 @@ const AddModal = ({ modalOpen,setModalOpen }) => {
         // Handle cancel action
     };
 
-    const onFinish = (values) => {
-        // Handle form submission
-        console.log('Form values:', values);
-        // You can submit the form data to your server here
-    };
+
+
 
     const options = [];
     for (let i = 10; i < 36; i++) {
@@ -33,39 +53,11 @@ const AddModal = ({ modalOpen,setModalOpen }) => {
     const handleChange = (value) => {
         console.log(`Selected ${value}`);
     };
+    const onFinish = async (values) => {
+        // Handle form submission
+        console.log('Form values:', values);
+    }
 
-    const getBase64 = (img, callback) => {
-        const reader = new FileReader();
-        reader.addEventListener('load', () => callback(reader.result));
-        reader.readAsDataURL(img);
-    };
-
-    const beforeUpload = (file) => {
-        const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
-        if (!isJpgOrPng) {
-            message.error('You can only upload JPG/PNG file!');
-        }
-        const isLt2M = file.size / 1024 / 1024 < 2;
-        if (!isLt2M) {
-            message.error('Image must be smaller than 2MB!');
-        }
-        return isJpgOrPng && isLt2M ? file : false;
-    };
-
-    const normFile = async (e) => {
-        console.log('Upload event:', e);
-        if (Array.isArray(e)) {
-            return e;
-        }
-        const file = e.file;
-        const isImage = beforeUpload(file);
-        if (isImage) {
-            getBase64(file, (imageUrl) => {
-                setImageUrl(imageUrl);
-            });
-        }
-        return isImage ? [{ ...file, imageUrl: imageUrl }] : null;
-    };
 
     return (
         <div>
@@ -79,14 +71,14 @@ const AddModal = ({ modalOpen,setModalOpen }) => {
             >
                 <Form form={form} onFinish={onFinish} layout="vertical">
                     <Form.Item
-                        name="Title"
+                        name="title"
                         label="Title"
                         rules={[{ required: true, message: 'Please input title!' }]}
                     >
                         <Input type="text" placeholder="Title" />
                     </Form.Item>
                     <Form.Item
-                        name="Sauces"
+                        name="sauces"
                         label="Sauces"
                         rules={[{ required: true, message: 'Please input Sauces!' }]}
                     >
@@ -101,24 +93,34 @@ const AddModal = ({ modalOpen,setModalOpen }) => {
                         />
                     </Form.Item>
                     <Form.Item
-                        name="Description"
+                        name="description"
                         label="Description"
                         rules={[{ required: true, message: 'Please input Description!' }]}
                     >
                         <TextArea rows={4} />
                     </Form.Item>
-                    <Form.Item label="Upload" valuePropName="fileList" getValueFromEvent={normFile}>
-                        <Upload beforeUpload={beforeUpload} listType="picture-card">
-                            {imageUrl ? (
-                                <img src={imageUrl} alt="avatar" style={{ width: '100%' }} />
-                            ) : (
-                                <div>
-                                    <PlusOutlined />
-                                    <div style={{ marginTop: 8 }}>Upload</div>
-                                </div>
-                            )}
-                        </Upload>
+                    <Form.Item  label="Upload" valuePropName="fileList" name="img">
+                        <ImgCrop rotationSlider>
+                            <Upload
+                                action="https://run.mocky.io/v3/435e224c-44fb-4773-9faf-380c5e6a2188"
+                                listType="picture-card"
+                                fileList={fileList}
+                                onChange={onChange}
+                                onPreview={onPreview}
+                            >
+                                {fileList.length < 5 && '+ Upload'}
+                            </Upload>
+                        </ImgCrop>
                     </Form.Item>
+                    <Form.Item
+                        name="price"
+                        label="Price"
+                        rules={[{ required: true, message: 'Please input price!' }]}
+                    >
+                        <Input  type="text"  placeholder="Price"  addonAfter="դրամ" />
+
+                    </Form.Item>
+
                     <Form.Item>
                         <Button type="primary" htmlType="submit">
                             Create
