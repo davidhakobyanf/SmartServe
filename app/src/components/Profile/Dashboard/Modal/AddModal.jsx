@@ -72,6 +72,7 @@ const AddModal = ({ modalOpen,setModalOpen }) => {
         // Update the values object with the image
         const updatedValues = { ...values, image };
         fetchAddCard(updatedValues)
+        setModalOpen(false)
         console.log(updatedValues);
         // Handle form submission with updated values
     };
