@@ -3,20 +3,32 @@ import { Button, Input, Modal, Select, Form, Upload, message } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
 import ImgCrop from 'antd-img-crop';
 import img from '../../../../images/Screenshot 2024-02-20 231709.png'
+import {UploadOutlined} from "@ant-design/icons";
+import {useFetching} from "../../../../hoc/fetchingHook";
+import clientAPI from "../../../../api/api";
+
 const AddModal = ({ modalOpen,setModalOpen }) => {
     const [form] = Form.useForm();
-    const [fileList, setFileList] = useState([
-        {
-            uid: '-1',
-            name: 'image.png',
-            status: 'done',
-            url: `${img}`,
-        },
-    ]);
+    const [fileList, setFileList] = useState([]);
+    const [fetchAddCard, AddCardLoading, AddCardError] = useFetching(async (formData) => {
+        try {
+            const { data: res } = await clientAPI.createCard(formData);
+            if (res) {
+                console.log(res, 'res');
+                const updatedCardArray = res.card ? [...res.card, formData] : [formData];
+                const updatedRes = { ...res, card: updatedCardArray };
+                // Use the updatedRes object as needed (e.g., store in state or update UI)
+            }
+        } catch (error) {
+            console.error('Error fetching profile:', error);
+        }
+    });
     const onChange = ({ fileList: newFileList }) => {
+        console.log(newFileList,'newFileList')
         setFileList(newFileList);
     };
     const onPreview = async (file) => {
+        console.log(file,'file')
         let src = file.url;
         if (!src) {
             src = await new Promise((resolve) => {
@@ -53,10 +65,27 @@ const AddModal = ({ modalOpen,setModalOpen }) => {
     const handleChange = (value) => {
         console.log(`Selected ${value}`);
     };
-    const onFinish = async (values) => {
-        // Handle form submission
-        console.log('Form values:', values);
-    }
+    const onFinish = (values) => {
+        // Extract the image information from the fileList
+        const image = fileList.length > 0 ? fileList[0] : null;
+
+        // Update the values object with the image
+        const updatedValues = { ...values, image };
+        fetchAddCard(updatedValues)
+        console.log(updatedValues);
+        // Handle form submission with updated values
+    };
+
+    const getFile = (e) => {
+        console.log('Upload event:', e);
+
+        if (Array.isArray(e)) {
+            return e;
+        }
+        return e && e.fileList;
+    };
+
+
 
 
     return (
@@ -99,16 +128,10 @@ const AddModal = ({ modalOpen,setModalOpen }) => {
                     >
                         <TextArea rows={4} />
                     </Form.Item>
-                    <Form.Item  label="Upload" valuePropName="fileList" name="img">
+                    <Form.Item  name='image' getValueFromEvent={getFile}>
                         <ImgCrop rotationSlider>
-                            <Upload
-                                action="https://run.mocky.io/v3/435e224c-44fb-4773-9faf-380c5e6a2188"
-                                listType="picture-card"
-                                fileList={fileList}
-                                onChange={onChange}
-                                onPreview={onPreview}
-                            >
-                                {fileList.length < 5 && '+ Upload'}
+                            <Upload fileList={fileList} onChange={onChange} onPreview={onPreview}>
+                                <Button icon={<UploadOutlined />}>Click to Upload</Button>
                             </Upload>
                         </ImgCrop>
                     </Form.Item>

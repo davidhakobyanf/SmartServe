@@ -36,8 +36,8 @@ module.exports = class UserLogin {
     }
     async addCardInProfile(req, res) {
         try {
-            const { number, expiry, balance, name, focus } = req.body;
-            const card = { number, expiry, balance, name, focus }
+            const { description, image, price, sauces, title } = req.body;
+            const card = { description, image, price, sauces, title }
             const user = await db.collection('profile').findOne({});
             const updateProfile = await db.collection('profile').findOneAndUpdate(
                 {},

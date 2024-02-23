@@ -26,6 +26,20 @@ class DataApi {
             throw error;
         }
     }
+    static async createCard(card) {
+        try {
+            const headers = {
+                Authorization: `Bearer`,
+                'Content-Type': 'application/json',
+            };
+            const response = await instance.patch('/api/user/login', card,
+                {headers});
+            return response;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
 }
 
 export default DataApi;
