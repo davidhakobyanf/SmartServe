@@ -4,7 +4,14 @@ import css from './Dashboard.module.css';
 import ProfileInfo from '../ProfileInfo/ProfileInfo';
 import clientAPI from "../../../../api/api";
 import { useProfileData } from "../../../../context/ProfileDataContext";
-import { ArrowUpOutlined, PlusCircleOutlined } from "@ant-design/icons";
+import {
+    ArrowUpOutlined,
+    DownloadOutlined,
+    MinusCircleOutlined,
+    MinusOutlined,
+    PlusCircleOutlined,
+    PlusOutlined
+} from "@ant-design/icons";
 import { set } from "react-hook-form";
 import AddModal from "../Modal/AddModal";
 import Card from '@mui/joy/Card';
@@ -14,10 +21,18 @@ import CardContent from '@mui/joy/CardContent';
 import IconButton from '@mui/joy/IconButton';
 import Typography from '@mui/joy/Typography';
 import { useFetching } from "../../../../hoc/fetchingHook";
+import DynamicCheckbox from "../../../../hoc/DynamicCheckbox";
 
 const Dashboard = () => {
     const { profileDataList, setProfileDataList } = useProfileData();
     const [modalOpen, setModalOpen] = useState(false)
+    const [checkedList, setCheckedList] = useState( ['Apple', 'Orange']);
+    const plainOptions = ['Apple', 'Pear', 'Orange'];
+    const checkAll = plainOptions.length === checkedList.length;
+    const indeterminate = checkedList.length > 0 && checkedList.length < plainOptions.length;
+    const onChange = (list) => {
+        setCheckedList(list);
+    };
     const [fetchProfile, profileLoading, profileError] = useFetching(async () => {
         try {
             const { data: res } = await clientAPI.getProfile();
@@ -59,7 +74,7 @@ const Dashboard = () => {
             </div>
             <div className={css.body}>
                 {profileDataList?.card?.map((item, index) => (
-                    <Card key={index} sx={{ width: 320 }}>
+                    <Card key={index} className={css.card}>
                         <div>
                             <Typography level="title-lg">{item.title}</Typography>
                             <Typography level="body-sm">{item.description}</Typography>
@@ -85,20 +100,25 @@ const Dashboard = () => {
                         )}
                         <CardContent orientation="horizontal">
                             <div>
-                                <Typography level="body-xs">Total price:</Typography>
-                                <Typography fontSize="lg" fontWeight="lg">
-                                    {item.price}
-                                </Typography>
+                                <DynamicCheckbox initialOptions={item.sauces} />
+                                <div>
+                                    <div>
+                                        <Typography level="body-xs">Total price:</Typography>
+                                        <Typography fontSize="lg" fontWeight="lg">
+                                            {item.price}
+                                        </Typography>
+                                    </div>
+                                    <IconButton>
+                                        <PlusCircleOutlined />
+                                    </IconButton>
+                                    <IconButton>
+                                        <MinusCircleOutlined />
+                                    </IconButton>
+
+                                </div>
+
                             </div>
-                            <Button
-                                variant="solid"
-                                size="md"
-                                color="primary"
-                                aria-label={`Explore ${item.title}`}
-                                sx={{ ml: 'auto', alignSelf: 'center', fontWeight: 600 }}
-                            >
-                                Explore
-                            </Button>
+
                         </CardContent>
                     </Card>
                 ))}
