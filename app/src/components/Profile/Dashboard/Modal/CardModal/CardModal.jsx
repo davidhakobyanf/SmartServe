@@ -113,7 +113,7 @@ const CardModal = ({ setCardModalOpen, cardModalOpen, index, item, images, setIm
                                 </div>
                             </div>
                             <Table columns={columns} dataSource={data} pagination={false} />
-                            <div style={{ marginTop: 16 }}>Ընդհանու գումար {allTotal} դրամ</div>
+                            <div style={{ marginTop: 16,fontSize:"20px"}}>Ընդհանուր գումար <b>{allTotal}</b>  դրամ</div>
                         </div>
                     ) : null
                 }

@@ -3,24 +3,24 @@
     background-size: contain;
     background-repeat: no-repeat;
 }
-.card_description{
-    overflow: auto;
-    max-height: 200px;
+/*.card_description{*/
+/*    overflow: auto;*/
+/*    max-height: 200px;*/
 
-}
-.card_description::-webkit-scrollbar {
-    width: 7px !important;
-}
-.card_description::-webkit-scrollbar-track {
-    background: rgb(255, 255, 255);
-}
-.card_description::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 10px;
-}
-.card_description::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.2);
-}
+/*}*/
+/*.card_description::-webkit-scrollbar {*/
+/*    width: 7px !important;*/
+/*}*/
+/*.card_description::-webkit-scrollbar-track {*/
+/*    background: rgb(255, 255, 255);*/
+/*}*/
+/*.card_description::-webkit-scrollbar-thumb {*/
+/*    background: rgba(0, 0, 0, 0.2);*/
+/*    border-radius: 10px;*/
+/*}*/
+/*.card_description::-webkit-scrollbar-thumb:hover {*/
+/*    background: rgba(0, 0, 0, 0.2);*/
+/*}*/
 .container_top{
     display: flex;
     justify-content: space-between;
@@ -28,9 +28,7 @@
 .card_title{
     font-size: 30px !important;
 }
-.modal{
-    font-size: 30px;
-}
+
 .text{
     width: 45%;
     height: 290px;
@@ -41,4 +39,25 @@
 .container_right{
     width: 50%;
     height: 100%    ;
+}
+.container{
+
+}
+.modal{
+     font-size: 30px;
+    overflow: auto;
+    max-height: 578px;
+ }
+.modal::-webkit-scrollbar {
+    width: 7px !important;
+}
+.modal::-webkit-scrollbar-track {
+    /*background: rgb(255, 255, 255);*/
+}
+.modal::-webkit-scrollbar-thumb {
+    /*background: rgba(0, 0, 0, 0.2);*/
+    border-radius: 10px;
+}
+.modal::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.2);
 }
