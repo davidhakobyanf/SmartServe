@@ -22,8 +22,6 @@ import CardContent from '@mui/joy/CardContent';
 import IconButton from '@mui/joy/IconButton';
 import Typography from '@mui/joy/Typography';
 import {useFetching} from "../../../../hoc/fetchingHook";
-import DynamicCheckbox from "../../../../hoc/DynamicCheckbox";
-import images from '../../../../images/Screenshot 2024-02-20 231709.png'
 import CardModal from "../Modal/CardModal/CardModal";
 
 const Dashboard = () => {
@@ -116,14 +114,12 @@ const Dashboard = () => {
                         <CardContent orientation="horizontal">
                             <div>
                                 {item.sauces ? <div>Հավելումներ</div> : null}
-                                {/*<DynamicCheckbox initialOptions={item.sauces}/>*/}
                                 <div>
                                     <div>
                                         <Typography fontSize="lg" fontWeight="lg">
                                             {item.price} դրամ
                                         </Typography>
                                     </div>
-                                    {/*<Quantity quantity={quantity} setQuantity={setQuantity}/>*/}
                                 </div>
 
                             </div>
