@@ -97,11 +97,13 @@ const CardModal = ({ setCardModalOpen, cardModalOpen, index, item, images, setIm
                                 </div>
 
                                 <div className={css.text}>
-                                    <Typography level="title-lg" className={css.card_title}>{item.title}</Typography>
-                                    <div className={css.descriptionContainer}>
-                                        <Typography level="body-sm" className={css.card_description}>
-                                            {item.description}
-                                        </Typography>
+                                    <div>
+                                        <Typography level="title-lg" className={css.card_title}>{item.title}</Typography>
+                                        <div className={css.descriptionContainer}>
+                                            <Typography level="body-sm" className={css.card_description}>
+                                                {item.description}
+                                            </Typography>
+                                        </div>
                                     </div>
                                     <Quantity quantity={quantity} setQuantity={setQuantity} />
                                 </div>
