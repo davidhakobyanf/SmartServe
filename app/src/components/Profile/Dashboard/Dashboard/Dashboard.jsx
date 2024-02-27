@@ -4,6 +4,7 @@ import css from './Dashboard.module.css';
 import ProfileInfo from '../ProfileInfo/ProfileInfo';
 import clientAPI from "../../../../api/api";
 import {useProfileData} from "../../../../context/ProfileDataContext";
+import img from '../../../../images/Screenshot 2024-02-20 231709.png'
 import {
     ArrowUpOutlined,
     DownloadOutlined,
@@ -23,16 +24,22 @@ import Typography from '@mui/joy/Typography';
 import {useFetching} from "../../../../hoc/fetchingHook";
 import DynamicCheckbox from "../../../../hoc/DynamicCheckbox";
 import Quantity from "../../../../hoc/Quantity/Quantity";
+import images from '../../../../images/Screenshot 2024-02-20 231709.png'
 
 const Dashboard = () => {
     const {profileDataList, setProfileDataList} = useProfileData();
     const [modalOpen, setModalOpen] = useState(false)
     const [quantity, setQuantity] = useState(1);
+    const [images, setImages] = useState([]);
     const [fetchProfile, profileLoading, profileError] = useFetching(async () => {
         try {
             const {data: res} = await clientAPI.getProfile();
             if (res) {
                 setProfileDataList(res);
+                const importedImages = await Promise.all(
+                    res.card.map(item => import(`../../../../images/${item.image.name}`))
+                );
+                setImages(importedImages);
                 console.log(res, 'res')
             }
         } catch (error) {
@@ -41,19 +48,32 @@ const Dashboard = () => {
             profileLoading(false);
         }
     });
-
+    const [fetchAddCard, AddCardLoading, AddCardError] = useFetching(async (formData) => {
+        try {
+            const { data: res } = await clientAPI.createCard(formData);
+            if (res) {
+                console.log(res, 'res');
+                const updatedCardArray = res.card ? [...res.card, formData] : [formData];
+                const updatedRes = { ...res, card: updatedCardArray };
+                // Use the updatedRes object as needed (e.g., store in state or update UI)
+            }
+        } catch (error) {
+            console.error('Error fetching profile:', error);
+        }
+    });
     useEffect(() => {
         fetchProfile();
     }, []);
-
-    const getImageSrc = (file) => {
-        if (file && file.originFileObj && file.originFileObj.uid) {
-            // Assuming the image URL can be constructed from the uid
-            return `/api/getImage?uid=${file.originFileObj.uid}`;
-        } else {
-            return ''; // Return empty string if no valid image URL is found
+    useEffect(() => {
+        fetchProfile();
+    }, [AddCardLoading]);
+    const getImageSrc = (fileName) => {
+        if (fileName) {
+            return `../../../../images/${fileName}`;
         }
     };
+
+
 
 
     return (
@@ -64,10 +84,13 @@ const Dashboard = () => {
             </div>
             <div className={css.body}>
                 {profileDataList?.card?.map((item, index) => (
+
                     <Card key={index} className={css.card}>
                         <div>
                             <Typography level="title-lg">{item.title}</Typography>
-                            <Typography level="body-sm">{item.description}</Typography>
+                            <Typography level="body-sm">
+                                {item.description.length > 45 ? `${item.description.slice(0, 45)}...` : item.description}
+                            </Typography>
                             <IconButton
                                 aria-label={`bookmark ${item.title}`}
                                 variant="plain"
@@ -78,27 +101,23 @@ const Dashboard = () => {
                                 <PlusCircleOutlined/>
                             </IconButton>
                         </div>
-                        {item.image && (
-                            <AspectRatio minHeight="120px" maxHeight="200px">
-                                <img
-                                    src={getImageSrc(item.image)}
-                                    alt={item.title}
-                                    loading="lazy"
-                                />
-
-                            </AspectRatio>
-                        )}
+                        <img
+                            src={images[index]?.default}
+                            alt={item.title}
+                            loading="lazy"
+                            className={css.card_img}
+                        />
                         <CardContent orientation="horizontal">
                             <div>
-                                <DynamicCheckbox initialOptions={item.sauces}/>
+                                {item.sauces ? <div>Հավելումներ</div> : null}
+                                {/*<DynamicCheckbox initialOptions={item.sauces}/>*/}
                                 <div>
                                     <div>
-                                        <Typography level="body-xs">Total price:</Typography>
                                         <Typography fontSize="lg" fontWeight="lg">
-                                            {item.price}
+                                            {item.price} դրամ
                                         </Typography>
                                     </div>
-                                    <Quantity quantity={quantity} setQuantity={setQuantity}/>
+                                    {/*<Quantity quantity={quantity} setQuantity={setQuantity}/>*/}
                                 </div>
 
                             </div>
@@ -106,11 +125,11 @@ const Dashboard = () => {
                         </CardContent>
                     </Card>
                 ))}
-                <AddModal modalOpen={modalOpen} setModalOpen={setModalOpen}/>
+                <AddModal modalOpen={modalOpen} setModalOpen={setModalOpen} fetchAddCard={fetchAddCard}/>
             </div>
-            <div className={css.footer}>
+            {/*<div className={css.footer}>*/}
 
-            </div>
+            {/*</div>*/}
             <div className={css.scrollToTop} onClick={() => setModalOpen(true)}>
                 <ArrowUpOutlined/>
             </div>
