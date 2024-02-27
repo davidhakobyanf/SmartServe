@@ -25,6 +25,7 @@ import {useFetching} from "../../../../hoc/fetchingHook";
 import DynamicCheckbox from "../../../../hoc/DynamicCheckbox";
 import Quantity from "../../../../hoc/Quantity/Quantity";
 import images from '../../../../images/Screenshot 2024-02-20 231709.png'
+import CardModal from "../Modal/CardModal";
 
 const Dashboard = () => {
     const {profileDataList, setProfileDataList} = useProfileData();
@@ -85,6 +86,8 @@ const Dashboard = () => {
                 <h2 className={css.title}>Dashboard</h2>
                 <ProfileInfo/>
             </div>
+            <CardModal cardModalOpen={cardModalOpen} setCardModalOpen={setCardModalOpen}/>
+
             <div className={css.body}>
                 {profileDataList?.card?.map((item, index) => (
 
