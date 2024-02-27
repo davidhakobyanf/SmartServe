@@ -4,9 +4,12 @@
     background-repeat: no-repeat;
 }
 .container{
+
+
+}
+.container_top{
     display: flex;
     justify-content: space-between;
-
 }
 .card_title{
     font-size: 30px !important;
@@ -19,4 +22,8 @@
     height: 100%;
     display: flex;
     flex-direction: column;
+}
+.container_right{
+    width: 50%;
+    height: 100%    ;
 }
