@@ -1,33 +1,32 @@
-import React, {useEffect, useState} from 'react';
-import {Modal,Table, Checkbox} from "antd";
-import img from "../../../../../images/Screenshot 2024-02-20 231709.png";
+import React, { useEffect, useState } from 'react';
+import { Modal, Table, Checkbox } from "antd";
 import css from "./CardModal.module.css";
 import Typography from "@mui/joy/Typography";
 import Quantity from "../../../../../hoc/Quantity/Quantity";
-const CardModal = ({setCardModalOpen,cardModalOpen,index,item,images, setImages}) => {
+
+const CardModal = ({ setCardModalOpen, cardModalOpen, index, item, images, setImages }) => {
     const [quantity, setQuantity] = useState(1);
-    const [allTotal, setAllTotal] = useState(0);
+    const [allTotal, setAllTotal] = useState(item?.price);
     const [plainOptions, setPlainOptions] = useState([]);
     const [selectedOptions, setSelectedOptions] = useState({});
-    useEffect(() => {
-        setAllTotal(item?.price)
-    }, [item]);
-    const handleCancel = () => {
-        setCardModalOpen(false)
-    }
-    console.log(item,'item')
-    console.log(index,'index')
 
+    useEffect(() => {
+        setAllTotal(item?.price * quantity);
+    }, [item, quantity]);
 
     useEffect(() => {
         setPlainOptions(item?.sauces?.map(option => ({ option, total: 0 })));
     }, [item]);
 
+
     useEffect(() => {
-        // Обновляем общий total при изменении состояния total каждого элемента
         const total = plainOptions?.reduce((acc, curr) => acc + curr.total, 0);
-        setAllTotal(total);
-    }, [plainOptions]);
+        setAllTotal(item?.price * quantity + total);
+    }, [plainOptions, quantity, item]);
+
+    const handleCancel = () => {
+        setCardModalOpen(false);
+    }
 
     const handleCheckboxChange = (key, checked) => {
         setSelectedOptions(prevState => ({
@@ -74,6 +73,7 @@ const CardModal = ({setCardModalOpen,cardModalOpen,index,item,images, setImages}
         option: option.option,
         total: option.total,
     }));
+
     return (
         <div>
             <Modal
@@ -82,7 +82,7 @@ const CardModal = ({setCardModalOpen,cardModalOpen,index,item,images, setImages}
                 onCancel={handleCancel}
                 width={650}
                 footer={null}
-                style={{fontSize:'30px'}}
+                style={{ fontSize: '30px' }}
             >
                 {
                     item ? (
@@ -102,18 +102,13 @@ const CardModal = ({setCardModalOpen,cardModalOpen,index,item,images, setImages}
                                     <Typography level="body-sm">
                                         {item.description}
                                     </Typography>
-                                    <Quantity quantity={quantity} setQuantity={setQuantity}/>
-
+                                    <Quantity quantity={quantity} setQuantity={setQuantity} />
                                 </div>
                             </div>
                             <Table columns={columns} dataSource={data} pagination={false} />
-                            <div style={{marginTop: 16}}>Ընդհանու գումար {allTotal} դրամ</div>
-
+                            <div style={{ marginTop: 16 }}>Ընդհանու գումար {allTotal} դրամ</div>
                         </div>
-
-
                     ) : null
-
                 }
             </Modal>
         </div>
