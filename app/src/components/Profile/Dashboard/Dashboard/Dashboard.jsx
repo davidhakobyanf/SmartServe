@@ -27,7 +27,7 @@ import Quantity from "../../../../hoc/Quantity/Quantity";
 const Dashboard = () => {
     const {profileDataList, setProfileDataList} = useProfileData();
     const [modalOpen, setModalOpen] = useState(false)
-    const [quantity, setQuantity] = useState(0);
+    const [quantity, setQuantity] = useState(1);
     const [fetchProfile, profileLoading, profileError] = useFetching(async () => {
         try {
             const {data: res} = await clientAPI.getProfile();

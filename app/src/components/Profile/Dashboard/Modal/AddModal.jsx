@@ -131,8 +131,8 @@ const AddModal = ({ modalOpen,setModalOpen }) => {
                     </Form.Item>
                     <Form.Item  name='image' getValueFromEvent={getFile}>
                         <ImgCrop rotationSlider>
-                            <Upload fileList={fileList} onChange={onChange} onPreview={onPreview}>
-                                <Button icon={<UploadOutlined />}>Click to Upload</Button>
+                            <Upload  listType="picture-card" fileList={fileList} onChange={onChange} onPreview={onPreview}>
+                                Click to Upload
                             </Upload>
                         </ImgCrop>
                     </Form.Item>
