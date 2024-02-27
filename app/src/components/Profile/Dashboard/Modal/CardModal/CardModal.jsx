@@ -18,7 +18,6 @@ const CardModal = ({ setCardModalOpen, cardModalOpen, index, item, images, setIm
         setPlainOptions(item?.sauces?.map(option => ({ option, total: 0 })));
     }, [item]);
 
-
     useEffect(() => {
         const total = plainOptions?.reduce((acc, curr) => acc + curr.total, 0);
         setAllTotal(item?.price * quantity + total);
@@ -82,7 +81,7 @@ const CardModal = ({ setCardModalOpen, cardModalOpen, index, item, images, setIm
                 onCancel={handleCancel}
                 width={650}
                 footer={null}
-                style={{ fontSize: '30px' }}
+                className={css.modal}
             >
                 {
                     item ? (
@@ -99,9 +98,11 @@ const CardModal = ({ setCardModalOpen, cardModalOpen, index, item, images, setIm
 
                                 <div className={css.text}>
                                     <Typography level="title-lg" className={css.card_title}>{item.title}</Typography>
-                                    <Typography level="body-sm">
-                                        {item.description}
-                                    </Typography>
+                                    <div className={css.descriptionContainer}>
+                                        <Typography level="body-sm" className={css.card_description}>
+                                            {item.description}
+                                        </Typography>
+                                    </div>
                                     <Quantity quantity={quantity} setQuantity={setQuantity} />
                                 </div>
                             </div>

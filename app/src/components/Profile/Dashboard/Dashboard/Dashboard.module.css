@@ -57,7 +57,7 @@
     cursor: pointer;
     width: 200px;
     transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    height: 330px;
+    height: 350px;
 }
 .card:hover{
     transform: scale(1.05);

@@ -36,10 +36,12 @@ const Dashboard = () => {
             const {data: res} = await clientAPI.getProfile();
             if (res) {
                 setProfileDataList(res);
-                const importedImages = await Promise.all(
-                    res.card.map(item => import(`../../../../images/${item.image.name}`))
-                );
-                setImages(importedImages);
+                if (res.card){
+                    const importedImages = await Promise.all(
+                        res?.card?.map(item => import(`../../../../images/${item.image.name}`))
+                    );
+                    setImages(importedImages);
+                }
                 console.log(res, 'res')
             }
         } catch (error) {
