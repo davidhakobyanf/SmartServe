@@ -22,7 +22,11 @@ const CardModal = ({ setCardModalOpen, cardModalOpen, index, item, images, setIm
         const total = plainOptions?.reduce((acc, curr) => acc + curr.total, 0);
         setAllTotal(item?.price * quantity + total);
     }, [plainOptions, quantity, item]);
-
+    useEffect(() => {
+        setPlainOptions(item?.sauces?.map(option => ({ option, total: 0 })));
+        setSelectedOptions({}); // Сбросить выбранные опции при изменении item
+        setQuantity(1); // Сбросить количество при изменении item
+    }, [item]);
     const handleCancel = () => {
         setCardModalOpen(false);
     }
