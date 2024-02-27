@@ -31,6 +31,8 @@ const Dashboard = () => {
     const [modalOpen, setModalOpen] = useState(false)
     const [quantity, setQuantity] = useState(1);
     const [images, setImages] = useState([]);
+    const [selectedCardIndex, setSelectedCardIndex] = useState(null);
+    const [cardModalOpen, setCardModalOpen] = useState(false);
     const [fetchProfile, profileLoading, profileError] = useFetching(async () => {
         try {
             const {data: res} = await clientAPI.getProfile();
@@ -67,11 +69,12 @@ const Dashboard = () => {
     useEffect(() => {
         fetchProfile();
     }, [AddCardLoading]);
-    const getImageSrc = (fileName) => {
-        if (fileName) {
-            return `../../../../images/${fileName}`;
-        }
-    };
+
+    const modalCard = (index) => {
+        setCardModalOpen(true)
+        setSelectedCardIndex(index)
+        console.log(index,'index')
+    }
 
 
 
@@ -85,7 +88,7 @@ const Dashboard = () => {
             <div className={css.body}>
                 {profileDataList?.card?.map((item, index) => (
 
-                    <Card key={index} className={css.card}>
+                    <Card key={index} className={css.card} onClick={() => modalCard(index)}>
                         <div>
                             <Typography level="title-lg">{item.title}</Typography>
                             <Typography level="body-sm">
