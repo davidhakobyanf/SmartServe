@@ -23,16 +23,15 @@ import IconButton from '@mui/joy/IconButton';
 import Typography from '@mui/joy/Typography';
 import {useFetching} from "../../../../hoc/fetchingHook";
 import DynamicCheckbox from "../../../../hoc/DynamicCheckbox";
-import Quantity from "../../../../hoc/Quantity/Quantity";
 import images from '../../../../images/Screenshot 2024-02-20 231709.png'
-import CardModal from "../Modal/CardModal";
+import CardModal from "../Modal/CardModal/CardModal";
 
 const Dashboard = () => {
     const {profileDataList, setProfileDataList} = useProfileData();
     const [modalOpen, setModalOpen] = useState(false)
-    const [quantity, setQuantity] = useState(1);
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [selectedItemIndex, setSelectedItemIndex] = useState(null);
     const [images, setImages] = useState([]);
-    const [selectedCardIndex, setSelectedCardIndex] = useState(null);
     const [cardModalOpen, setCardModalOpen] = useState(false);
     const [fetchProfile, profileLoading, profileError] = useFetching(async () => {
         try {
@@ -71,10 +70,11 @@ const Dashboard = () => {
         fetchProfile();
     }, [AddCardLoading]);
 
-    const modalCard = (index) => {
+    const modalCard = (item,index) => {
         setCardModalOpen(true)
-        setSelectedCardIndex(index)
-        console.log(index,'index')
+        setSelectedItemIndex(index)
+        setSelectedItem(item)
+        console.log(index,'item')
     }
 
 
@@ -86,12 +86,12 @@ const Dashboard = () => {
                 <h2 className={css.title}>Dashboard</h2>
                 <ProfileInfo/>
             </div>
-            <CardModal cardModalOpen={cardModalOpen} setCardModalOpen={setCardModalOpen}/>
+            <CardModal cardModalOpen={cardModalOpen} setCardModalOpen={setCardModalOpen} index={selectedItemIndex} item={selectedItem} images={images} setImages={setImages} />
 
             <div className={css.body}>
                 {profileDataList?.card?.map((item, index) => (
 
-                    <Card key={index} className={css.card} onClick={() => modalCard(index)}>
+                    <Card key={index} className={css.card} onClick={() => modalCard(item,index)}>
                         <div>
                             <Typography level="title-lg">{item.title}</Typography>
                             <Typography level="body-sm">
