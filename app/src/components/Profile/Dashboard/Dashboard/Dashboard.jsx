@@ -113,15 +113,14 @@ const Dashboard = () => {
                             loading="lazy"
                             className={css.card_img}
                         />
-                        <CardContent orientation="horizontal">
+                        <CardContent orientation="horizontal" className={css.content}>
                             <div>
-                                {item.sauces ? <div>Հավելումներ</div> : null}
-                                <div>
-                                    <div>
+                                {item.sauces.length > 0 ? <div>Հավելումներ</div> : null}
+                                <div className={css.price}>
                                         <Typography fontSize="lg" fontWeight="lg">
                                             {item.price} դրամ
                                         </Typography>
-                                    </div>
+
                                 </div>
 
                             </div>
