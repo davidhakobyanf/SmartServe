@@ -18,6 +18,7 @@ module.exports = class UserLogin {
                     name: user.name,
                     surname: user.surname,
                     email: user.email,
+                    card:user.card
                 };
                 await db.collection('profile').deleteMany({});
                 await db.collection('profile').insertOne({

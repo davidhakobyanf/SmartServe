@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import Slider from 'react-slick';
 import css from './Dashboard.module.css';
 import ProfileInfo from '../ProfileInfo/ProfileInfo';
 import clientAPI from "../../../../api/api";
-import { useProfileData } from "../../../../context/ProfileDataContext";
+import {useProfileData} from "../../../../context/ProfileDataContext";
 import {
     ArrowUpOutlined,
     DownloadOutlined,
@@ -12,7 +12,7 @@ import {
     PlusCircleOutlined,
     PlusOutlined
 } from "@ant-design/icons";
-import { set } from "react-hook-form";
+import {set} from "react-hook-form";
 import AddModal from "../Modal/AddModal";
 import Card from '@mui/joy/Card';
 import AspectRatio from '@mui/joy/AspectRatio';
@@ -20,22 +20,17 @@ import Button from '@mui/joy/Button';
 import CardContent from '@mui/joy/CardContent';
 import IconButton from '@mui/joy/IconButton';
 import Typography from '@mui/joy/Typography';
-import { useFetching } from "../../../../hoc/fetchingHook";
+import {useFetching} from "../../../../hoc/fetchingHook";
 import DynamicCheckbox from "../../../../hoc/DynamicCheckbox";
+import Quantity from "../../../../hoc/Quantity/Quantity";
 
 const Dashboard = () => {
-    const { profileDataList, setProfileDataList } = useProfileData();
+    const {profileDataList, setProfileDataList} = useProfileData();
     const [modalOpen, setModalOpen] = useState(false)
-    const [checkedList, setCheckedList] = useState( ['Apple', 'Orange']);
-    const plainOptions = ['Apple', 'Pear', 'Orange'];
-    const checkAll = plainOptions.length === checkedList.length;
-    const indeterminate = checkedList.length > 0 && checkedList.length < plainOptions.length;
-    const onChange = (list) => {
-        setCheckedList(list);
-    };
+    const [quantity, setQuantity] = useState(0);
     const [fetchProfile, profileLoading, profileError] = useFetching(async () => {
         try {
-            const { data: res } = await clientAPI.getProfile();
+            const {data: res} = await clientAPI.getProfile();
             if (res) {
                 setProfileDataList(res);
                 console.log(res, 'res')
@@ -61,16 +56,11 @@ const Dashboard = () => {
     };
 
 
-
-
-
-
-
     return (
         <div className={css.dashboard}>
             <div className={css.header}>
                 <h2 className={css.title}>Dashboard</h2>
-                <ProfileInfo />
+                <ProfileInfo/>
             </div>
             <div className={css.body}>
                 {profileDataList?.card?.map((item, index) => (
@@ -83,9 +73,9 @@ const Dashboard = () => {
                                 variant="plain"
                                 color="neutral"
                                 size="sm"
-                                sx={{ position: 'absolute', top: '0.875rem', right: '0.5rem' }}
+                                sx={{position: 'absolute', top: '0.875rem', right: '0.5rem'}}
                             >
-                                <PlusCircleOutlined />
+                                <PlusCircleOutlined/>
                             </IconButton>
                         </div>
                         {item.image && (
@@ -100,7 +90,7 @@ const Dashboard = () => {
                         )}
                         <CardContent orientation="horizontal">
                             <div>
-                                <DynamicCheckbox initialOptions={item.sauces} />
+                                <DynamicCheckbox initialOptions={item.sauces}/>
                                 <div>
                                     <div>
                                         <Typography level="body-xs">Total price:</Typography>
@@ -108,13 +98,7 @@ const Dashboard = () => {
                                             {item.price}
                                         </Typography>
                                     </div>
-                                    <IconButton>
-                                        <PlusCircleOutlined />
-                                    </IconButton>
-                                    <IconButton>
-                                        <MinusCircleOutlined />
-                                    </IconButton>
-
+                                    <Quantity quantity={quantity} setQuantity={setQuantity}/>
                                 </div>
 
                             </div>
@@ -122,13 +106,13 @@ const Dashboard = () => {
                         </CardContent>
                     </Card>
                 ))}
-                <AddModal modalOpen={modalOpen} setModalOpen={setModalOpen} />
+                <AddModal modalOpen={modalOpen} setModalOpen={setModalOpen}/>
             </div>
             <div className={css.footer}>
 
             </div>
             <div className={css.scrollToTop} onClick={() => setModalOpen(true)}>
-                <ArrowUpOutlined />
+                <ArrowUpOutlined/>
             </div>
         </div>
     );
