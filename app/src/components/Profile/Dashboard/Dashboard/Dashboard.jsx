@@ -7,7 +7,7 @@ import {useProfileData} from "../../../../context/ProfileDataContext";
 import img from '../../../../images/Screenshot 2024-02-20 231709.png'
 import {
     ArrowUpOutlined,
-    DownloadOutlined,
+    DownloadOutlined, LogoutOutlined,
     MinusCircleOutlined,
     MinusOutlined,
     PlusCircleOutlined,
@@ -18,11 +18,14 @@ import AddModal from "../Modal/AddModal";
 import Card from '@mui/joy/Card';
 import AspectRatio from '@mui/joy/AspectRatio';
 import Button from '@mui/joy/Button';
+import { MdOutlineLogout } from "react-icons/md";
 import CardContent from '@mui/joy/CardContent';
 import IconButton from '@mui/joy/IconButton';
 import Typography from '@mui/joy/Typography';
 import {useFetching} from "../../../../hoc/fetchingHook";
 import CardModal from "../Modal/CardModal/CardModal";
+import { Input, Space } from 'antd';
+const { Search } = Input;
 
 const Dashboard = () => {
     const {profileDataList, setProfileDataList} = useProfileData();
@@ -79,14 +82,27 @@ const Dashboard = () => {
 
 
 
+    const onSearch = (value, _e, info) => console.log(info?.source, value);
 
     return (
         <div className={css.dashboard}>
             <div className={css.header}>
-                <h2 className={css.title}>Dashboard</h2>
                 <ProfileInfo/>
+                <div className={css.profile_search}>
+                    <Search
+                        placeholder="input search text"
+                        onSearch={onSearch}
+                        style={{
+                            width: 200,
+                        }}
+                    />
+                </div>
+                <div className={css.logout}>
+                    <MdOutlineLogout />
+                </div>
             </div>
-            <CardModal cardModalOpen={cardModalOpen} setCardModalOpen={setCardModalOpen} index={selectedItemIndex} item={selectedItem} images={images} setImages={setImages} />
+            <CardModal cardModalOpen={cardModalOpen} setCardModalOpen={setCardModalOpen} index={selectedItemIndex}
+                       item={selectedItem} images={images} setImages={setImages}/>
 
             <div className={css.body}>
                 {profileDataList?.card?.map((item, index) => (

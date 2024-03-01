@@ -31,12 +31,12 @@ const ProfileInfo = ({ username }) => {
         </LoadingSpin>
     );
   }
+  const onSearch = (value, _e, info) => console.log(info?.source, value);
 
   return (
     <div className={css.profile_name}>
       {userData ? (
         <>
-          <div className={css.profile_image}></div>
           <div className={css.profile_username}>
             {userData.name ? (
               <div className={css.text}>
