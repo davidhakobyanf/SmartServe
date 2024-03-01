@@ -9,6 +9,7 @@ const CardModal = ({ setCardModalOpen, cardModalOpen, index, item, images }) => 
     const [allTotal, setAllTotal] = useState(item?.price);
     const [plainOptions, setPlainOptions] = useState([]);
     const [selectedOptions, setSelectedOptions] = useState({});
+    const [modalWidth, setModalWidth] = useState(650); // Default width
 
     useEffect(() => {
         setAllTotal(item?.price * quantity);
@@ -22,11 +23,34 @@ const CardModal = ({ setCardModalOpen, cardModalOpen, index, item, images }) => 
         const total = plainOptions?.reduce((acc, curr) => acc + curr.total, 0);
         setAllTotal(item?.price * quantity + total);
     }, [plainOptions, quantity, item]);
+
     useEffect(() => {
         setPlainOptions(item?.sauces?.map(option => ({ option, total: 0 })));
-        setSelectedOptions({}); // Сбросить выбранные опции при изменении item
-        setQuantity(1); // Сбросить количество при изменении item
+        setSelectedOptions({});
+        setQuantity(1);
     }, [item]);
+
+    useEffect(() => {
+        // Update modal width based on screen width
+        const handleResize = () => {
+            if (window.innerWidth <= 330){
+                setModalWidth(250);
+
+            } else if (window.innerWidth <= 630) {
+                setModalWidth(400);
+            } else {
+                setModalWidth(650);
+            }
+        };
+
+        handleResize(); // Call once to set initial width
+
+        window.addEventListener('resize', handleResize);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, []);
+
     const handleCancel = () => {
         setCardModalOpen(false);
     }
@@ -83,7 +107,7 @@ const CardModal = ({ setCardModalOpen, cardModalOpen, index, item, images }) => 
                 title={item?.title}
                 open={cardModalOpen}
                 onCancel={handleCancel}
-                width={650}
+                width={modalWidth} // Dynamic width
                 footer={null}
                 className={css.modal}
             >

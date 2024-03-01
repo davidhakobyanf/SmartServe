@@ -6,12 +6,14 @@ import clientAPI from "../../api/api";
 import Content from "./Content/Content";
 
 const Profile = () => {
-    const navigate = useNavigate();
+
+    const navigate = useNavigate(); // Получаем функцию навигации
 
     useEffect(() => {
-        // Check if 'isLoggedIn' is true in localStorage
+        // Проверяем, авторизован ли пользователь
         const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
         if (!isLoggedIn) {
+            // Если пользователь не авторизован, перенаправляем на главную страницу
             navigate('/');
         }
     }, [navigate]);

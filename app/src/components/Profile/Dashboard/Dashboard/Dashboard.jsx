@@ -25,6 +25,7 @@ import Typography from '@mui/joy/Typography';
 import {useFetching} from "../../../../hoc/fetchingHook";
 import CardModal from "../Modal/CardModal/CardModal";
 import { Input, Space } from 'antd';
+import {useNavigate} from "react-router-dom";
 const { Search } = Input;
 
 const Dashboard = () => {
@@ -34,6 +35,7 @@ const Dashboard = () => {
     const [selectedItemIndex, setSelectedItemIndex] = useState(null);
     const [images, setImages] = useState([]);
     const [cardModalOpen, setCardModalOpen] = useState(false);
+    const navigate = useNavigate()
     const [fetchProfile, profileLoading, profileError] = useFetching(async () => {
         try {
             const {data: res} = await clientAPI.getProfile();
@@ -80,7 +82,12 @@ const Dashboard = () => {
         console.log(index,'item')
     }
 
-
+    const logoutHandler = () => {
+        // Remove 'isLoggedIn' from localStorage
+        localStorage.removeItem('isLoggedIn');
+        navigate("/")
+        // Additional logout logic if needed
+    };
 
     const onSearch = (value, _e, info) => console.log(info?.source, value);
 
@@ -97,7 +104,7 @@ const Dashboard = () => {
                         }}
                     />
                 </div>
-                <div className={css.logout}>
+                <div className={css.logout} onClick={logoutHandler}>
                     <MdOutlineLogout />
                 </div>
             </div>
@@ -133,9 +140,9 @@ const Dashboard = () => {
                             <div>
                                 {item.sauces.length > 0 ? <div>Հավելումներ</div> : null}
                                 <div className={css.price}>
-                                        <Typography fontSize="lg" fontWeight="lg">
-                                            {item.price} դրամ
-                                        </Typography>
+                                    <Typography fontSize="lg" fontWeight="lg">
+                                        {item.price} դրամ
+                                    </Typography>
 
                                 </div>
 
