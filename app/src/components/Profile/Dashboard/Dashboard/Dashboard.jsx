@@ -150,7 +150,7 @@ const Dashboard = () => {
 
             {/*</div>*/}
             <div className={css.scrollToTop} onClick={() => setModalOpen(true)}>
-                <ArrowUpOutlined/>
+                <PlusOutlined />
             </div>
         </div>
     );
