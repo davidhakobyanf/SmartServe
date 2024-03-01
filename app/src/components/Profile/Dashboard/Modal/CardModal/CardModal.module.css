@@ -3,24 +3,24 @@
     background-size: contain;
     background-repeat: no-repeat;
 }
-/*.card_description{*/
-/*    overflow: auto;*/
-/*    max-height: 200px;*/
+.card_description{
+    overflow: auto;
+    max-height: 200px;
 
-/*}*/
-/*.card_description::-webkit-scrollbar {*/
-/*    width: 7px !important;*/
-/*}*/
-/*.card_description::-webkit-scrollbar-track {*/
-/*    background: rgb(255, 255, 255);*/
-/*}*/
-/*.card_description::-webkit-scrollbar-thumb {*/
-/*    background: rgba(0, 0, 0, 0.2);*/
-/*    border-radius: 10px;*/
-/*}*/
-/*.card_description::-webkit-scrollbar-thumb:hover {*/
-/*    background: rgba(0, 0, 0, 0.2);*/
-/*}*/
+}
+.card_description::-webkit-scrollbar {
+    width: 7px !important;
+}
+.card_description::-webkit-scrollbar-track {
+    background: rgb(255, 255, 255);
+}
+.card_description::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+.card_description::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
 .container_top{
     display: flex;
     justify-content: space-between;
@@ -45,7 +45,7 @@
 }
 .modal{
      font-size: 30px;
-    overflow: auto;
+    overflow: auto !important;
     max-height: 578px;
  }
 .modal::-webkit-scrollbar {
