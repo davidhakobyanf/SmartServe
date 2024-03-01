@@ -1,6 +1,5 @@
 import React, {useEffect} from 'react';
 import css from './Profile.module.css'
-import Sitebar from "./Sitebar/Sitebar";
 import {useNavigate} from "react-router-dom";
 import {useFetching} from "../../hoc/fetchingHook";
 import clientAPI from "../../api/api";
@@ -18,7 +17,6 @@ const Profile = () => {
     }, [navigate]);
     return (
         <div className={css.all_page}>
-            <Sitebar />
             <Content />
         </div>
     );

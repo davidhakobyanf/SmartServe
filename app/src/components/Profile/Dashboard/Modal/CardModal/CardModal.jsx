@@ -4,7 +4,7 @@ import css from "./CardModal.module.css";
 import Typography from "@mui/joy/Typography";
 import Quantity from "../../../../../hoc/Quantity/Quantity";
 
-const CardModal = ({ setCardModalOpen, cardModalOpen, index, item, images, setImages }) => {
+const CardModal = ({ setCardModalOpen, cardModalOpen, index, item, images }) => {
     const [quantity, setQuantity] = useState(1);
     const [allTotal, setAllTotal] = useState(item?.price);
     const [plainOptions, setPlainOptions] = useState([]);
@@ -113,7 +113,9 @@ const CardModal = ({ setCardModalOpen, cardModalOpen, index, item, images, setIm
                                 </div>
                             </div>
                             <Table columns={columns} dataSource={data} pagination={false} />
-                            <div style={{ marginTop: 16,fontSize:"20px"}}>Ընդհանուր գումար <b>{allTotal}</b>  դրամ</div>
+                            <div style={{ marginTop: 16, fontSize: "20px" }}>
+                                Ընդհանուր գումար <b>{String(allTotal)}</b> դրամ
+                            </div>
                         </div>
                     ) : null
                 }
