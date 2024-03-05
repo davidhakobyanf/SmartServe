@@ -6,14 +6,17 @@ import Quantity from "../../../../../hoc/Quantity/Quantity";
 import IconButton from "@mui/joy/IconButton";
 import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
 import DeleteCardModal from "./DeleteCardModal/DeleteCardModal";
+import {useFetching} from "../../../../../hoc/fetchingHook";
+import clientAPI from "../../../../../api/api";
 
-const CardModal = ({setCardModalOpen, cardModalOpen, index, item, images}) => {
+const CardModal = ({setCardModalOpen, cardModalOpen, index, item, images,fetchProfile}) => {
     const [quantity, setQuantity] = useState(1);
     const [allTotal, setAllTotal] = useState(item?.price);
     const [plainOptions, setPlainOptions] = useState([]);
     const [selectedOptions, setSelectedOptions] = useState({});
     const [modalWidth, setModalWidth] = useState(650); // Default width
     const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false); // State for delete confirmation modal
+
 
     useEffect(() => {
         setAllTotal(item?.price * quantity);
@@ -73,10 +76,7 @@ const CardModal = ({setCardModalOpen, cardModalOpen, index, item, images}) => {
         }));
     };
 
-    const handleDelete = () => {
-        // Perform delete action here
-        setShowDeleteConfirmation(false);
-    };
+
 
     const handleDeleteCancel = () => {
         setShowDeleteConfirmation(false);
@@ -185,12 +185,16 @@ const CardModal = ({setCardModalOpen, cardModalOpen, index, item, images}) => {
                 }
             </Modal>
             <DeleteCardModal
+                fetchProfile={fetchProfile}
                 title={`Դուք իրոք ցանկանում եք ջնջել այս ${item?.title} քարտը?`}
                 isVisible={showDeleteConfirmation}
-                onOk={handleDelete}
                 onCancel={handleDeleteCancel}
+                setShowDeleteConfirmation={setShowDeleteConfirmation}
                 okText="Ջնջել"
-                cancelText="Չեղարկել"/>
+                cancelText="Չեղարկել"
+                card={item}
+                setCardModalOpen={setCardModalOpen}
+            />
         </div>
     );
 };

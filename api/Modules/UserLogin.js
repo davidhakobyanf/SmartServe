@@ -66,8 +66,8 @@ module.exports = class UserLogin {
 
     async deleteCard(req, res) {
         try {
-            const { number } = req.body;
-            const cardToDelete = { number };
+            const { id } = req.body;
+            const cardToDelete = { id };
 
             const user = await db.collection('profile').findOne({});
             const updatedProfile = await db.collection('profile').findOneAndUpdate(

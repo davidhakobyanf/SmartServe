@@ -40,6 +40,31 @@ class DataApi {
             throw error;
         }
     }
+    static async deleteCard(id) {
+        try {
+            const headers = {
+                Authorization: `Bearer`,
+                'Content-Type': 'application/json',
+            };
+            const response = await instance.request({
+                url: '/api/user/login',
+                method: 'delete',
+                headers,
+                data: {
+                    id: id,
+                },
+            });
+
+            console.log(`"${id}"`,'card')
+            console.log(response,'response')
+
+            return response;
+        } catch (error) {
+            console.error(error);
+            // Handle the error as needed, or rethrow it if further handling is required.
+            throw error;
+        }
+    }
 }
 
 export default DataApi;

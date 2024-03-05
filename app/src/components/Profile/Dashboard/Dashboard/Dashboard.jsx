@@ -127,7 +127,7 @@ const Dashboard = () => {
                 </div>
             </div>
             <CardModal cardModalOpen={cardModalOpen} setCardModalOpen={setCardModalOpen} index={selectedItemIndex}
-                       item={selectedItem} images={images} setImages={setImages}/>
+                       item={selectedItem} images={images} setImages={setImages} fetchProfile={fetchProfile}/>
 
             <div className={css.body}>
                 {profileDataList?.card?.map((item, index) => (
@@ -166,7 +166,7 @@ const Dashboard = () => {
                         </CardContent>
                     </Card>
                 ))}
-                <AddModal modalOpen={modalOpen} setModalOpen={setModalOpen} fetchAddCard={fetchAddCard}/>
+                <AddModal modalOpen={modalOpen} setModalOpen={setModalOpen} fetchAddCard={fetchAddCard}  />
             </div>
             {/*<div className={css.footer}>*/}
 
