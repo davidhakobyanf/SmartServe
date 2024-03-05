@@ -89,7 +89,12 @@
     display: flex;
     align-items: end;
 }
-
+.card_buttons{
+    width: 100%;
+    display: flex;
+    justify-content: end;
+    align-items: center;
+}
 .bodyLeft {
     width: 50%;
     height: 100%;
