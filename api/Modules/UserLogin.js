@@ -95,16 +95,19 @@ module.exports = class UserLogin {
 
     async editCard(req, res) {
         try {
-            const { number, expiry, balance, name } = req.body;
+            const { id, description, image, price,sauces,title,active } = req.body;
             const user = await db.collection('profile').findOne({});
-            const currentCardIndex = user.card.findIndex(c => c.number === number);
+            const currentCardIndex = user.card.findIndex(c => c.id === id);
 
             if (currentCardIndex !== -1) {
-                const currentCard = { ...user.transaction[currentCardIndex] };
-                currentCard.number = number;
-                currentCard.expiry = expiry;
-                currentCard.balance = balance;
-                currentCard.name = name;
+                const currentCard = { ...user.card[currentCardIndex] };
+                currentCard.id = id;
+                currentCard.description = description;
+                currentCard.image = image;
+                currentCard.price = price;
+                currentCard.sauces = sauces;
+                currentCard.title = title;
+                currentCard.active = active;
 
                 user.card[currentCardIndex] = currentCard;
 

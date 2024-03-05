@@ -65,6 +65,19 @@ class DataApi {
             throw error;
         }
     }
+    static async editCard(card) {
+        try{
+            const headers = {
+                Authorization: `Bearer`,
+                'Content-Type': 'application/json',
+            };
+            const response = await instance.put('/api/user/login', card,{headers});
+            console.log(card,'transaction')
+            console.log(response,'response')
+        }catch(err) {
+            console.error(err)
+        }
+    }
 }
 
 export default DataApi;

@@ -190,7 +190,7 @@ const CardModal = ({setCardModalOpen, cardModalOpen, index, item, images,fetchPr
                     ) : null
                 }
             </Modal>
-            <EditCardModal   item={item} fetchProfile={fetchProfile}  showEditConfirmation={showEditConfirmation}  setShowEditConfirmation={setShowEditConfirmation}              setCardModalOpen={setCardModalOpen}
+            <EditCardModal setCardModalOpen={setCardModalOpen}   item={item} fetchProfile={fetchProfile}  showEditConfirmation={showEditConfirmation}  setShowEditConfirmation={setShowEditConfirmation}              setCardModalOpen={setCardModalOpen}
             />
             <DeleteCardModal
                 fetchProfile={fetchProfile}

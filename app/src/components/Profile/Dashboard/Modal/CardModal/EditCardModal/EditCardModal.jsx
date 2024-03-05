@@ -2,11 +2,25 @@ import React, {useEffect, useState} from 'react';
 import { Button, Input, Modal, Select, Form, Upload } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
 import { UploadOutlined } from "@ant-design/icons";
-
-const EditCardModal = ({ item, fetchAddCard,setShowEditConfirmation, showEditConfirmation }) => {
+import {useFetching} from "../../../../../../hoc/fetchingHook";
+import clientAPI from "../../../../../../api/api"
+const EditCardModal = ({ item, fetchProfile,setShowEditConfirmation, showEditConfirmation,setCardModalOpen }) => {
     const [form] = Form.useForm();
     const [fileList, setFileList] = useState([
     ]);
+    const [editCard,editCardLoading,editCardError] = useFetching(async (card) => {
+        try {
+            const {data:res} = await clientAPI.editCard(card) || {};
+        }catch (err){
+            console.error('Error fetching profile:', err);
+
+        }
+    })
+    useEffect(() => {
+        setShowEditConfirmation(false)
+        setCardModalOpen(false)
+        fetchProfile()
+    }, [editCardLoading]);
     useEffect(() => {
         if (item) {
             form.setFieldsValue(item); // Установить новые начальные значения формы на основе item
@@ -14,12 +28,6 @@ const EditCardModal = ({ item, fetchAddCard,setShowEditConfirmation, showEditCon
         }
     }, [item, form]);
 
-    useEffect(() => {
-        if (item) {
-            setFileList([item?.image]);
-            console.log(fileList,'fileList')
-        }
-    }, [item]);
     const onChange = ({ fileList: newFileList }) => {
         setFileList(newFileList);
     };
@@ -44,8 +52,8 @@ const EditCardModal = ({ item, fetchAddCard,setShowEditConfirmation, showEditCon
         const image = fileList.length > 0 ? fileList[0] : null;
 
         // Обновляем объект значений с изображением
-        const updatedValues = { ...values, image, active: true };
-
+        const updatedValues = { ...values, image, active: true,id:item?.id};
+        editCard(updatedValues)
         // Выводим обновленные значения в консоль
         console.log(updatedValues,'updatedValues');
 
