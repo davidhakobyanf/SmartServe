@@ -8,6 +8,7 @@ import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
 import DeleteCardModal from "./DeleteCardModal/DeleteCardModal";
 import {useFetching} from "../../../../../hoc/fetchingHook";
 import clientAPI from "../../../../../api/api";
+import EditCardModal from "../CardModal/EditCardModal/EditCardModal";
 
 const CardModal = ({setCardModalOpen, cardModalOpen, index, item, images,fetchProfile}) => {
     const [quantity, setQuantity] = useState(1);
@@ -16,6 +17,7 @@ const CardModal = ({setCardModalOpen, cardModalOpen, index, item, images,fetchPr
     const [selectedOptions, setSelectedOptions] = useState({});
     const [modalWidth, setModalWidth] = useState(650); // Default width
     const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false); // State for delete confirmation modal
+    const [showEditConfirmation, setShowEditConfirmation] = useState(false); // State for delete confirmation modal
 
 
     useEffect(() => {
@@ -85,7 +87,9 @@ const CardModal = ({setCardModalOpen, cardModalOpen, index, item, images,fetchPr
     const handleShowDeleteConfirmation = () => {
         setShowDeleteConfirmation(true);
     };
-
+    const handleShowEditConfirmation = () => {
+        setShowEditConfirmation(true);
+    };
     const columns = [
         {
             title: 'Սոուսներ',
@@ -166,7 +170,9 @@ const CardModal = ({setCardModalOpen, cardModalOpen, index, item, images,fetchPr
                                         color="neutral"
                                         size="sm"
                                     >
-                                        <EditOutlined className={css.icons} style={{color: 'blue'}}/>
+                                        <EditOutlined className={css.icons} style={{color: 'blue'}}
+                                        onClick={handleShowEditConfirmation}
+                                        />
                                     </IconButton>
                                     <IconButton
                                         aria-label={`bookmark ${item.title}`}
@@ -184,6 +190,8 @@ const CardModal = ({setCardModalOpen, cardModalOpen, index, item, images,fetchPr
                     ) : null
                 }
             </Modal>
+            <EditCardModal   item={item} fetchProfile={fetchProfile}  showEditConfirmation={showEditConfirmation}  setShowEditConfirmation={setShowEditConfirmation}              setCardModalOpen={setCardModalOpen}
+            />
             <DeleteCardModal
                 fetchProfile={fetchProfile}
                 title={`Դուք իրոք ցանկանում եք ջնջել այս ${item?.title} քարտը?`}
