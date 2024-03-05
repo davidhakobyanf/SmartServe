@@ -89,7 +89,19 @@ const Dashboard = () => {
         // Additional logout logic if needed
     };
 
-    const onSearch = (value, _e, info) => console.log(info?.source, value);
+
+    const onSearch = (value) => {
+        console.log(value);
+        if (value.trim() === '') {
+            fetchProfile(); // Если строка поиска пуста, возвращаем все карточки
+        } else {
+            const filteredCards = profileDataList.card.filter((card) =>
+                card.title.toLowerCase().includes(value.toLowerCase())
+            );
+            setProfileDataList({ ...profileDataList, card: filteredCards });
+            console.log(profileDataList, 'profileDataList');
+        }
+    };
 
     return (
         <div className={css.dashboard}>
@@ -98,7 +110,7 @@ const Dashboard = () => {
                 <div className={css.profile_search}>
                     <Search
                         placeholder="input search text"
-                        onSearch={onSearch}
+                        onChange={(e) => onSearch(e.target.value)}
                         style={{
                             width: 200,
                         }}
