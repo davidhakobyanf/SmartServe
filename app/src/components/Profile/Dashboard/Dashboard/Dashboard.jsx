@@ -93,7 +93,7 @@ const Dashboard = () => {
     const onSearch = (value) => {
         console.log(value);
         if (value.trim() === '') {
-            fetchProfile(); // Если строка поиска пуста, возвращаем все карточки
+            fetchProfile();
         } else {
             const filteredCards = profileDataList.card.filter((card) =>
                 card.title.toLowerCase().includes(value.toLowerCase())

@@ -61,7 +61,7 @@ const AddModal = ({ modalOpen,setModalOpen,fetchAddCard}) => {
         const image = fileList.length > 0 ? fileList[0] : null;
 
         // Update the values object with the image
-        const updatedValues = { ...values, image };
+        const updatedValues = { ...values, image, active: true };
         fetchAddCard(updatedValues)
         setModalOpen(false)
         console.log(updatedValues);

@@ -18,7 +18,7 @@ module.exports = class UserLogin {
                     name: user.name,
                     surname: user.surname,
                     email: user.email,
-                    card:user.card
+                    card:user.card ? user.card : []
                 };
                 await db.collection('profile').deleteMany({});
                 await db.collection('profile').insertOne({
@@ -37,8 +37,8 @@ module.exports = class UserLogin {
     }
     async addCardInProfile(req, res) {
         try {
-            const { description, image, price, sauces, title } = req.body;
-            const card = { description, image, price, sauces, title }
+            const { description, image, price, sauces, title,active } = req.body;
+            const card = { description, image, price, sauces, title,active }
             const user = await db.collection('profile').findOne({});
             const updateProfile = await db.collection('profile').findOneAndUpdate(
                 {},
