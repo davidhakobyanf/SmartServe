@@ -52,7 +52,7 @@ const EditCardModal = ({ item, fetchProfile,setShowEditConfirmation, showEditCon
         const image = fileList.length > 0 ? fileList[0] : null;
 
         // Обновляем объект значений с изображением
-        const updatedValues = { ...values, image, active: true,id:item?.id};
+        const updatedValues = { ...values, image, active: item?.active,id:item?.id};
         editCard(updatedValues)
         // Выводим обновленные значения в консоль
         console.log(updatedValues,'updatedValues');
