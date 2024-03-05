@@ -77,8 +77,12 @@
     width: 200px;
     transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     height: 350px;
-}
 
+}
+.card_unactive{
+    pointer-events: none;
+    opacity: 0.5;
+}
 .card:hover {
     transform: scale(1.05);
     box-shadow: 0px 0px 20px 1px rgba(0, 111, 255, 0.25);

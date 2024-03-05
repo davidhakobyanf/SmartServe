@@ -31,6 +31,7 @@ const {Search} = Input;
 
 const Dashboard = () => {
     const {profileDataList, setProfileDataList} = useProfileData();
+    const [cardActive, setCardActive] = useState({})
     const [modalOpen, setModalOpen] = useState(false)
     const [selectedItem, setSelectedItem] = useState(null);
     const [selectedItemIndex, setSelectedItemIndex] = useState(null);
@@ -60,6 +61,14 @@ const Dashboard = () => {
             profileLoading(false);
         }
     });
+    const [editCard,editCardLoading,editCardError] = useFetching(async (card) => {
+        try {
+            const {data:res} = await clientAPI.editCard(card) || {};
+        }catch (err){
+            console.error('Error fetching profile:', err);
+
+        }
+    })
     const [fetchAddCard, AddCardLoading, AddCardError] = useFetching(async (formData) => {
         try {
             const {data: res} = await clientAPI.createCard(formData);
@@ -78,10 +87,15 @@ const Dashboard = () => {
     }, []);
     useEffect(() => {
         fetchProfile();
-    }, [AddCardLoading]);
+    }, [AddCardLoading,editCardLoading]);
+    useEffect(() => {
+        if (Object.keys(cardActive).length !== 0) {
+            editCard(cardActive);
+        }
+    }, [cardActive]);
+
     console.log(images, 'images')
     const modalCard = (item, index) => {
-        setCardModalOpen(true)
         setSelectedItemIndex(index)
         setSelectedItem(item)
         console.log(index, 'index')
@@ -109,6 +123,16 @@ const Dashboard = () => {
         console.log(profileDataList, 'profileDataList');
 
     };
+    const toggleActive = (id) => {
+        setCardActive(prevActive => {
+            const updatedCard = profileDataList.card.find(item => item.id === id);
+            if (updatedCard) {
+                return { ...updatedCard, active: !updatedCard.active };
+            } else {
+                return prevActive;
+            }
+        });
+    };
 
     return (
         <div className={css.dashboard}>
@@ -133,7 +157,7 @@ const Dashboard = () => {
             <div className={css.body}>
                 {profileDataList?.card?.map((item, index) => (
                     <Card key={index} className={css.card} onClick={() => modalCard(item, index)}>
-                        <div>
+                        <div                             onClick={() => setCardModalOpen(true)}>
                             <Typography level="title-lg">{item.title}</Typography>
                             <Typography level="body-sm">
                                 {item.description.length > 45 ? `${item.description.slice(0, 45)}...` : item.description}
@@ -153,9 +177,10 @@ const Dashboard = () => {
                             alt={item.title}
                             loading="lazy"
                             className={css.card_img}
+                            onClick={() => setCardModalOpen(true)}
                         />
                         <CardContent orientation="horizontal" className={css.content}>
-                            <div className={css.footerLeft}>
+                            <div className={css.footerLeft}                             onClick={() => setCardModalOpen(true)}>
                                 {item.sauces.length > 0 ? <div>Հավելումներ</div> : null}
                                 <div className={css.price}>
                                     <Typography fontSize="lg" fontWeight="lg">
@@ -164,7 +189,7 @@ const Dashboard = () => {
                                 </div>
                             </div>
                             <div className={css.footerRight}>
-                                <Switch defaultChecked={item?.active}  />
+                                <Switch defaultChecked={item?.active} onClick={() => toggleActive(item.id)}/>
                             </div>
                         </CardContent>
                     </Card>
