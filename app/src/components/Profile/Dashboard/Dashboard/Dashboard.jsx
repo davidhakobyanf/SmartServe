@@ -18,15 +18,16 @@ import AddModal from "../Modal/AddModal";
 import Card from '@mui/joy/Card';
 import AspectRatio from '@mui/joy/AspectRatio';
 import Button from '@mui/joy/Button';
-import { MdOutlineLogout } from "react-icons/md";
+import {MdOutlineLogout} from "react-icons/md";
 import CardContent from '@mui/joy/CardContent';
 import IconButton from '@mui/joy/IconButton';
 import Typography from '@mui/joy/Typography';
 import {useFetching} from "../../../../hoc/fetchingHook";
 import CardModal from "../Modal/CardModal/CardModal";
-import { Input, Space } from 'antd';
+import {Input, Space, Switch} from 'antd';
 import {useNavigate} from "react-router-dom";
-const { Search } = Input;
+
+const {Search} = Input;
 
 const Dashboard = () => {
     const {profileDataList, setProfileDataList} = useProfileData();
@@ -41,11 +42,11 @@ const Dashboard = () => {
             const {data: res} = await clientAPI.getProfile();
             if (res) {
                 setProfileDataList(res);
-                if (res.card){
+                if (res.card) {
                     const importedImages = await Promise.all(
                         res.card.map(async (item) => {
                             const imageModule = await import(`../../../../images/${item.image.name}`);
-                            return { id: item.id, default: imageModule.default };
+                            return {id: item.id, default: imageModule.default};
                         })
                     );
                     setImages(importedImages);
@@ -61,11 +62,11 @@ const Dashboard = () => {
     });
     const [fetchAddCard, AddCardLoading, AddCardError] = useFetching(async (formData) => {
         try {
-            const { data: res } = await clientAPI.createCard(formData);
+            const {data: res} = await clientAPI.createCard(formData);
             if (res) {
                 console.log(res, 'res');
                 const updatedCardArray = res.card ? [...res.card, formData] : [formData];
-                const updatedRes = { ...res, card: updatedCardArray };
+                const updatedRes = {...res, card: updatedCardArray};
                 // Use the updatedRes object as needed (e.g., store in state or update UI)
             }
         } catch (error) {
@@ -78,13 +79,13 @@ const Dashboard = () => {
     useEffect(() => {
         fetchProfile();
     }, [AddCardLoading]);
-    console.log(images,'images')
-    const modalCard = (item,index) => {
+    console.log(images, 'images')
+    const modalCard = (item, index) => {
         setCardModalOpen(true)
         setSelectedItemIndex(index)
         setSelectedItem(item)
-        console.log(index,'index')
-        console.log(item,'item')
+        console.log(index, 'index')
+        console.log(item, 'item')
     }
 
     const logoutHandler = () => {
@@ -103,7 +104,7 @@ const Dashboard = () => {
             const filteredCards = profileDataList.card.filter((card) =>
                 card.title.toLowerCase().includes(value.toLowerCase())
             );
-            setProfileDataList({ ...profileDataList, card: filteredCards });
+            setProfileDataList({...profileDataList, card: filteredCards});
         }
         console.log(profileDataList, 'profileDataList');
 
@@ -123,7 +124,7 @@ const Dashboard = () => {
                     />
                 </div>
                 <div className={css.logout} onClick={logoutHandler}>
-                    <MdOutlineLogout />
+                    <MdOutlineLogout/>
                 </div>
             </div>
             <CardModal cardModalOpen={cardModalOpen} setCardModalOpen={setCardModalOpen} index={selectedItemIndex}
@@ -131,7 +132,7 @@ const Dashboard = () => {
 
             <div className={css.body}>
                 {profileDataList?.card?.map((item, index) => (
-                    <Card key={index} className={css.card} onClick={() => modalCard(item,index)}>
+                    <Card key={index} className={css.card} onClick={() => modalCard(item, index)}>
                         <div>
                             <Typography level="title-lg">{item.title}</Typography>
                             <Typography level="body-sm">
@@ -154,7 +155,7 @@ const Dashboard = () => {
                             className={css.card_img}
                         />
                         <CardContent orientation="horizontal" className={css.content}>
-                            <div>
+                            <div className={css.footerLeft}>
                                 {item.sauces.length > 0 ? <div>Հավելումներ</div> : null}
                                 <div className={css.price}>
                                     <Typography fontSize="lg" fontWeight="lg">
@@ -162,17 +163,19 @@ const Dashboard = () => {
                                     </Typography>
                                 </div>
                             </div>
-
+                            <div className={css.footerRight}>
+                                <Switch defaultChecked={item?.active}  />
+                            </div>
                         </CardContent>
                     </Card>
                 ))}
-                <AddModal modalOpen={modalOpen} setModalOpen={setModalOpen} fetchAddCard={fetchAddCard}  />
+                <AddModal modalOpen={modalOpen} setModalOpen={setModalOpen} fetchAddCard={fetchAddCard}/>
             </div>
             {/*<div className={css.footer}>*/}
 
             {/*</div>*/}
             <div className={css.scrollToTop} onClick={() => setModalOpen(true)}>
-                <PlusOutlined />
+                <PlusOutlined/>
             </div>
         </div>
     );
