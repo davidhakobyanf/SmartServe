@@ -162,24 +162,7 @@ const Dashboard = () => {
                                     </Typography>
                                 </div>
                             </div>
-                            <div className={css.card_buttons}>
-                                <IconButton
-                                    aria-label={`bookmark ${item.title}`}
-                                    variant="plain"
-                                    color="neutral"
-                                    size="sm"
-                                >
-                                    <EditOutlined style={{color:'blue'}}/>
-                                </IconButton>
-                                <IconButton
-                                    aria-label={`bookmark ${item.title}`}
-                                    variant="plain"
-                                    color="neutral"
-                                    size="sm"
-                                >
-                                    <DeleteOutlined style={{color:"red"}}/>
-                                </IconButton>
-                            </div>
+
                         </CardContent>
                     </Card>
                 ))}

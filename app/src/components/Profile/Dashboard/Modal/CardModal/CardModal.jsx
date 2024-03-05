@@ -1,22 +1,26 @@
-import React, { useEffect, useState } from 'react';
-import { Modal, Table, Checkbox } from "antd";
+import React, {useEffect, useState} from 'react';
+import {Modal, Table, Checkbox} from "antd";
 import css from "./CardModal.module.css";
 import Typography from "@mui/joy/Typography";
 import Quantity from "../../../../../hoc/Quantity/Quantity";
+import IconButton from "@mui/joy/IconButton";
+import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import DeleteCardModal from "./DeleteCardModal/DeleteCardModal";
 
-const CardModal = ({ setCardModalOpen, cardModalOpen, index, item, images }) => {
+const CardModal = ({setCardModalOpen, cardModalOpen, index, item, images}) => {
     const [quantity, setQuantity] = useState(1);
     const [allTotal, setAllTotal] = useState(item?.price);
     const [plainOptions, setPlainOptions] = useState([]);
     const [selectedOptions, setSelectedOptions] = useState({});
     const [modalWidth, setModalWidth] = useState(650); // Default width
+    const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false); // State for delete confirmation modal
 
     useEffect(() => {
         setAllTotal(item?.price * quantity);
     }, [item, quantity]);
 
     useEffect(() => {
-        setPlainOptions(item?.sauces?.map(option => ({ option, total: 0 })));
+        setPlainOptions(item?.sauces?.map(option => ({option, total: 0})));
     }, [item]);
 
     useEffect(() => {
@@ -25,7 +29,7 @@ const CardModal = ({ setCardModalOpen, cardModalOpen, index, item, images }) => 
     }, [plainOptions, quantity, item]);
 
     useEffect(() => {
-        setPlainOptions(item?.sauces?.map(option => ({ option, total: 0 })));
+        setPlainOptions(item?.sauces?.map(option => ({option, total: 0})));
         setSelectedOptions({});
         setQuantity(1);
     }, [item]);
@@ -33,7 +37,7 @@ const CardModal = ({ setCardModalOpen, cardModalOpen, index, item, images }) => 
     useEffect(() => {
         // Update modal width based on screen width
         const handleResize = () => {
-            if (window.innerWidth <= 330){
+            if (window.innerWidth <= 330) {
                 setModalWidth(250);
 
             } else if (window.innerWidth <= 630) {
@@ -63,10 +67,23 @@ const CardModal = ({ setCardModalOpen, cardModalOpen, index, item, images }) => 
 
         setPlainOptions(prevOptions => prevOptions?.map(option => {
             if (option.option === key) {
-                return { ...option, total: checked ? 350 : 0 };
+                return {...option, total: checked ? 350 : 0};
             }
             return option;
         }));
+    };
+
+    const handleDelete = () => {
+        // Perform delete action here
+        setShowDeleteConfirmation(false);
+    };
+
+    const handleDeleteCancel = () => {
+        setShowDeleteConfirmation(false);
+    };
+
+    const handleShowDeleteConfirmation = () => {
+        setShowDeleteConfirmation(true);
     };
 
     const columns = [
@@ -126,24 +143,55 @@ const CardModal = ({ setCardModalOpen, cardModalOpen, index, item, images }) => 
 
                                 <div className={css.text}>
                                     <div>
-                                        <Typography level="title-lg" className={css.card_title}>{item.title}</Typography>
+                                        <Typography level="title-lg"
+                                                    className={css.card_title}>{item.title}</Typography>
                                         <div className={css.descriptionContainer}>
                                             <Typography level="body-sm" className={css.card_description}>
                                                 {item.description}
                                             </Typography>
                                         </div>
                                     </div>
-                                    <Quantity quantity={quantity} setQuantity={setQuantity} />
+                                    <Quantity quantity={quantity} setQuantity={setQuantity}/>
                                 </div>
                             </div>
-                            <Table columns={columns} dataSource={data} pagination={false} />
-                            <div style={{ marginTop: 16, fontSize: "20px" }}>
-                                Ընդհանուր գումար <b>{String(allTotal)}</b> դրամ
+                            <Table columns={columns} dataSource={data} pagination={false}/>
+                            <div className={css.modal_footer}>
+                                <div style={{marginTop: 16, fontSize: "20px"}}>
+                                    Ընդհանուր գումար <b>{String(allTotal)}</b> դրամ
+                                </div>
+                                <div className={css.card_buttons}>
+                                    <IconButton
+                                        aria-label={`bookmark ${item.title}`}
+                                        variant="plain"
+                                        color="neutral"
+                                        size="sm"
+                                    >
+                                        <EditOutlined className={css.icons} style={{color: 'blue'}}/>
+                                    </IconButton>
+                                    <IconButton
+                                        aria-label={`bookmark ${item.title}`}
+                                        variant="plain"
+                                        color="neutral"
+                                        size="sm"
+                                        onClick={handleShowDeleteConfirmation} // Show delete confirmation modal
+                                    >
+                                        <DeleteOutlined className={css.icons} style={{color: "red"}}/>
+                                    </IconButton>
+                                </div>
                             </div>
+
                         </div>
                     ) : null
                 }
             </Modal>
+            {/* Delete confirmation modal */}
+            <DeleteCardModal
+                title={`Դուք իրոք ցանկանում եք ջնջել այս ${item?.title} քարտը?`}
+                isVisible={showDeleteConfirmation}
+                onOk={handleDelete}
+                onCancel={handleDeleteCancel}
+                okText="Ջնջել"
+                cancelText="Չեղարկել"/>
         </div>
     );
 };
