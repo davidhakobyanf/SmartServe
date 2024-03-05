@@ -184,7 +184,6 @@ const CardModal = ({setCardModalOpen, cardModalOpen, index, item, images}) => {
                     ) : null
                 }
             </Modal>
-            {/* Delete confirmation modal */}
             <DeleteCardModal
                 title={`Դուք իրոք ցանկանում եք ջնջել այս ${item?.title} քարտը?`}
                 isVisible={showDeleteConfirmation}
