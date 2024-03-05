@@ -1,5 +1,7 @@
 const { connectToDb, getDb } = require('../db');
 const bcrypt = require('bcrypt');
+const { v4: uuidv4 } = require('uuid');
+
 let db;
 connectToDb((error) => {
     if (!error) {
@@ -37,28 +39,30 @@ module.exports = class UserLogin {
     }
     async addCardInProfile(req, res) {
         try {
-            const { description, image, price, sauces, title,active } = req.body;
-            const card = { description, image, price, sauces, title,active }
+            const { description, image, price, sauces, title, active } = req.body;
+            const cardId = uuidv4(); // Генерация уникального идентификатора
+            const card = { id: cardId, description, image, price, sauces, title, active };
             const user = await db.collection('profile').findOne({});
             const updateProfile = await db.collection('profile').findOneAndUpdate(
                 {},
                 { $push: { card: card } },
                 { returnOriginal: false }
-            )
+            );
             const updateInUsers = await db.collection('users').findOneAndUpdate(
                 { email: user.email },
                 { $push: { card: card } },
                 { returnOriginal: false }
-            )
+            );
             if (updateProfile && updateInUsers) {
-                res.send(updateInUsers)
+                res.send(updateInUsers);
             } else {
-                res.status(404).json({ err: "something gonna wrong" })
+                res.status(404).json({ err: "something gonna wrong" });
             }
         } catch (err) {
-            res.status(500).json({ err: 'server error' })
+            res.status(500).json({ err: 'server error' });
         }
     }
+
 
     async deleteCard(req, res) {
         try {

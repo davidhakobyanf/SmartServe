@@ -43,10 +43,14 @@ const Dashboard = () => {
                 setProfileDataList(res);
                 if (res.card){
                     const importedImages = await Promise.all(
-                        res?.card?.map(item => import(`../../../../images/${item.image.name}`))
+                        res.card.map(async (item) => {
+                            const imageModule = await import(`../../../../images/${item.image.name}`);
+                            return { id: item.id, default: imageModule.default };
+                        })
                     );
                     setImages(importedImages);
                 }
+
                 console.log(res, 'res')
             }
         } catch (error) {
@@ -74,12 +78,13 @@ const Dashboard = () => {
     useEffect(() => {
         fetchProfile();
     }, [AddCardLoading]);
-
+    console.log(images,'images')
     const modalCard = (item,index) => {
         setCardModalOpen(true)
         setSelectedItemIndex(index)
         setSelectedItem(item)
-        console.log(index,'item')
+        console.log(index,'index')
+        console.log(item,'item')
     }
 
     const logoutHandler = () => {
@@ -99,8 +104,9 @@ const Dashboard = () => {
                 card.title.toLowerCase().includes(value.toLowerCase())
             );
             setProfileDataList({ ...profileDataList, card: filteredCards });
-            console.log(profileDataList, 'profileDataList');
         }
+        console.log(profileDataList, 'profileDataList');
+
     };
 
     return (
@@ -125,7 +131,6 @@ const Dashboard = () => {
 
             <div className={css.body}>
                 {profileDataList?.card?.map((item, index) => (
-
                     <Card key={index} className={css.card} onClick={() => modalCard(item,index)}>
                         <div>
                             <Typography level="title-lg">{item.title}</Typography>
@@ -143,7 +148,7 @@ const Dashboard = () => {
                             </IconButton>
                         </div>
                         <img
-                            src={images[index]?.default}
+                            src={images.find(image => image.id === item.id)?.default}
                             alt={item.title}
                             loading="lazy"
                             className={css.card_img}
@@ -155,11 +160,8 @@ const Dashboard = () => {
                                     <Typography fontSize="lg" fontWeight="lg">
                                         {item.price} դրամ
                                     </Typography>
-
                                 </div>
-
                             </div>
-
                         </CardContent>
                     </Card>
                 ))}
