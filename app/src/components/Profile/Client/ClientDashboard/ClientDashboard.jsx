@@ -13,13 +13,15 @@ import IconButton from '@mui/joy/IconButton';
 import Typography from '@mui/joy/Typography';
 import {useFetching} from "../../../../hoc/fetchingHook";
 import {Input,Switch} from 'antd';
-import {useNavigate} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import AddModal from "../../Admin/Modal/AddModal";
 import CardModal from "../../Admin/Modal/CardModal/CardModal";
 import logo from '../../../../images/logo.jpg'
 const {Search} = Input;
 
 const ClientDashboard = () => {
+    const { clientId } = useParams();
+    console.log("clientId:", clientId);
     const {profileDataList, setProfileDataList} = useProfileData();
     const [cardActive, setCardActive] = useState({})
     const [modalOpen, setModalOpen] = useState(false)

@@ -1,0 +1,49 @@
+.clientTable{
+    padding-top: 50px;
+    padding-bottom: 50px;
+    width: 100%;
+    height: 75%;
+    display: grid;
+    grid-template-columns: auto auto auto auto;
+    column-gap: 10px;
+    row-gap: 20px;
+    overflow: auto;
+    justify-content: space-around;
+}
+.clientTable::-webkit-scrollbar {
+    width: 7px !important;
+}
+
+.clientTable::-webkit-scrollbar-track {
+    background: rgb(255, 255, 255);
+}
+
+.clientTable::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
+.clientTable::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+.chair{
+    cursor: pointer;
+    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.chair:hover {
+    transform: scale(1.05);
+    box-shadow: 0px 0px 20px 1px rgba(0, 111, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.454);
+}
+@media screen and (max-width: 500px) {
+    .clientTable {
+        grid-template-columns: auto auto auto;
+
+    }
+}
+@media screen and (max-width: 340px) {
+    .clientTable {
+        grid-template-columns: auto auto;
+
+    }
+}

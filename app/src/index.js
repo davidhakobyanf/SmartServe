@@ -10,11 +10,16 @@ import Profile from "./components/Profile/Profile";
 import Dashboard from "./components/Profile/Admin/Dashboard/Dashboard";
 import {ProfileDataProvider} from "./context/ProfileDataContext";
 import ClientDashboard from "./components/Profile/Client/ClientDashboard/ClientDashboard";
+import ClientTable from "./components/Profile/Client/ClientTable/ClientTable";
 
 const router = createBrowserRouter([
     {
         path: "/client",
-        element: <ClientDashboard/>,
+        element: <ClientTable />,
+    },
+    {
+        path: "/client/:clientId",
+        element: <ClientDashboard />,
     },
     {
         path: "/",
