@@ -40,6 +40,20 @@ class DataApi {
             throw error;
         }
     }
+    static async createBasket(card) {
+        try {
+            const headers = {
+                Authorization: `Bearer`,
+                'Content-Type': 'application/json',
+            };
+            const response = await instance.patch('/api/basket', card,
+                {headers});
+            return response;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
     static async deleteCard(id) {
         try {
             const headers = {

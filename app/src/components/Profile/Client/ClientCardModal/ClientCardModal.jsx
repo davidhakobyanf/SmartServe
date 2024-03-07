@@ -5,6 +5,8 @@ import Typography from "@mui/joy/Typography";
 import IconButton from "@mui/joy/IconButton";
 import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
 import Quantity from "../../../../../src/hoc/Quantity/Quantity";
+import {useFetching} from "../../../../hoc/fetchingHook";
+import clientAPI from "../../../../api/api";
 
 const ClientCardModal = ({clientId,setCardModalOpen, cardModalOpen, index, item, images,fetchProfile}) => {
     const [quantity, setQuantity] = useState(1);
@@ -12,7 +14,17 @@ const ClientCardModal = ({clientId,setCardModalOpen, cardModalOpen, index, item,
     const [plainOptions, setPlainOptions] = useState([]);
     const [selectedOptions, setSelectedOptions] = useState({});
     const [modalWidth, setModalWidth] = useState(650); // Default width
-
+    const [fetchAddCard, AddCardLoading, AddCardError] = useFetching(async (modifiedItem) => {
+        try {
+            const {data: res} = await clientAPI.createBasket(modifiedItem);
+            if (res) {
+                console.log(res, 'res');
+                // Use the updatedRes object as needed (e.g., store in state or update UI)
+            }
+        } catch (error) {
+            console.error('Error fetching profile:', error);
+        }
+    });
 
     useEffect(() => {
         setAllTotal(item?.price * quantity);
@@ -73,12 +85,16 @@ const ClientCardModal = ({clientId,setCardModalOpen, cardModalOpen, index, item,
     };
 
     const handleAddButtonClick = () => {
-        const modifiedItem = {
-            ...item,
-            table: clientId
+        if(item){
+            const modifiedItem = {
+                ...item,
+                table: clientId
 
-        };
-        console.log(modifiedItem,'item');
+            };
+            fetchAddCard(modifiedItem)
+            console.log(modifiedItem,'item');
+
+        }
     };
 
 
