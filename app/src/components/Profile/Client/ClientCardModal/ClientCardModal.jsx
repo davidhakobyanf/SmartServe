@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Modal, Table, Checkbox} from "antd";
+import {Modal, Table, Checkbox, Button} from "antd";
 import css from "./ClientCardModal.module.css";
 import Typography from "@mui/joy/Typography";
 import IconButton from "@mui/joy/IconButton";
@@ -12,8 +12,6 @@ const ClientCardModal = ({setCardModalOpen, cardModalOpen, index, item, images,f
     const [plainOptions, setPlainOptions] = useState([]);
     const [selectedOptions, setSelectedOptions] = useState({});
     const [modalWidth, setModalWidth] = useState(650); // Default width
-    const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false); // State for delete confirmation modal
-    const [showEditConfirmation, setShowEditConfirmation] = useState(false); // State for delete confirmation modal
 
 
     useEffect(() => {
@@ -74,18 +72,11 @@ const ClientCardModal = ({setCardModalOpen, cardModalOpen, index, item, images,f
         }));
     };
 
-
-
-    const handleDeleteCancel = () => {
-        setShowDeleteConfirmation(false);
+    const handleAddButtonClick = () => {
+        console.log(item);
     };
 
-    const handleShowDeleteConfirmation = () => {
-        setShowDeleteConfirmation(true);
-    };
-    const handleShowEditConfirmation = () => {
-        setShowEditConfirmation(true);
-    };
+
     const columns = [
         {
             title: 'Սոուսներ',
@@ -160,7 +151,7 @@ const ClientCardModal = ({setCardModalOpen, cardModalOpen, index, item, images,f
                                     Ընդհանուր գումար <b>{String(allTotal)}</b> դրամ
                                 </div>
                                 <div className={css.card_buttons}>
-
+                                    <Button onClick={handleAddButtonClick}>Ավելացնել</Button>
                                 </div>
                             </div>
 
