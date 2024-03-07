@@ -19,6 +19,7 @@ import CardModal from "../../Admin/Modal/CardModal/CardModal";
 import logo from '../../../../images/logo.jpg'
 import ClientCardModal from "../ClientCardModal/ClientCardModal";
 import { Button, message, Space } from 'antd';
+import ClientBasketModal from "../ClientBasketModal/ClientBasketModal";
 
 
 const {Search} = Input;
@@ -34,7 +35,7 @@ const ClientDashboard = () => {
     console.log("clientId:", clientId);
     const {profileDataList, setProfileDataList} = useProfileData();
     const [cardActive, setCardActive] = useState({})
-    const [modalOpen, setModalOpen] = useState(false)
+    const [basketOpen, setBasketOpen] = useState(false)
     const [selectedItem, setSelectedItem] = useState(null);
     const [selectedItemIndex, setSelectedItemIndex] = useState(null);
     const [images, setImages] = useState([]);
@@ -150,7 +151,7 @@ const ClientDashboard = () => {
                         }}
                     />
                 </div>
-                <div className={css.basket}>
+                <div className={css.basket} onClick={() => setBasketOpen(true)}>
                     <ShoppingCartOutlined/>
                 </div>
             </div>
@@ -197,6 +198,7 @@ const ClientDashboard = () => {
                         </CardContent>
                     </Card>
                 ))}
+                <ClientBasketModal  basketOpen={basketOpen} setBasketOpen={setBasketOpen}  />
             </div>
             {/*<div className={css.footer}>*/}
 
