@@ -4,11 +4,7 @@ import css from "./ClientCardModal.module.css";
 import Typography from "@mui/joy/Typography";
 import IconButton from "@mui/joy/IconButton";
 import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
-import DeleteCardModal from "./DeleteCardModal/DeleteCardModal";
-import {useFetching} from "../../../../../../src/hoc/fetchingHook";
-import clientAPI from "../../../../../../src/api/api";
-import EditCardModal from "./EditCardModal/EditCardModal";
-import Quantity from "../../../../../hoc/Quantity/Quantity";
+import Quantity from "../../../../../src/hoc/Quantity/Quantity";
 
 const ClientCardModal = ({setCardModalOpen, cardModalOpen, index, item, images,fetchProfile}) => {
     const [quantity, setQuantity] = useState(1);
@@ -164,25 +160,7 @@ const ClientCardModal = ({setCardModalOpen, cardModalOpen, index, item, images,f
                                     Ընդհանուր գումար <b>{String(allTotal)}</b> դրամ
                                 </div>
                                 <div className={css.card_buttons}>
-                                    <IconButton
-                                        aria-label={`bookmark ${item.title}`}
-                                        variant="plain"
-                                        color="neutral"
-                                        size="sm"
-                                    >
-                                        <EditOutlined className={css.icons} style={{color: 'blue'}}
-                                        onClick={handleShowEditConfirmation}
-                                        />
-                                    </IconButton>
-                                    <IconButton
-                                        aria-label={`bookmark ${item.title}`}
-                                        variant="plain"
-                                        color="neutral"
-                                        size="sm"
-                                        onClick={handleShowDeleteConfirmation} // Show delete confirmation modal
-                                    >
-                                        <DeleteOutlined className={css.icons} style={{color: "red"}}/>
-                                    </IconButton>
+
                                 </div>
                             </div>
 
@@ -190,19 +168,7 @@ const ClientCardModal = ({setCardModalOpen, cardModalOpen, index, item, images,f
                     ) : null
                 }
             </Modal>
-            <EditCardModal setCardModalOpen={setCardModalOpen}   item={item} fetchProfile={fetchProfile}  showEditConfirmation={showEditConfirmation}  setShowEditConfirmation={setShowEditConfirmation}              setCardModalOpen={setCardModalOpen}
-            />
-            <DeleteCardModal
-                fetchProfile={fetchProfile}
-                title={`Դուք իրոք ցանկանում եք ջնջել այս ${item?.title} քարտը?`}
-                isVisible={showDeleteConfirmation}
-                onCancel={handleDeleteCancel}
-                setShowDeleteConfirmation={setShowDeleteConfirmation}
-                okText="Ջնջել"
-                cancelText="Չեղարկել"
-                card={item}
-                setCardModalOpen={setCardModalOpen}
-            />
+
         </div>
     );
 };

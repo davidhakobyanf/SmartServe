@@ -274,9 +274,9 @@
     bottom: 6.5%;
     right: 5%;
     z-index: 1000;
-    height: 36px;
-    width: 36px;
-    border-radius: 50%;
+    height: 50px;
+    width: 200px;
+    border-radius: 10px;
     background-color: rgba(28, 166, 168, 0.75);
     color: #ffffff;
     font-size: 21px;

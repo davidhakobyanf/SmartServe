@@ -17,10 +17,19 @@ import {useNavigate, useParams} from "react-router-dom";
 import AddModal from "../../Admin/Modal/AddModal";
 import CardModal from "../../Admin/Modal/CardModal/CardModal";
 import logo from '../../../../images/logo.jpg'
+import ClientCardModal from "../ClientCardModal/ClientCardModal";
+import { Button, message, Space } from 'antd';
+
+
 const {Search} = Input;
+
 
 const ClientDashboard = () => {
     const { clientId } = useParams();
+    const [messageApi, contextHolder] = message.useMessage();
+    const success = () => {
+        message.success('Շատ լավ, սպասեք մատուցողին:');
+    };
     console.log("clientId:", clientId);
     const {profileDataList, setProfileDataList} = useProfileData();
     const [cardActive, setCardActive] = useState({})
@@ -143,7 +152,7 @@ const ClientDashboard = () => {
                     <ShoppingCartOutlined />
                 </div>
             </div>
-            <CardModal cardModalOpen={cardModalOpen} setCardModalOpen={setCardModalOpen} index={selectedItemIndex}
+            <ClientCardModal cardModalOpen={cardModalOpen} setCardModalOpen={setCardModalOpen} index={selectedItemIndex}
                        item={selectedItem} images={images} setImages={setImages} fetchProfile={fetchProfile}/>
 
             <div className={css.body}>
@@ -186,13 +195,12 @@ const ClientDashboard = () => {
                         </CardContent>
                     </Card>
                 ))}
-                <AddModal modalOpen={modalOpen} setModalOpen={setModalOpen} fetchAddCard={fetchAddCard}/>
             </div>
             {/*<div className={css.footer}>*/}
 
             {/*</div>*/}
-            <div className={css.scrollToTop} onClick={() => setModalOpen(true)}>
-                <PlusOutlined/>
+            <div className={css.scrollToTop}  onClick={success}>
+                Կանչել մատուցողին
             </div>
         </div>
     );
