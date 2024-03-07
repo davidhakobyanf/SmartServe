@@ -6,7 +6,7 @@ import IconButton from "@mui/joy/IconButton";
 import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
 import Quantity from "../../../../../src/hoc/Quantity/Quantity";
 
-const ClientCardModal = ({setCardModalOpen, cardModalOpen, index, item, images,fetchProfile}) => {
+const ClientCardModal = ({clientId,setCardModalOpen, cardModalOpen, index, item, images,fetchProfile}) => {
     const [quantity, setQuantity] = useState(1);
     const [allTotal, setAllTotal] = useState(item?.price);
     const [plainOptions, setPlainOptions] = useState([]);
@@ -73,8 +73,14 @@ const ClientCardModal = ({setCardModalOpen, cardModalOpen, index, item, images,f
     };
 
     const handleAddButtonClick = () => {
-        console.log(item);
+        const modifiedItem = {
+            ...item,
+            table: clientId
+
+        };
+        console.log(modifiedItem,'item');
     };
+
 
 
     const columns = [
@@ -108,6 +114,7 @@ const ClientCardModal = ({setCardModalOpen, cardModalOpen, index, item, images,f
         option: option.option,
         total: option.total,
     }));
+
 
     return (
         <div>

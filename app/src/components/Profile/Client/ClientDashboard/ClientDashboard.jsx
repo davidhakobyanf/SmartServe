@@ -152,7 +152,7 @@ const ClientDashboard = () => {
                     <ShoppingCartOutlined/>
                 </div>
             </div>
-            <ClientCardModal cardModalOpen={cardModalOpen} setCardModalOpen={setCardModalOpen} index={selectedItemIndex}
+            <ClientCardModal clientId={clientId} cardModalOpen={cardModalOpen} setCardModalOpen={setCardModalOpen} index={selectedItemIndex}
                              item={selectedItem} images={images} setImages={setImages} fetchProfile={fetchProfile}/>
 
             <div className={css.body}>
