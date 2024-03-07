@@ -2,13 +2,13 @@ import React, {useEffect, useState} from 'react';
 import {Modal, Table, Checkbox} from "antd";
 import css from "./CardModal.module.css";
 import Typography from "@mui/joy/Typography";
-import Quantity from "../../../../../hoc/Quantity/Quantity";
 import IconButton from "@mui/joy/IconButton";
 import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
 import DeleteCardModal from "./DeleteCardModal/DeleteCardModal";
-import {useFetching} from "../../../../../hoc/fetchingHook";
-import clientAPI from "../../../../../api/api";
-import EditCardModal from "../CardModal/EditCardModal/EditCardModal";
+import {useFetching} from "../../../../../../src/hoc/fetchingHook";
+import clientAPI from "../../../../../../src/api/api";
+import EditCardModal from "./EditCardModal/EditCardModal";
+import Quantity from "../../../../../hoc/Quantity/Quantity";
 
 const CardModal = ({setCardModalOpen, cardModalOpen, index, item, images,fetchProfile}) => {
     const [quantity, setQuantity] = useState(1);

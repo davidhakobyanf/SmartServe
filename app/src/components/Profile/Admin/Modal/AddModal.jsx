@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { Button, Input, Modal, Select, Form, Upload, message } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
-import ImgCrop from 'antd-img-crop';
-import img from '../../../../images/Screenshot 2024-02-20 231709.png'
 import {UploadOutlined} from "@ant-design/icons";
-import {useFetching} from "../../../../hoc/fetchingHook";
-import clientAPI from "../../../../api/api";
+import {useFetching} from "../../../../../src/hoc/fetchingHook";
+import clientAPI from "../../../../../src/api/api";
 
 const AddModal = ({ modalOpen,setModalOpen,fetchAddCard}) => {
     const [previewOpen, setPreviewOpen] = useState(false);

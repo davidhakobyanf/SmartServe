@@ -1,6 +1,6 @@
 
 .container {
-    background:linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('../../images/backgroundBlur.jpg');
+    background:linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('../../images/logop1.png');
     background-size: cover;
     background-repeat: no-repeat;
     width: 100%;
@@ -18,19 +18,16 @@
     border: 2px solid black;
     border-radius: 15px;
     box-shadow: 1px 1px 8px white;
-    background-image: url('../../images/background.jpg');
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position:right;
+background: black;
 
 }
 .left{
     width: 100%;
     height: 100%;
-    /*background-image: url('../../images/background.jpg');*/
-    /*background-size: cover;*/
-    /*background-repeat: no-repeat;*/
-    /*background-position: center;*/
+    background-image: url('../../images/logop1.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position:center;
 }
 
 .form{

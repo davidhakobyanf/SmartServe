@@ -5,7 +5,7 @@ import css from './FormContainer.module.css';
 import {Link} from "react-router-dom";
 import Registration from "./Registration/Registration";
 import Login from "./Login/Login";
-
+import img from '../../images/logop1.png'
 const FormContainer = () => {
     const [form] = AntdForm .useForm();
     const [check,setCheck] = useState()

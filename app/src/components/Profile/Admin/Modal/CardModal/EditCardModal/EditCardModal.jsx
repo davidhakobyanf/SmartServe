@@ -2,8 +2,8 @@ import React, {useEffect, useState} from 'react';
 import { Button, Input, Modal, Select, Form, Upload } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
 import { UploadOutlined } from "@ant-design/icons";
-import {useFetching} from "../../../../../../hoc/fetchingHook";
-import clientAPI from "../../../../../../api/api"
+import {useFetching} from "../../../../../../../src/hoc/fetchingHook";
+import clientAPI from "../../../../../../../src/api/api"
 const EditCardModal = ({ item, fetchProfile,setShowEditConfirmation, showEditConfirmation,setCardModalOpen }) => {
     const [form] = Form.useForm();
     const [fileList, setFileList] = useState([

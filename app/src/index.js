@@ -7,11 +7,15 @@ import {
 import "./index.css";
 import FormContainer from "./components/Form/FormContainer";
 import Profile from "./components/Profile/Profile";
-import Dashboard from "./components/Profile/Dashboard/Dashboard/Dashboard";
+import Dashboard from "./components/Profile/Admin/Dashboard/Dashboard";
 import {ProfileDataProvider} from "./context/ProfileDataContext";
-import Icon from "./components/Profile/Dashboard/Icon";
+import ClientDashboard from "./components/Profile/Client/ClientDashboard/ClientDashboard";
 
 const router = createBrowserRouter([
+    {
+        path: "/client",
+        element: <ClientDashboard/>,
+    },
     {
         path: "/",
         element: <FormContainer/>,
@@ -23,10 +27,6 @@ const router = createBrowserRouter([
             {
                 path: "/profile/dashboard",
                 element: <Dashboard/>,
-            },
-            {
-                path: "/profile/icon",
-                element: <Icon/>,
             }
         ]
     },

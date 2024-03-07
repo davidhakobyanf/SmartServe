@@ -2,30 +2,23 @@ import React, {useState, useEffect} from 'react';
 import Slider from 'react-slick';
 import css from './Dashboard.module.css';
 import ProfileInfo from '../ProfileInfo/ProfileInfo';
-import clientAPI from "../../../../api/api";
-import {useProfileData} from "../../../../context/ProfileDataContext";
+import clientAPI from "../../../../../src/api/api";
 import img from '../../../../images/Screenshot 2024-02-20 231709.png'
 import {
-    ArrowUpOutlined, DeleteOutlined,
-    DownloadOutlined, EditOutlined, LogoutOutlined,
-    MinusCircleOutlined,
-    MinusOutlined,
     PlusCircleOutlined,
     PlusOutlined
 } from "@ant-design/icons";
-import {set} from "react-hook-form";
 import AddModal from "../Modal/AddModal";
 import Card from '@mui/joy/Card';
-import AspectRatio from '@mui/joy/AspectRatio';
-import Button from '@mui/joy/Button';
 import {MdOutlineLogout} from "react-icons/md";
 import CardContent from '@mui/joy/CardContent';
 import IconButton from '@mui/joy/IconButton';
 import Typography from '@mui/joy/Typography';
-import {useFetching} from "../../../../hoc/fetchingHook";
+import {useFetching} from "../../../../../src/hoc/fetchingHook";
 import CardModal from "../Modal/CardModal/CardModal";
-import {Input, Space, Switch} from 'antd';
+import {Input,Switch} from 'antd';
 import {useNavigate} from "react-router-dom";
+import {useProfileData} from "../../../../context/ProfileDataContext";
 
 const {Search} = Input;
 
@@ -103,10 +96,8 @@ const Dashboard = () => {
     }
 
     const logoutHandler = () => {
-        // Remove 'isLoggedIn' from localStorage
         localStorage.removeItem('isLoggedIn');
         navigate("/")
-        // Additional logout logic if needed
     };
 
 

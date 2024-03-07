@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import css from './ProfileInfo.module.css';
-import {useFetching} from "../../../../hoc/fetchingHook";
-import clientAPI from "../../../../api/api";
-import LoadingSpin from "../../../../hoc/LoadingSpin";
+import {useFetching} from "../../../../../src/hoc/fetchingHook";
+import clientAPI from "../../../../../src/api/api";
+import LoadingSpin from "../../../../../src/hoc/LoadingSpin";
 
 const ProfileInfo = ({ username }) => {
   const [userData, setUserData] = useState({});
