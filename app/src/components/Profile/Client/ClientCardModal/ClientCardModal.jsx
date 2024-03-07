@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Modal, Table, Checkbox, Button} from "antd";
+import {Modal, Table, Checkbox, Button, message} from "antd";
 import css from "./ClientCardModal.module.css";
 import Typography from "@mui/joy/Typography";
 import IconButton from "@mui/joy/IconButton";
@@ -7,24 +7,32 @@ import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
 import Quantity from "../../../../../src/hoc/Quantity/Quantity";
 import {useFetching} from "../../../../hoc/fetchingHook";
 import clientAPI from "../../../../api/api";
+const success = () => {
+    message.success('Հաջողությամբ ավելացվել է զամբյուղում');
+};
+
+const error = () => {
+    message.error('Խնդիր է սերվերի հետ');
+};
+
 
 const ClientCardModal = ({clientId,setCardModalOpen, cardModalOpen, index, item, images,fetchProfile}) => {
     const [quantity, setQuantity] = useState(1);
     const [allTotal, setAllTotal] = useState(item?.price);
     const [plainOptions, setPlainOptions] = useState([]);
     const [selectedOptions, setSelectedOptions] = useState({});
+
     const [modalWidth, setModalWidth] = useState(650); // Default width
     const [fetchAddCard, AddCardLoading, AddCardError] = useFetching(async (modifiedItem) => {
         try {
-            const {data: res} = await clientAPI.createBasket(modifiedItem);
-            if (res) {
-                console.log(res, 'res');
-                // Use the updatedRes object as needed (e.g., store in state or update UI)
-            }
+            await clientAPI.createBasket(modifiedItem);
+            // Больше не нужно ничего делать здесь, т.к. состояния isLoading и error
+            // автоматически устанавливаются внутри хука useFetching
         } catch (error) {
             console.error('Error fetching profile:', error);
         }
     });
+
 
     useEffect(() => {
         setAllTotal(item?.price * quantity);
@@ -84,18 +92,28 @@ const ClientCardModal = ({clientId,setCardModalOpen, cardModalOpen, index, item,
         }));
     };
 
-    const handleAddButtonClick = () => {
-        if(item){
+    const handleAddButtonClick = async () => {
+        if (item) {
             const modifiedItem = {
                 ...item,
                 table: clientId
-
             };
-            fetchAddCard(modifiedItem)
-            console.log(modifiedItem,'item');
+            await fetchAddCard(modifiedItem);
+        }
 
+        // Проверяем состояния AddCardLoading и AddCardError
+        if (!AddCardLoading) {
+            if (AddCardError !== null) {
+                // В случае ошибки вызываем message.error
+                error();
+            } else {
+                // В случае успеха вызываем message.success
+                success();
+            }
         }
     };
+
+
 
 
 

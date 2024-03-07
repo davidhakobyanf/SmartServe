@@ -30,6 +30,7 @@ const ClientDashboard = () => {
     const success = () => {
         message.success('Շատ լավ, սպասեք մատուցողին:');
     };
+
     console.log("clientId:", clientId);
     const {profileDataList, setProfileDataList} = useProfileData();
     const [cardActive, setCardActive] = useState({})
@@ -80,6 +81,7 @@ const ClientDashboard = () => {
                 // Use the updatedRes object as needed (e.g., store in state or update UI)
             }
         } catch (error) {
+            AddCardError(error)
             console.error('Error fetching profile:', error);
         }
     });
