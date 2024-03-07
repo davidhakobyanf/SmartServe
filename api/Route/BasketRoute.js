@@ -7,5 +7,6 @@ const userBasket = new UserBasket();
 basketRoute
     .route('/api/basket')
     .patch(userBasket.addCardInBasket)
+    .get(userBasket.getCardInBasket)
 
 module.exports = basketRoute;

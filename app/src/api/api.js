@@ -26,6 +26,23 @@ class DataApi {
             throw error;
         }
     }
+    static async getBasket() {
+        try {
+
+            const response = await instance.get('/api/basket', {
+                headers: {
+                    'Authorization': `Bearer `,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            return response;
+        } catch (error) {
+            console.error(error);
+            // Handle the error as needed, or rethrow it if further handling is required.
+            throw error;
+        }
+    }
     static async createCard(card) {
         try {
             const headers = {

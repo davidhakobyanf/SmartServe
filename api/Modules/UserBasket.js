@@ -37,6 +37,29 @@ module.exports = class UserBasket {
     //         res.status(500).json({ error: 'Internal server error' });
     //     }
     // }
+    async getCardInBasket(req, res) {
+        try {
+            const { id, description, image, price, sauces, title, active, table } = req.body;
+
+            const card = { id, description, image, price, sauces, title, active, table };
+
+            const basket = await db.collection('basket').findOne({});
+
+            if (!basket) {
+                const newBasket = { cards: [card] };
+                const result = await db.collection('basket').insertOne(newBasket);
+                res.json(result);
+            } else {
+                basket.cards.push(card);
+                const updateResult = await db.collection('basket').updateOne({}, { $set: { cards: basket.cards } });
+                res.json(basket.cards); // Sending only the cards array as JSON
+            }
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Server error' });
+        }
+    }
+
     async addCardInBasket(req, res) {
         try {
             const {  id, description, image, price, sauces, title, active,table } = req.body;
