@@ -136,10 +136,10 @@ const ClientDashboard = () => {
     return (
         <div className={css.dashboard}>
             <div className={css.header}>
+                <div className={css.left_header}>
+                    <img src={logo} className={css.logo} alt="Logo"/>
+                </div>
                 <div className={css.profile_search}>
-                    <div className={css.left_header}>
-                        <img  src={logo} className={css.logo} alt="Logo"/>
-                    </div>
                     <Search
                         placeholder="input search text"
                         onChange={(e) => onSearch(e.target.value)}
@@ -148,12 +148,12 @@ const ClientDashboard = () => {
                         }}
                     />
                 </div>
-                <div className={css.basket} >
-                    <ShoppingCartOutlined />
+                <div className={css.basket}>
+                    <ShoppingCartOutlined/>
                 </div>
             </div>
             <ClientCardModal cardModalOpen={cardModalOpen} setCardModalOpen={setCardModalOpen} index={selectedItemIndex}
-                       item={selectedItem} images={images} setImages={setImages} fetchProfile={fetchProfile}/>
+                             item={selectedItem} images={images} setImages={setImages} fetchProfile={fetchProfile}/>
 
             <div className={css.body}>
                 {profileDataList?.card?.map((item, index) => (
