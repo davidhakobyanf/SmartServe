@@ -39,26 +39,18 @@ module.exports = class UserBasket {
     // }
     async getCardInBasket(req, res) {
         try {
-            const { id, description, image, price, sauces, title, active, table } = req.body;
-
-            const card = { id, description, image, price, sauces, title, active, table };
-
             const basket = await db.collection('basket').findOne({});
-
             if (!basket) {
-                const newBasket = { cards: [card] };
-                const result = await db.collection('basket').insertOne(newBasket);
-                res.json(result);
+                res.status(404).json({ error: 'Basket not found' });
             } else {
-                basket.cards.push(card);
-                const updateResult = await db.collection('basket').updateOne({}, { $set: { cards: basket.cards } });
-                res.json(basket.cards); // Sending only the cards array as JSON
+                res.json(basket.cards);
             }
         } catch (err) {
             console.error(err);
             res.status(500).json({ error: 'Server error' });
         }
     }
+
 
     async addCardInBasket(req, res) {
         try {
