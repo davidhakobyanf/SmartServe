@@ -112,6 +112,7 @@ const ClientCardModal = ({clientId,setCardModalOpen, cardModalOpen, index, item,
                 success();
             }
         }
+        setCardModalOpen(false)
     };
 
 
