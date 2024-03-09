@@ -43,7 +43,7 @@ module.exports = class UserBasket {
             if (!basket) {
                 res.status(404).json({ error: 'Basket not found' });
             } else {
-                res.json(basket.cards);
+                res.json(basket.tables);
             }
         } catch (err) {
             console.error(err);
