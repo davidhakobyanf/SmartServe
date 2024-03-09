@@ -96,7 +96,8 @@ const ClientCardModal = ({clientId,setCardModalOpen, cardModalOpen, index, item,
         if (item) {
             const modifiedItem = {
                 ...item,
-                table: clientId
+                table: clientId,
+                count:quantity
             };
             await fetchAddCard(modifiedItem);
         }

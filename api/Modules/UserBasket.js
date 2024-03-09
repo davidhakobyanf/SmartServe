@@ -54,31 +54,50 @@ module.exports = class UserBasket {
 
     async addCardInBasket(req, res) {
         try {
-            const { id, description, image, price, sauces, title, active, table } = req.body;
+            const { id, description, image, price, sauces, title, active, table, count } = req.body;
 
-            const card = { id, description, image, price, sauces, title, active, table };
-            const basket = await db.collection('basket').findOne({});
+            const card = { id, description, image, price, sauces, title, active, table, count };
+            let basket = await db.collection('basket').findOne({});
+
             if (!basket) {
                 const newBasket = { tables: {} };
                 newBasket.tables[table] = [card];
                 const result = await db.collection('basket').insertOne(newBasket);
-                res.send(result);
+                res.send(result.ops[0]);
             } else {
-                if (!basket.tables[table]) {
-                    basket.tables[table] = [card];
+                let found = false;
+                if (basket.tables[table]) {
+                    // Check if card with the same id exists in the table
+                    basket.tables[table].forEach(existingCard => {
+                        if (existingCard.id === id) {
+                            existingCard.count += count;
+                            found = true;
+                        }
+                    });
                 } else {
+                    basket.tables[table] = [];
+                }
+
+                if (!found) {
                     basket.tables[table].push(card);
                 }
+
                 const updateResult = await db.collection('basket').updateOne(
                     {},
                     { $set: { tables: basket.tables } }
                 );
-                res.send(updateResult);
+
+                if (updateResult.modifiedCount > 0) {
+                    res.send(basket);
+                } else {
+                    res.status(500).json({ err: 'Failed to update basket' });
+                }
             }
         } catch (err) {
             res.status(500).json({ err: 'Server error' });
         }
     }
+
 
 
 

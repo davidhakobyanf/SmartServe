@@ -198,7 +198,7 @@ const ClientDashboard = () => {
                         </CardContent>
                     </Card>
                 ))}
-                <ClientBasketModal  basketOpen={basketOpen} setBasketOpen={setBasketOpen}  />
+                <ClientBasketModal  basketOpen={basketOpen} setBasketOpen={setBasketOpen} clientId={clientId} images={images} />
             </div>
             {/*<div className={css.footer}>*/}
 
