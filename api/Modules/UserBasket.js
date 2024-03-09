@@ -54,25 +54,31 @@ module.exports = class UserBasket {
 
     async addCardInBasket(req, res) {
         try {
-            const {  id, description, image, price, sauces, title, active,table } = req.body;
+            const { id, description, image, price, sauces, title, active, table } = req.body;
 
-            const card = { id, description, image, price, sauces, title, active,table};
+            const card = { id, description, image, price, sauces, title, active, table };
 
             // Получаем текущий документ корзины
             const basket = await db.collection('basket').findOne({});
 
             if (!basket) {
                 // Если документ не существует, создаем новый с массивом cards
-                const newBasket = { cards: [] };
-                newBasket.cards.push(card);
+                const newBasket = { tables: {} };
+                newBasket.tables[table] = [card]; // Создаем массив для указанного стола и добавляем карту
                 const result = await db.collection('basket').insertOne(newBasket);
                 res.send(result);
             } else {
-                // Если документ уже существует, добавляем новую карту в массив cards
-                basket.cards.push(card);
+                // Если документ уже существует
+                if (!basket.tables[table]) {
+                    // Если для указанного стола еще нет массива, создаем его
+                    basket.tables[table] = [card];
+                } else {
+                    // Если массив для указанного стола уже существует, просто добавляем карту в него
+                    basket.tables[table].push(card);
+                }
                 const updateResult = await db.collection('basket').updateOne(
                     {},
-                    { $set: { cards: basket.cards } }
+                    { $set: { tables: basket.tables } }
                 );
                 res.send(updateResult);
             }
@@ -80,6 +86,7 @@ module.exports = class UserBasket {
             res.status(500).json({ err: 'Server error' });
         }
     }
+
 
 
 
