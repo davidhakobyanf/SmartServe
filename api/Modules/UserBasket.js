@@ -57,23 +57,16 @@ module.exports = class UserBasket {
             const { id, description, image, price, sauces, title, active, table } = req.body;
 
             const card = { id, description, image, price, sauces, title, active, table };
-
-            // Получаем текущий документ корзины
             const basket = await db.collection('basket').findOne({});
-
             if (!basket) {
-                // Если документ не существует, создаем новый с массивом cards
                 const newBasket = { tables: {} };
-                newBasket.tables[table] = [card]; // Создаем массив для указанного стола и добавляем карту
+                newBasket.tables[table] = [card];
                 const result = await db.collection('basket').insertOne(newBasket);
                 res.send(result);
             } else {
-                // Если документ уже существует
                 if (!basket.tables[table]) {
-                    // Если для указанного стола еще нет массива, создаем его
                     basket.tables[table] = [card];
                 } else {
-                    // Если массив для указанного стола уже существует, просто добавляем карту в него
                     basket.tables[table].push(card);
                 }
                 const updateResult = await db.collection('basket').updateOne(
