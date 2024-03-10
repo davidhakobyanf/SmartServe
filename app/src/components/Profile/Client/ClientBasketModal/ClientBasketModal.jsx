@@ -9,6 +9,7 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
     const [basketData, setBasketData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [inputWidth, setInputWidth] = useState("100px")
+    const [media, setMedia] = useState(0)
     const [fetchBasket, basketLoading, basketError] = useFetching(async () => {
         try {
             const {data: res} = await clientAPI.getBasket(clientId);
@@ -28,11 +29,13 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
         }
     }, [basketOpen]);
     useEffect(() => {
-        // Update modal width based on screen width
         const handleResize = () => {
             if (window.innerWidth <= 330) {
+                setMedia(410)
                 setInputWidth("50px");
-
+            }        else if (window.innerWidth <= 410) {
+                setInputWidth("50px");
+                setMedia(410)
             } else if (window.innerWidth <= 630) {
                 setInputWidth("50px");
             } else {
@@ -47,20 +50,21 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
             window.removeEventListener('resize', handleResize);
         };
     }, []);
+
     const handleCancel = () => {
         setBasketOpen(false);
     };
-
-    const columns = [
+    const  columns = [
         {
             title: 'Image & Title',
             dataIndex: 'image',
             key: 'image',
             render: (text, record) => (
                 <div className={css.imageTitleContainer}>
-                    <span
-                        style={{width: "100px"}}>{record.title.length > 15 ? `${record.title.slice(0, 15)}...` : record.title}</span>
-                    <Image src={images.find(image => image.id === record.id)?.default} width={100}/>
+                    <span style={{ width: '100px' }}>
+                        {record.title.length > 15 ? `${record.title.slice(0, 15)}...` : record.title}
+                    </span>
+                    <Image src={images.find((image) => image.id === record.id)?.default} width={100} />
                 </div>
             ),
         },
@@ -68,16 +72,48 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
             title: 'Price',
             dataIndex: 'price',
             key: 'price',
-            render: (text) => <span>{text} դրամ</span>,
+            render: (text, record) => <span>{text * record.count} դրամ</span>,
         },
         {
             title: 'Count',
             dataIndex: 'count',
             key: 'count',
             render: (text, record) => (
-                <Quantity width={inputWidth} quantity={record.count}
-                          setQuantity={(newQuantity) => handleQuantityChange(newQuantity, record)}/>
+                <Quantity
+                    width={inputWidth}
+                    quantity={record.count}
+                    setQuantity={(newQuantity) => handleQuantityChange(newQuantity, record)}
+                />
             ),
+        },
+    ]
+    const columnsmid = [
+        {
+            title: 'Image & Title',
+            dataIndex: 'image',
+            key: 'image',
+            render: (text, record) => (
+                <div className={css.imageTitleContainer}>
+                    <span style={{ width: '100px' }}>
+                        {record.title.length > 15 ? `${record.title.slice(0, 15)}...` : record.title}
+                    </span>
+                    <Image src={images.find((image) => image.id === record.id)?.default} width={100} />
+                </div>
+            ),
+        },
+        {
+                dataIndex: 'price',
+                key: 'price',
+                render: (text, record) => (
+                    <div className={css.price_count}>
+                        <Quantity
+                            width={inputWidth}
+                            quantity={record.count}
+                            setQuantity={(newQuantity) => handleQuantityChange(newQuantity, record)}
+                        />
+                        <span>{text * record.count} դրամ</span>
+                    </div>
+                ),
         }
     ];
 
@@ -104,7 +140,7 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
                     <Table
                         rowKey={(record, index) => index}
                         dataSource={basketData}
-                        columns={columns}
+                        columns={media === 410 ? columnsmid :   columns}
                         className={css.table}
                         pagination={false} // Optionally, disable pagination
                     />
