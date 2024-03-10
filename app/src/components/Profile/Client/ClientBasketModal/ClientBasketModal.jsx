@@ -22,6 +22,7 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
             setLoading(false);
         }
     });
+    const totalPrice = basketData.reduce((total, item) => total + (item.price * item.count), 0);
 
     useEffect(() => {
         if (basketOpen) {
@@ -67,7 +68,7 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
             ),
         },
         {
-            title: 'Price',
+            title:`Ընդհամենը ${totalPrice} դրամ`,
             dataIndex: 'price',
             key: 'price',
             render: (text, record) => <span>{text * record.count} դրամ</span>,
@@ -100,6 +101,7 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
             ),
         },
         {
+                title:`Ընդհամենը ${totalPrice} դրամ`,
                 dataIndex: 'price',
                 key: 'price',
                 render: (text, record) => (
