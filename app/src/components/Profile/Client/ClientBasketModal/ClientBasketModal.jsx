@@ -181,13 +181,19 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
 
                         <div className={css.all_price}>
                             <div>
-                                Ընհամենը {totalPrice} դրամ
+                                <b>Ընհամենը {totalPrice} դրամ </b>
                             </div>
                             <div>
                                 <IconButton>
                                     Պատվիրել
                                 </IconButton>
                             </div>
+                            <div>
+                                <IconButton>
+                                    Ջնջել բոլորը
+                                </IconButton>
+                            </div>
+
                         </div>
 
                     </div>
