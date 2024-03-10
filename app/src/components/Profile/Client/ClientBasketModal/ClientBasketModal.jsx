@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Modal, Spin, Table, Image} from 'antd';
+import {Modal, Spin, Table, Image, message} from 'antd';
 import {useFetching} from '../../../../hoc/fetchingHook';
 import clientAPI from '../../../../api/api';
 import Quantity from "../../../../hoc/Quantity/Quantity";
@@ -44,8 +44,19 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
             console.error('Error fetching profile:', error);
         }
     });
+    const [fetchAddOrder, AddOrderLoading, AddOrderError] = useFetching(async (card) => {
+        try {
+            await clientAPI.createOrder(card);
+            // Больше не нужно ничего делать здесь, т.к. состояния isLoading и error
+            // автоматически устанавливаются внутри хука useFetching
+        } catch (error) {
+            console.error('Error fetching profile:', error);
+        }
+    });
     const totalPrice = basketData.reduce((total, item) => total + (item.price * item.count), 0);
-
+    const success = () => {
+        message.success('Ձեր  պատվերը ընդունված է:');
+    };
     useEffect(() => {
         if (basketOpen) {
             fetchBasket();
@@ -111,9 +122,11 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
         // Создаем объект с массивом товаров и отдельным свойством allPrice
         const updatedBasketDataWithTotal = {
             items: updatedBasketData,
-            allPrice: totalPrice
+            allPrice: totalPrice,
+            table:clientId
         };
-
+        fetchAddOrder(updatedBasketDataWithTotal)
+        success();
         console.log("All basket data:", updatedBasketDataWithTotal);
     };
 

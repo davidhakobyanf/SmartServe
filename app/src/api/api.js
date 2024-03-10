@@ -71,6 +71,20 @@ class DataApi {
             throw error;
         }
     }
+    static async createOrder(card) {
+        try {
+            const headers = {
+                Authorization: `Bearer`,
+                'Content-Type': 'application/json',
+            };
+            const response = await instance.patch('/api/orders', card,
+                {headers});
+            return response;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
 
     static async deleteAllBasket(table) {
         try {
