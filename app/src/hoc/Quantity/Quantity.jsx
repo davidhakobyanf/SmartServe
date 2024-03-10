@@ -3,7 +3,7 @@ import IconButton from "@mui/joy/IconButton";
 import {MinusCircleOutlined, PlusCircleOutlined} from "@ant-design/icons";
 import {Input} from "antd";
 import css from './Quantity.module.css'
-const Quantity = ({ quantity, setQuantity }) => {
+const Quantity = ({ quantity, setQuantity, width = "100px"}) => {
     const handleQuantityChange = (e) => {
         const value = parseInt(e.target.value);
         if (!isNaN(value)) {
@@ -22,7 +22,8 @@ const Quantity = ({ quantity, setQuantity }) => {
                 className={css.count_input}
                 value={quantity}
                 onChange={handleQuantityChange}
-                style={{textAlign: 'center'}}
+                style={{textAlign: 'center', width:width}}
+
             />
             <IconButton  onClick={() => setQuantity(quantity + 1)}>
                 <PlusCircleOutlined />

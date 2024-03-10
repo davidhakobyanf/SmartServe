@@ -1,3 +1,9 @@
 .table{
     cursor: pointer;
 }
+.imageTitleContainer{
+    display: flex;
+    flex-direction: column;
+    /*justify-content: center;*/
+    /*align-items: center;*/
+}
