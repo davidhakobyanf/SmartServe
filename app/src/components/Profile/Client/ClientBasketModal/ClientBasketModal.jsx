@@ -36,9 +36,7 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
             }        else if (window.innerWidth <= 410) {
                 setInputWidth("50px");
                 setMedia(410)
-            } else if (window.innerWidth <= 630) {
-                setInputWidth("50px");
-            } else {
+            }else {
                 setInputWidth("100px");
             }
         };
