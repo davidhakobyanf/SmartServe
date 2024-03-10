@@ -93,6 +93,26 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
         }
         console.log(clientId,'clientId')
     }
+    const handleOrder = () => {
+        // Проходим по каждому товару в корзине
+        const updatedBasketData = basketData.map(item => {
+            // Вычисляем цену за данный товар (цена * количество)
+            const itemTotalPrice = item.price * item.count;
+            // Возвращаем обновленный объект товара, добавляя к нему свойство price с вычисленной ценой
+            return {
+                ...item,
+                price: itemTotalPrice
+            };
+        });
+        const totalPrice = updatedBasketData.reduce((total, item) => total + item.price, 0);
+        const updatedBasketDataWithTotal = [
+            ...updatedBasketData,
+            { allPrice: totalPrice }
+        ];
+        console.log("All basket data:", updatedBasketDataWithTotal);
+    };
+
+
     const  columns = [
         {
             title:'Զամբյուղ',
@@ -217,7 +237,7 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
                             <div>
                                 <b>Ընհամենը {totalPrice} դրամ </b>
                             </div>
-                            <div>
+                            <div onClick={handleOrder}>
                                 <IconButton>
                                     Պատվիրել
                                 </IconButton>
