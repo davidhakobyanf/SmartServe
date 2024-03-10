@@ -104,13 +104,19 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
                 price: itemTotalPrice
             };
         });
+
+        // Вычисляем общую цену всех товаров в корзине
         const totalPrice = updatedBasketData.reduce((total, item) => total + item.price, 0);
-        const updatedBasketDataWithTotal = [
-            ...updatedBasketData,
-            { allPrice: totalPrice }
-        ];
+
+        // Создаем объект с массивом товаров и отдельным свойством allPrice
+        const updatedBasketDataWithTotal = {
+            items: updatedBasketData,
+            allPrice: totalPrice
+        };
+
         console.log("All basket data:", updatedBasketDataWithTotal);
     };
+
 
 
     const  columns = [
