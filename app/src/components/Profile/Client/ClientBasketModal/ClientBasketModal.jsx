@@ -4,6 +4,7 @@ import {useFetching} from '../../../../hoc/fetchingHook';
 import clientAPI from '../../../../api/api';
 import Quantity from "../../../../hoc/Quantity/Quantity";
 import css from './ClientBasketModal.module.css'
+import IconButton from "@mui/joy/IconButton";
 
 const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
     const [basketData, setBasketData] = useState([]);
@@ -55,7 +56,6 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
     };
     const  columns = [
         {
-            title: 'Image & Title',
             dataIndex: 'image',
             key: 'image',
             render: (text, record) => (
@@ -68,13 +68,11 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
             ),
         },
         {
-            title:`Ընդհամենը ${totalPrice} դրամ`,
             dataIndex: 'price',
             key: 'price',
             render: (text, record) => <span>{text * record.count} դրամ</span>,
         },
         {
-            title: 'Count',
             dataIndex: 'count',
             key: 'count',
             render: (text, record) => (
@@ -88,7 +86,6 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
     ]
     const columnsmid = [
         {
-            title: 'Image & Title',
             dataIndex: 'image',
             key: 'image',
             render: (text, record) => (
@@ -101,7 +98,6 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
             ),
         },
         {
-                title:`Ընդհամենը ${totalPrice} դրամ`,
                 dataIndex: 'price',
                 key: 'price',
                 render: (text, record) => (
@@ -130,20 +126,38 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
     return (
         <div>
             <Modal
+                mask={false}
                 open={basketOpen}
                 onCancel={handleCancel}
                 footer={null}
-                className={css.modal}
+                className={css.modal_antd}
             >
                 {loading && <Spin size="large"/>}
                 {!loading && (
-                    <Table
-                        rowKey={(record, index) => index}
-                        dataSource={basketData}
-                        columns={media === 410 ? columnsmid :   columns}
-                        className={css.table}
-                        pagination={false} // Optionally, disable pagination
-                    />
+                    <div >
+                        <div className={css.modal}>
+                            <Table
+                                rowKey={(record, index) => index}
+                                dataSource={basketData}
+                                columns={media === 410 ? columnsmid :   columns}
+                                className={css.table}
+                                pagination={false} // Optionally, disable pagination
+                            />
+                        </div>
+
+                        <div className={css.all_price}>
+                            <div>
+                                Ընհամենը {totalPrice} դրամ
+                            </div>
+                            <div>
+                                <IconButton>
+                                    Պատվիրել
+                                </IconButton>
+                            </div>
+                        </div>
+
+                    </div>
+
                 )}
                 {basketError && <p>Error: {basketError.message}</p>}
             </Modal>

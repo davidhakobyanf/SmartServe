@@ -1,13 +1,16 @@
-.table{
+.table {
     cursor: pointer;
 }
-.imageTitleContainer{
+
+.imageTitleContainer {
+    height: 140px;
     display: flex;
     flex-direction: column;
     /*justify-content: center;*/
     /*align-items: center;*/
 }
-.price_count{
+
+.price_count {
     height: 100%;
     width: 100%;
     display: flex;
@@ -15,8 +18,45 @@
     justify-content: center;
     align-items: center;
 }
+.modal_antd{
+    position: fixed;
+    top: 20px;
+    right: 20px;
+}
+.all_price {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal {
+    overflow-y: auto !important;
+    max-height: 300px;
+}
+
+.modal::-webkit-scrollbar {
+    width: 7px !important;
+}
+
+
+/*.modal::-webkit-scrollbar-thumb {*/
+/*    background: rgba(0, 0, 0, 0.2);*/
+/*    border-radius: 10px;*/
+/*}*/
+
+.modal::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+@media screen and (max-width: 560px) {
+    .modal_antd {
+        position: unset;
+        top: unset;
+        right: unset;
+    }
+}
+
 @media screen and (max-width: 330px) {
-    .price_count{
+    .price_count {
         width: 100px;
 
     }
