@@ -69,6 +69,7 @@ module.exports = class UserLogin {
             const { id } = req.body;
             const cardToDelete = { id };
 
+            // Удаляем карту из профиля
             const user = await db.collection('profile').findOne({});
             const updatedProfile = await db.collection('profile').findOneAndUpdate(
                 {},
@@ -76,13 +77,20 @@ module.exports = class UserLogin {
                 { returnOriginal: false }
             );
 
+            // Удаляем карту из пользователей
             const updatedUser = await db.collection('users').findOneAndUpdate(
                 { email: user.email },
                 { $pull: { card: cardToDelete } },
                 { returnOriginal: false }
             );
 
-            if (updatedProfile && updatedUser) {
+            // Удаляем карту из корзины каждого пользователя
+            const updatedBasket = await db.collection('basket').updateMany(
+                { },
+                { $pull: { "items.card": cardToDelete } }
+            );
+
+            if (updatedProfile && updatedUser && updatedBasket) {
                 res.json(updatedUser);
             } else {
                 res.status(404).json({ error: "Card not found or something went wrong" });
@@ -92,6 +100,7 @@ module.exports = class UserLogin {
             res.status(500).json({ error: 'Internal server error' });
         }
     }
+
 
     async editCard(req, res) {
         try {

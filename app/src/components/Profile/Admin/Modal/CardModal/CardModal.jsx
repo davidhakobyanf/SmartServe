@@ -125,7 +125,7 @@ const CardModal = ({setCardModalOpen, cardModalOpen, index, item, images,fetchPr
     return (
         <div>
             <Modal
-                title={item?.title}
+                title={item?.title.length > 20 ? `${item?.title.slice(0, 20)}...` : item?.title}
                 open={cardModalOpen}
                 onCancel={handleCancel}
                 width={modalWidth} // Dynamic width

@@ -44,6 +44,9 @@ const ClientBasketModal = ({ basketOpen, setBasketOpen, clientId, images }) => {
             title: 'Title',
             dataIndex: 'title',
             key: 'title',
+            render:(text,record) => (
+                record?.title.length > 15 ? `${record?.title.slice(0, 15)}...` : record?.title
+)
         },
         {
             title: 'Price',

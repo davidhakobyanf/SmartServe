@@ -33,7 +33,25 @@
 }
 
 .card_title {
+    overflow: auto;
+    max-height: 40px;
     font-size: 30px !important;
+}
+.card_title::-webkit-scrollbar {
+    width: 7px !important;
+}
+
+.card_title::-webkit-scrollbar-track {
+    background: rgb(255, 255, 255);
+}
+
+.card_title::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
+.card_title::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.2);
 }
 
 .text {

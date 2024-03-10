@@ -7,9 +7,28 @@
 .card_description {
     overflow: auto;
     max-height: 200px;
-
+}
+.card_title {
+    overflow: auto;
+    max-height: 40px;
+    font-size: 30px !important;
+}
+.card_title::-webkit-scrollbar {
+    width: 7px !important;
 }
 
+.card_title::-webkit-scrollbar-track {
+    background: rgb(255, 255, 255);
+}
+
+.card_title::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
+.card_title::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
 .card_description::-webkit-scrollbar {
     width: 7px !important;
 }
@@ -32,9 +51,7 @@
     justify-content: space-between;
 }
 
-.card_title {
-    font-size: 30px !important;
-}
+
 
 .text {
     width: 45%;
@@ -48,19 +65,22 @@
     width: 50%;
     height: 100%;
 }
-.card_buttons{
+
+.card_buttons {
     margin-top: 16px;
     width: 70px;
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
-.icons{
+
+.icons {
     font-size: 20px;
 }
+
 .modal_footer {
     width: 100%;
-justify-content: space-between;
+    justify-content: space-between;
     display: flex;
     align-items: center;
 }
@@ -80,11 +100,11 @@ justify-content: space-between;
 }
 
 .modal::-webkit-scrollbar-track {
-    /*background: rgb(255, 255, 255);*/
+    background: rgb(255, 255, 255);
 }
 
 .modal::-webkit-scrollbar-thumb {
-    /*background: rgba(0, 0, 0, 0.2);*/
+    background: rgba(0, 0, 0, 0.2);
     border-radius: 10px;
 }
 

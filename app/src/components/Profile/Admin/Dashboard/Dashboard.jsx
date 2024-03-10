@@ -149,7 +149,9 @@ const Dashboard = () => {
                 {profileDataList?.card?.map((item, index) => (
                     <Card key={index} className={css.card} onClick={() => modalCard(item, index)}>
                         <div                             onClick={() => setCardModalOpen(true)}>
-                            <Typography level="title-lg">{item.title}</Typography>
+                            <Typography level="title-lg">
+                                {item?.title.length > 20 ? `${item?.title.slice(0, 20)}...` : item?.title}
+                            </Typography>
                             <Typography level="body-sm">
                                 {item.description.length > 45 ? `${item.description.slice(0, 45)}...` : item.description}
                             </Typography>
