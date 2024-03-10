@@ -5,6 +5,7 @@ import clientAPI from '../../../../api/api';
 import Quantity from "../../../../hoc/Quantity/Quantity";
 import css from './ClientBasketModal.module.css'
 import IconButton from "@mui/joy/IconButton";
+import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
 
 const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
     const [basketData, setBasketData] = useState([]);
@@ -38,8 +39,13 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
             }        else if (window.innerWidth <= 410) {
                 setInputWidth("50px");
                 setMedia(410)
-            }else {
+            }else if (window.innerWidth <= 600){
+                setInputWidth("50px");
+                setMedia(410)
+            }
+            else {
                 setInputWidth("100px");
+                setMedia(0)
             }
         };
 
@@ -56,6 +62,7 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
     };
     const  columns = [
         {
+            title:'Զամբյուղ',
             dataIndex: 'image',
             key: 'image',
             render: (text, record) => (
@@ -68,19 +75,36 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
             ),
         },
         {
+            title: 'Գին',
             dataIndex: 'price',
             key: 'price',
             render: (text, record) => <span>{text * record.count} դրամ</span>,
         },
         {
+            title: 'Քանակ',
             dataIndex: 'count',
             key: 'count',
             render: (text, record) => (
-                <Quantity
-                    width={inputWidth}
-                    quantity={record.count}
-                    setQuantity={(newQuantity) => handleQuantityChange(newQuantity, record)}
-                />
+                <div className={css.right_basket}>
+                    <div className={css.quantity_component}>
+                        <Quantity
+                            width={inputWidth}
+                            quantity={record.count}
+                            setQuantity={(newQuantity) => handleQuantityChange(newQuantity, record)}
+                        />
+                    </div>
+
+                    <div className={css.delete_button}>
+                        <IconButton
+                            variant="plain"
+                            color="neutral"
+                            size="sm"
+                        >
+                            <DeleteOutlined className={css.icons} style={{color: "red"}}/>
+                        </IconButton>
+                    </div>
+                </div>
+
             ),
         },
     ]
@@ -108,6 +132,16 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
                             setQuantity={(newQuantity) => handleQuantityChange(newQuantity, record)}
                         />
                         <span>{text * record.count} դրամ</span>
+                        <div className={css.delete_button}>
+                            <IconButton
+                                variant="plain"
+                                color="neutral"
+                                size="sm"
+                            >
+                                <DeleteOutlined className={css.icons} style={{color: "red"}}/>
+                            </IconButton>
+                        </div>
+
                     </div>
                 ),
         }

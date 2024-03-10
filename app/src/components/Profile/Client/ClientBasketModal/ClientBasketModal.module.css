@@ -10,6 +10,25 @@
     /*align-items: center;*/
 }
 
+.delete_button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: end;
+}
+.quantity_component{
+    display: flex;
+    align-items: end;
+    justify-content: center;
+}
+
+.right_basket {
+    height: 140px;
+    width: 100%;
+    display: grid;
+    grid-template-rows: 68% 32%;
+}
+
 .price_count {
     height: 100%;
     width: 100%;
@@ -18,15 +37,22 @@
     justify-content: center;
     align-items: center;
 }
-.modal_antd{
+
+.icons {
+    font-size: 20px;
+}
+
+.modal_antd {
     position: fixed;
     top: 20px;
     right: 20px;
 }
+
 .all_price {
+    height: 50px;
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: end;
 }
 
 .modal {
@@ -47,6 +73,7 @@
 .modal::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 0, 0, 0.2);
 }
+
 @media screen and (max-width: 560px) {
     .modal_antd {
         position: unset;
