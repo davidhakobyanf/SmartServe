@@ -10,6 +10,52 @@ connectToDb((error) => {
 });
 
 module.exports = class UserBasket {
+    async deleteAllBasket(req, res) {
+        try {
+            const { table } = req.body;
+
+            // Удаляем все карты для указанного стола
+            const updatedProfile = await db.collection('basket').findOneAndUpdate(
+                { },
+                { $unset: { [`tables.${table}`]: "" } },
+                { returnOriginal: false }
+            );
+
+            if (updatedProfile) {
+                res.json(updatedProfile);
+            } else {
+                res.status(404).json({ error: "Стол не найден или что-то пошло не так" });
+            }
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+        }
+    }
+
+
+    async deleteCardInBasket(req, res) {
+        try {
+            const { table, id } = req.body;
+            const cardToDelete = { id };
+
+            // Удаляем карту из профиля
+            const updatedProfile = await db.collection('basket').findOneAndUpdate(
+                { },
+                { $pull: { [`tables.${table}`]: cardToDelete } },
+                { returnOriginal: false }
+            );
+            if (updatedProfile) {
+                res.json(updatedProfile);
+            } else {
+                res.status(404).json({ error: "Карта не найдена или что-то пошло не так" });
+            }
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+        }
+    }
+
+
     // async userLogin(req, res) {
     //     const { email, password } = req.body;
     //     try {

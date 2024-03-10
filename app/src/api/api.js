@@ -71,6 +71,58 @@ class DataApi {
             throw error;
         }
     }
+
+    static async deleteAllBasket(table) {
+        try {
+            const headers = {
+                Authorization: `Bearer`,
+                'Content-Type': 'application/json',
+            };
+            const response = await instance.request({
+                url: '/api/basket/all',
+                method: 'delete',
+                headers,
+                data: {
+                    table:table
+                },
+            });
+
+            console.log(response,'response')
+
+            return response;
+        } catch (error) {
+            console.error(error);
+            // Handle the error as needed, or rethrow it if further handling is required.
+            throw error;
+        }
+    }
+    static async deleteBasket(id,table) {
+        try {
+            const headers = {
+                Authorization: `Bearer`,
+                'Content-Type': 'application/json',
+            };
+            const response = await instance.request({
+                url: '/api/basket',
+                method: 'delete',
+                headers,
+                data: {
+                    id: id,
+                    table:table
+                },
+            });
+
+            console.log(`"${id}"`,'card')
+            console.log(response,'response')
+
+            return response;
+        } catch (error) {
+            console.error(error);
+            // Handle the error as needed, or rethrow it if further handling is required.
+            throw error;
+        }
+    }
+
     static async deleteCard(id) {
         try {
             const headers = {

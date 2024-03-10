@@ -15,7 +15,7 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
     const [fetchBasket, basketLoading, basketError] = useFetching(async () => {
         try {
             const {data: res} = await clientAPI.getBasket(clientId);
-            if (res) {
+            if (res,clientId) {
                 setBasketData(res[clientId] || []);
             }
         } catch (error) {
@@ -24,13 +24,33 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
             setLoading(false);
         }
     });
+    const [deleteBasket, deleteBasketLoading, deleteBasketError] = useFetching(async (id,table) => {
+        try {
+            const { data: res } = await clientAPI.deleteBasket(id,table);
+            if (res) {
+                console.log(res, 'res');
+            }
+        } catch (error) {
+            console.error('Error fetching profile:', error);
+        }
+    });
+    const [deleteAllBasket, deleteAllBasketLoading, deleteAllBasketError] = useFetching(async (table) => {
+        try {
+            const { data: res } = await clientAPI.deleteAllBasket(table);
+            if (res) {
+                console.log(res, 'res');
+            }
+        } catch (error) {
+            console.error('Error fetching profile:', error);
+        }
+    });
     const totalPrice = basketData.reduce((total, item) => total + (item.price * item.count), 0);
 
     useEffect(() => {
         if (basketOpen) {
             fetchBasket();
         }
-    }, [basketOpen]);
+    }, [clientId,basketOpen,deleteBasketLoading,deleteAllBasketLoading]);
     useEffect(() => {
         const handleResize = () => {
             if (window.innerWidth <= 330) {
@@ -60,6 +80,19 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
     const handleCancel = () => {
         setBasketOpen(false);
     };
+    const handleDelete = (id,clientId) => {
+        if (clientId){
+            deleteBasket(id,clientId)
+        }
+        console.log(id,'delete_id')
+        console.log(clientId,'clientId')
+    }
+    const handleDeleteAll = (clientId) => {
+        if (clientId){
+            deleteAllBasket(clientId)
+        }
+        console.log(clientId,'clientId')
+    }
     const  columns = [
         {
             title:'Զամբյուղ',
@@ -99,8 +132,9 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
                             variant="plain"
                             color="neutral"
                             size="sm"
+                            onClick={() => handleDelete(record.id,clientId)}
                         >
-                            <DeleteOutlined className={css.icons} style={{color: "red"}}/>
+                            <DeleteOutlined   className={css.icons} style={{color: "red"}}/>
                         </IconButton>
                     </div>
                 </div>
@@ -188,7 +222,7 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
                                     Պատվիրել
                                 </IconButton>
                             </div>
-                            <div>
+                            <div onClick={() => handleDeleteAll(clientId)}>
                                 <IconButton>
                                     Ջնջել բոլորը
                                 </IconButton>

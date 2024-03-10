@@ -8,5 +8,6 @@ basketRoute
     .route('/api/basket')
     .patch(userBasket.addCardInBasket)
     .get(userBasket.getCardInBasket)
+    .delete(userBasket.deleteCardInBasket)
 
 module.exports = basketRoute;
