@@ -47,8 +47,6 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
     const [fetchAddOrder, AddOrderLoading, AddOrderError] = useFetching(async (card) => {
         try {
             await clientAPI.createOrder(card);
-            // Больше не нужно ничего делать здесь, т.к. состояния isLoading и error
-            // автоматически устанавливаются внутри хука useFetching
         } catch (error) {
             console.error('Error fetching profile:', error);
         }
@@ -80,7 +78,7 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
             }
         };
 
-        handleResize(); // Call once to set initial width
+        handleResize();
 
         window.addEventListener('resize', handleResize);
         return () => {
@@ -105,21 +103,14 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
         console.log(clientId,'clientId')
     }
     const handleOrder = () => {
-        // Проходим по каждому товару в корзине
         const updatedBasketData = basketData.map(item => {
-            // Вычисляем цену за данный товар (цена * количество)
             const itemTotalPrice = item.price * item.count + (350 * (item.sauces.length === 0 ? 0 : item.sauces.length))
-            // Возвращаем обновленный объект товара, добавляя к нему свойство price с вычисленной ценой
             return {
                 ...item,
                 price: itemTotalPrice
             };
         });
-
-        // Вычисляем общую цену всех товаров в корзине
         const totalPrice = updatedBasketData.reduce((total, item) => total + item.price, 0);
-
-        // Создаем объект с массивом товаров и отдельным свойством allPrice
         const updatedBasketDataWithTotal = {
             items: updatedBasketData,
             allPrice: totalPrice,
