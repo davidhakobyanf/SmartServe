@@ -32,7 +32,14 @@ const ClientCardModal = ({clientId,setCardModalOpen, cardModalOpen, index, item,
             console.error('Error fetching profile:', error);
         }
     });
+    useEffect(() => {
+        if (selectedOptions) {
+         const x =   Object.keys(selectedOptions)
+            console.log(x,'x')
 
+        }
+        console.log(selectedOptions,'selectedOptions')
+    }, [selectedOptions]);
 
     useEffect(() => {
         setAllTotal(item?.price * quantity);
@@ -96,6 +103,7 @@ const ClientCardModal = ({clientId,setCardModalOpen, cardModalOpen, index, item,
         if (item) {
             const modifiedItem = {
                 ...item,
+                sauces:Object.keys(selectedOptions).filter(key => selectedOptions[key] === true),
                 table: clientId,
                 count:quantity
             };
