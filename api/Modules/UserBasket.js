@@ -115,7 +115,7 @@ module.exports = class UserBasket {
                 if (basket.tables[table]) {
                     // Check if card with the same id exists in the table
                     basket.tables[table].forEach(existingCard => {
-                        if (existingCard.id === id) {
+                        if (existingCard.id === id && JSON.stringify(existingCard.sauces) === JSON.stringify(sauces)) {
                             existingCard.count += count;
                             found = true;
                         }
