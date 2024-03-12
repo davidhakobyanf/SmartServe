@@ -53,7 +53,7 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
             console.error('Error fetching profile:', error);
         }
     });
-    const totalPrice = basketData.reduce((total, item) => total + (item.price * item.count), 0);
+    const totalPrice = basketData.reduce((total, item) => total + (item.price * item.count + (350 * (item.sauces.length === 0 ? 0 : item.sauces.length))), 0);
     const success = () => {
         message.success('Ձեր  պատվերը ընդունված է:');
     };
@@ -108,7 +108,7 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
         // Проходим по каждому товару в корзине
         const updatedBasketData = basketData.map(item => {
             // Вычисляем цену за данный товар (цена * количество)
-            const itemTotalPrice = item.price * item.count;
+            const itemTotalPrice = item.price * item.count + (350 * (item.sauces.length === 0 ? 0 : item.sauces.length))
             // Возвращаем обновленный объект товара, добавляя к нему свойство price с вычисленной ценой
             return {
                 ...item,
@@ -150,7 +150,7 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
             title: 'Գին',
             dataIndex: 'price',
             key: 'price',
-            render: (text, record) => <span>{text * record.count} դրամ</span>,
+            render: (text, record) => <span>{text * record.count + (350 * (record.sauces.length === 0 ? 0 : record.sauces.length)) } դրամ</span>,
         },
         {
             title: 'Քանակ',
