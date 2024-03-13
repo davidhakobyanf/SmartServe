@@ -54,4 +54,26 @@ module.exports = class UserOrder {
             res.status(500).json({ err: 'Server error' });
         }
     }
+    async deleteOrder(req, res) {
+        try {
+            const { id } = req.body;
+
+            // Удаляем объект с указанным id из массива orders
+            const updatedProfile = await db.collection('orders').findOneAndUpdate(
+                {},
+                { $pull: { orders: { _id: id } } },
+                { returnOriginal: false }
+            );
+
+            if (updatedProfile) {
+                res.json(updatedProfile);
+            } else {
+                res.status(404).json({ error: "Заказ не найден или что-то пошло не так" });
+            }
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+        }
+    }
+
 };

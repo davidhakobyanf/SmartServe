@@ -19,6 +19,7 @@ import CardModal from "../Modal/CardModal/CardModal";
 import {Input,Switch} from 'antd';
 import {useNavigate} from "react-router-dom";
 import {useProfileData} from "../../../../context/ProfileDataContext";
+import { BiSolidNotepad } from "react-icons/bi";
 
 const {Search} = Input;
 
@@ -26,6 +27,7 @@ const Dashboard = () => {
     const {profileDataList, setProfileDataList} = useProfileData();
     const [cardActive, setCardActive] = useState({})
     const [modalOpen, setModalOpen] = useState(false)
+    const [modalOrderOpen, setModalOrderOpen] = useState(false)
     const [selectedItem, setSelectedItem] = useState(null);
     const [selectedItemIndex, setSelectedItemIndex] = useState(null);
     const [images, setImages] = useState([]);
@@ -99,6 +101,9 @@ const Dashboard = () => {
         localStorage.removeItem('isLoggedIn');
         navigate("/")
     };
+    const orderHandler = () => {
+        setModalOrderOpen(true)
+    }
 
 
     const onSearch = (value) => {
@@ -137,6 +142,9 @@ const Dashboard = () => {
                             width: 200,
                         }}
                     />
+                </div>
+                <div className={css.logout} onClick={orderHandler}>
+                    <BiSolidNotepad />
                 </div>
                 <div className={css.logout} onClick={logoutHandler}>
                     <MdOutlineLogout/>
