@@ -12,6 +12,20 @@ connectToDb((error) => {
 });
 
 module.exports = class UserOrder {
+
+    async getOrders(req, res) {
+        try {
+            const orders = await db.collection('orders').findOne({});
+            if (!orders) {
+                res.status(404).json({ error: 'Basket not found' });
+            } else {
+                res.json(orders.orders);
+            }
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Server error' });
+        }
+    }
     async addOrder(req, res) {
         try {
             if (!db) {
@@ -33,7 +47,7 @@ module.exports = class UserOrder {
             };
 
             // Ищем заказы
-            const orders = await db.collection('orders').findOne({});
+            const orders = await db.collection('orders').findOne({ orders: { $exists: true } });
 
             if (orders) {
                 // Если найдены заказы, добавляем новый заказ в массив orders
@@ -75,5 +89,25 @@ module.exports = class UserOrder {
             res.status(500).json({ error: 'Внутренняя ошибка сервера' });
         }
     }
+    async deleteAllOrders(req, res) {
+        try {
+            // Удаляем все документы в коллекции "orders"
+            const deletedOrders = await db.collection('orders').deleteMany({});
+
+            if (deletedOrders.deletedCount > 0) {
+                res.json({ message: "Все данные в коллекции 'orders' были удалены" });
+            } else {
+                res.status(404).json({ error: "Данные не найдены или что-то пошло не так" });
+            }
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+        }
+    }
+
+
+
+
+
 
 };

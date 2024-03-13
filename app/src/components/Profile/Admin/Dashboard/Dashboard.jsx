@@ -20,6 +20,7 @@ import {Input,Switch} from 'antd';
 import {useNavigate} from "react-router-dom";
 import {useProfileData} from "../../../../context/ProfileDataContext";
 import { BiSolidNotepad } from "react-icons/bi";
+import AdminOrderModal from "../AdminOrderModal/AdminOrderModal";
 
 const {Search} = Input;
 
@@ -196,6 +197,7 @@ const Dashboard = () => {
                     </Card>
                 ))}
                 <AddModal modalOpen={modalOpen} setModalOpen={setModalOpen} fetchAddCard={fetchAddCard}/>
+                <AdminOrderModal orderOpen={modalOrderOpen} setOrderOpen={setModalOrderOpen} />
             </div>
             {/*<div className={css.footer}>*/}
 

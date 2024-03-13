@@ -26,6 +26,23 @@ class DataApi {
             throw error;
         }
     }
+    static async getOrders() {
+        try {
+
+            const response = await instance.get('/api/orders', {
+                headers: {
+                    'Authorization': `Bearer `,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            return response;
+        } catch (error) {
+            console.error(error);
+            // Handle the error as needed, or rethrow it if further handling is required.
+            throw error;
+        }
+    }
     static async getBasket() {
         try {
 
@@ -98,6 +115,51 @@ class DataApi {
                 headers,
                 data: {
                     table:table
+                },
+            });
+
+            console.log(response,'response')
+
+            return response;
+        } catch (error) {
+            console.error(error);
+            // Handle the error as needed, or rethrow it if further handling is required.
+            throw error;
+        }
+    }
+    static async deleteAllOrders() {
+        try {
+            const headers = {
+                Authorization: `Bearer`,
+                'Content-Type': 'application/json',
+            };
+            const response = await instance.request({
+                url: '/api/basket/all',
+                method: 'delete',
+                headers,
+            });
+
+            console.log(response,'response')
+
+            return response;
+        } catch (error) {
+            console.error(error);
+            // Handle the error as needed, or rethrow it if further handling is required.
+            throw error;
+        }
+    }
+    static async deleteOrder(id) {
+        try {
+            const headers = {
+                Authorization: `Bearer`,
+                'Content-Type': 'application/json',
+            };
+            const response = await instance.request({
+                url: '/api/orders',
+                method: 'delete',
+                headers,
+                data: {
+                    id: id,
                 },
             });
 

@@ -7,26 +7,23 @@ import css from './AdminOrderModal.module.css'
 import IconButton from "@mui/joy/IconButton";
 import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
 
-const AdminOrderModal = ({basketOpen, setBasketOpen, clientId, images}) => {
+const AdminOrderModal = ({orderOpen, setOrderOpen,images}) => {
     const [basketData, setBasketData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [inputWidth, setInputWidth] = useState("100px")
     const [media, setMedia] = useState(0)
-    const [fetchBasket, basketLoading, basketError] = useFetching(async () => {
+    const [fetchOrders, basketLoading, basketError] = useFetching(async () => {
         try {
-            const {data: res} = await clientAPI.getBasket(clientId);
-            if (res,clientId) {
-                setBasketData(res[clientId] || []);
-            }
+            const {data: res} = await clientAPI.getOrders();
         } catch (error) {
             console.error('Error fetching basket:', error);
         } finally {
             setLoading(false);
         }
     });
-    const [deleteBasket, deleteBasketLoading, deleteBasketError] = useFetching(async (id,table) => {
+    const [deleteOrder, deleteOrderLoading, deleteOrderError] = useFetching(async (id) => {
         try {
-            const { data: res } = await clientAPI.deleteBasket(id,table);
+            const { data: res } = await clientAPI.deleteOrder(id);
             if (res) {
                 console.log(res, 'res');
             }
@@ -34,9 +31,9 @@ const AdminOrderModal = ({basketOpen, setBasketOpen, clientId, images}) => {
             console.error('Error fetching profile:', error);
         }
     });
-    const [deleteAllBasket, deleteAllBasketLoading, deleteAllBasketError] = useFetching(async (table) => {
+    const [deleteAllOrders, deleteAllOrdersLoading, deleteAllOrdersError] = useFetching(async () => {
         try {
-            const { data: res } = await clientAPI.deleteAllBasket(table);
+            const { data: res } = await clientAPI.deleteAllOrders();
             if (res) {
                 console.log(res, 'res');
             }
@@ -56,10 +53,10 @@ const AdminOrderModal = ({basketOpen, setBasketOpen, clientId, images}) => {
         message.success('Ձեր  պատվերը ընդունված է:');
     };
     useEffect(() => {
-        if (basketOpen) {
-            fetchBasket();
+        if (orderOpen) {
+            fetchOrders();
         }
-    }, [clientId,basketOpen,deleteBasketLoading,deleteAllBasketLoading]);
+    }, [orderOpen,deleteOrderLoading,deleteAllOrdersLoading]);
     useEffect(() => {
         const handleResize = () => {
             if (window.innerWidth <= 330) {
@@ -87,42 +84,17 @@ const AdminOrderModal = ({basketOpen, setBasketOpen, clientId, images}) => {
     }, []);
 
     const handleCancel = () => {
-        setBasketOpen(false);
+        setOrderOpen(false);
     };
-    const handleDelete = (id,clientId) => {
-        if (clientId){
-            deleteBasket(id,clientId)
+    const handleDelete = (id) => {
+        if (id){
+            deleteOrder(id)
         }
         console.log(id,'delete_id')
-        console.log(clientId,'clientId')
     }
-    const handleDeleteAll = (clientId) => {
-        if (clientId){
-            deleteAllBasket(clientId)
-        }
-        console.log(clientId,'clientId')
+    const handleDeleteAll = () => {
+            deleteAllOrders()
     }
-    const handleOrder = () => {
-        const updatedBasketData = basketData.map(item => {
-            const itemTotalPrice = item.price * item.count + (350 * (item.sauces.length === 0 ? 0 : item.sauces.length))
-            return {
-                ...item,
-                price: itemTotalPrice
-            };
-        });
-        const totalPrice = updatedBasketData.reduce((total, item) => total + item.price, 0);
-        const updatedBasketDataWithTotal = {
-            items: updatedBasketData,
-            allPrice: totalPrice,
-            table:clientId
-        };
-        fetchAddOrder(updatedBasketDataWithTotal)
-        success();
-        console.log("All basket data:", updatedBasketDataWithTotal);
-    };
-
-
-
     const  columns = [
         {
             title:'Զամբյուղ',
@@ -162,7 +134,7 @@ const AdminOrderModal = ({basketOpen, setBasketOpen, clientId, images}) => {
                             variant="plain"
                             color="neutral"
                             size="sm"
-                            onClick={() => handleDelete(record.id,clientId)}
+                            // onClick={() => handleDelete(record.id)}
                         >
                             <DeleteOutlined   className={css.icons} style={{color: "red"}}/>
                         </IconButton>
@@ -225,7 +197,7 @@ const AdminOrderModal = ({basketOpen, setBasketOpen, clientId, images}) => {
         <div>
             <Modal
                 mask={false}
-                open={basketOpen}
+                open={orderOpen}
                 onCancel={handleCancel}
                 footer={null}
                 className={css.modal_antd}
@@ -247,12 +219,8 @@ const AdminOrderModal = ({basketOpen, setBasketOpen, clientId, images}) => {
                             <div>
                                 <b>Ընհամենը {totalPrice} դրամ </b>
                             </div>
-                            <div onClick={handleOrder}>
-                                <IconButton>
-                                    Պատվիրել
-                                </IconButton>
-                            </div>
-                            <div onClick={() => handleDeleteAll(clientId)}>
+
+                            <div onClick={() => handleDeleteAll()}>
                                 <IconButton>
                                     Ջնջել բոլորը
                                 </IconButton>

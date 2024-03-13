@@ -9,6 +9,7 @@ const userLoginRouter = require('./Route/UserLoginRoute');
 const basketRoute = require('./Route/BasketRoute');
 const AuthenticateRoute = require('./Route/AuthenticateRoute');
 const allbasketRoute = require('./Route/allbasketRoute');
+const allordersRoute = require('./Route/allordersRoute');
 const OrdersRoute = require('./Route/OrdersRoute');
 const app = express();
 const PORT = 8000;
@@ -19,6 +20,7 @@ app.use(cors());
 app.use(userLoginRouter);
 app.use(basketRoute);
 app.use(allbasketRoute);
+app.use(allordersRoute);
 app.use(OrdersRoute);
 app.use(AuthenticateRoute)
 app.use(registerRoute);

@@ -7,6 +7,7 @@ const userOrder = new UserOrder();
 OrdersRoute
     .route('/api/orders')
     .patch(userOrder.addOrder)
+    .get(userOrder.getOrders)
     .delete(userOrder.deleteOrder)
     // .get(userBasket.getCardInBasket)
 
