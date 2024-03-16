@@ -1,26 +1,31 @@
-import React, {useEffect, useState} from 'react';
-import {Modal, Spin, Table, Image, message} from 'antd';
-import {useFetching} from '../../../../hoc/fetchingHook';
+import React, { useEffect, useState } from 'react';
+import { Modal, Spin, Table, Image, message, Collapse } from 'antd';
+import { useFetching } from '../../../../hoc/fetchingHook';
 import clientAPI from '../../../../api/api';
-import Quantity from "../../../../hoc/Quantity/Quantity";
-import css from './AdminOrderModal.module.css'
-import IconButton from "@mui/joy/IconButton";
-import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import Quantity from '../../../../hoc/Quantity/Quantity';
+import css from './AdminOrderModal.module.css';
+import IconButton from '@mui/joy/IconButton';
+import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
 
-const AdminOrderModal = ({orderOpen, setOrderOpen,images}) => {
-    const [basketData, setBasketData] = useState([]);
+const { Panel } = Collapse;
+
+const AdminOrderModal = ({ orderOpen, setOrderOpen, images }) => {
+    const [orderData, setOrderData] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [inputWidth, setInputWidth] = useState("100px")
-    const [media, setMedia] = useState(0)
-    const [fetchOrders, basketLoading, basketError] = useFetching(async () => {
+    const [inputWidth, setInputWidth] = useState('100px');
+    const [media, setMedia] = useState(0);
+    const [fetchOrders, orderLoading, orderError] = useFetching(async () => {
         try {
-            const {data: res} = await clientAPI.getOrders();
+            const { data: res } = await clientAPI.getOrders();
+            console.log(res, 'res');
+            setOrderData(res);
         } catch (error) {
             console.error('Error fetching basket:', error);
         } finally {
             setLoading(false);
         }
     });
+
     const [deleteOrder, deleteOrderLoading, deleteOrderError] = useFetching(async (id) => {
         try {
             const { data: res } = await clientAPI.deleteOrder(id);
@@ -31,6 +36,7 @@ const AdminOrderModal = ({orderOpen, setOrderOpen,images}) => {
             console.error('Error fetching profile:', error);
         }
     });
+
     const [deleteAllOrders, deleteAllOrdersLoading, deleteAllOrdersError] = useFetching(async () => {
         try {
             const { data: res } = await clientAPI.deleteAllOrders();
@@ -41,6 +47,7 @@ const AdminOrderModal = ({orderOpen, setOrderOpen,images}) => {
             console.error('Error fetching profile:', error);
         }
     });
+
     const [fetchAddOrder, AddOrderLoading, AddOrderError] = useFetching(async (card) => {
         try {
             await clientAPI.createOrder(card);
@@ -48,30 +55,27 @@ const AdminOrderModal = ({orderOpen, setOrderOpen,images}) => {
             console.error('Error fetching profile:', error);
         }
     });
-    const totalPrice = basketData.reduce((total, item) => total + (item.price * item.count + (350 * (item.sauces.length === 0 ? 0 : item.sauces.length))), 0);
-    const success = () => {
-        message.success('Ձեր  պատվերը ընդունված է:');
-    };
+
     useEffect(() => {
         if (orderOpen) {
             fetchOrders();
         }
-    }, [orderOpen,deleteOrderLoading,deleteAllOrdersLoading]);
+    }, [orderOpen, deleteOrderLoading, deleteAllOrdersLoading]);
+
     useEffect(() => {
         const handleResize = () => {
             if (window.innerWidth <= 330) {
-                setMedia(410)
-                setInputWidth("50px");
-            }        else if (window.innerWidth <= 410) {
-                setInputWidth("50px");
-                setMedia(410)
-            }else if (window.innerWidth <= 600){
-                setInputWidth("50px");
-                setMedia(410)
-            }
-            else {
-                setInputWidth("100px");
-                setMedia(0)
+                setMedia(410);
+                setInputWidth('50px');
+            } else if (window.innerWidth <= 410) {
+                setInputWidth('50px');
+                setMedia(410);
+            } else if (window.innerWidth <= 600) {
+                setInputWidth('50px');
+                setMedia(410);
+            } else {
+                setInputWidth('100px');
+                setMedia(0);
             }
         };
 
@@ -86,25 +90,26 @@ const AdminOrderModal = ({orderOpen, setOrderOpen,images}) => {
     const handleCancel = () => {
         setOrderOpen(false);
     };
+
     const handleDelete = (id) => {
-        if (id){
-            deleteOrder(id)
+        if (id) {
+            deleteOrder(id);
         }
-        console.log(id,'delete_id')
-    }
+        console.log(id, 'delete_id');
+    };
+
     const handleDeleteAll = () => {
-            deleteAllOrders()
-    }
-    const  columns = [
+        deleteAllOrders();
+    };
+
+    const columns = [
         {
-            title:'Զամբյուղ',
+            title: 'Զամբյուղ',
             dataIndex: 'image',
             key: 'image',
             render: (text, record) => (
                 <div className={css.imageTitleContainer}>
-                    <span style={{ width: '100px' }}>
-                        {record.title.length > 15 ? `${record.title.slice(0, 15)}...` : record.title}
-                    </span>
+                    <span style={{ width: '100px' }}>{record.title.length > 15 ? `${record.title.slice(0, 15)}...` : record.title}</span>
                     <Image src={images.find((image) => image.id === record.id)?.default} width={100} />
                 </div>
             ),
@@ -113,7 +118,7 @@ const AdminOrderModal = ({orderOpen, setOrderOpen,images}) => {
             title: 'Գին',
             dataIndex: 'price',
             key: 'price',
-            render: (text, record) => <span>{text * record.count + (350 * (record.sauces.length === 0 ? 0 : record.sauces.length)) } դրամ</span>,
+            render: (text, record) => <span>{text * record.count + (350 * (record.sauces.length === 0 ? 0 : record.sauces.length))} դրամ</span>,
         },
         {
             title: 'Քանակ',
@@ -122,116 +127,49 @@ const AdminOrderModal = ({orderOpen, setOrderOpen,images}) => {
             render: (text, record) => (
                 <div className={css.right_basket}>
                     <div className={css.quantity_component}>
-                        <Quantity
-                            width={inputWidth}
-                            quantity={record.count}
-                            setQuantity={(newQuantity) => handleQuantityChange(newQuantity, record)}
-                        />
+                        <b>{record.count} հատ</b>
                     </div>
-
                     <div className={css.delete_button}>
-                        <IconButton
-                            variant="plain"
-                            color="neutral"
-                            size="sm"
-                            // onClick={() => handleDelete(record.id)}
-                        >
-                            <DeleteOutlined   className={css.icons} style={{color: "red"}}/>
+                        <IconButton variant="plain" color="neutral" size="sm" onClick={() => handleDelete(record.id)}>
+                            <DeleteOutlined className={css.icons} style={{ color: 'red' }} />
                         </IconButton>
                     </div>
                 </div>
-
             ),
         },
-    ]
-    const columnsmid = [
-        {
-            dataIndex: 'image',
-            key: 'image',
-            render: (text, record) => (
-                <div className={css.imageTitleContainer}>
-                    <span style={{ width: '100px' }}>
-                        {record.title.length > 15 ? `${record.title.slice(0, 15)}...` : record.title}
-                    </span>
-                    <Image src={images.find((image) => image.id === record.id)?.default} width={100} />
-                </div>
-            ),
-        },
-        {
-                dataIndex: 'price',
-                key: 'price',
-                render: (text, record) => (
-                    <div className={css.price_count}>
-                        <Quantity
-                            width={inputWidth}
-                            quantity={record.count}
-                            setQuantity={(newQuantity) => handleQuantityChange(newQuantity, record)}
-                        />
-                        <span>{text * record.count} դրամ</span>
-                        <div className={css.delete_button}>
-                            <IconButton
-                                variant="plain"
-                                color="neutral"
-                                size="sm"
-                            >
-                                <DeleteOutlined className={css.icons} style={{color: "red"}}/>
-                            </IconButton>
-                        </div>
-
-                    </div>
-                ),
-        }
     ];
-
-    const handleQuantityChange = (newQuantity, record) => {
-        const newBasketData = basketData.map(item => {
-            if (item === record) {
-                return {...item, count: newQuantity};
-            }
-            return item;
-        });
-        setBasketData(newBasketData);
-    };
 
     return (
         <div>
-            <Modal
-                mask={false}
-                open={orderOpen}
-                onCancel={handleCancel}
-                footer={null}
-                className={css.modal_antd}
-            >
-                {loading && <Spin size="large"/>}
+            <Modal mask={false} open={orderOpen} onCancel={handleCancel} footer={null} className={css.modal_antd}>
+                {loading && <Spin size="large" />}
                 {!loading && (
-                    <div >
-                        <div className={css.modal}>
-                            <Table
-                                rowKey={(record, index) => index}
-                                dataSource={basketData}
-                                columns={media === 410 ? columnsmid :   columns}
-                                className={css.table}
-                                pagination={false} // Optionally, disable pagination
-                            />
-                        </div>
-
+                    <div className={css.modal}>
+                        {orderData.map((order, index) => (
+                            <Collapse key={index} accordion>
+                                <Panel header={`Սեղան ${order?.table}`} key={index}>
+                                    <Table
+                                        rowKey={(record, index) => index}
+                                        dataSource={order?.items}
+                                        columns={columns}
+                                        className={css.table}
+                                        pagination={false}
+                                    />
+                                    <div><b>Ընդհամենը {order.allPrice} դրամ</b></div>
+                                </Panel>
+                            </Collapse>
+                        ))}
                         <div className={css.all_price}>
                             <div>
-                                <b>Ընհամենը {totalPrice} դրամ </b>
+                                <b>Ընհամենը {orderData.reduce((total, order) => total + order.allPrice, 0)} դրամ </b>
                             </div>
-
                             <div onClick={() => handleDeleteAll()}>
-                                <IconButton>
-                                    Ջնջել բոլորը
-                                </IconButton>
+                                <IconButton>Ջնջել բոլորը</IconButton>
                             </div>
-
                         </div>
-
                     </div>
-
                 )}
-                {basketError && <p>Error: {basketError.message}</p>}
+                {orderError && <p>Error: {orderError.message}</p>}
             </Modal>
         </div>
     );

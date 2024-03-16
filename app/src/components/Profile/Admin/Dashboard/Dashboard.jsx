@@ -197,7 +197,7 @@ const Dashboard = () => {
                     </Card>
                 ))}
                 <AddModal modalOpen={modalOpen} setModalOpen={setModalOpen} fetchAddCard={fetchAddCard}/>
-                <AdminOrderModal orderOpen={modalOrderOpen} setOrderOpen={setModalOrderOpen} />
+                <AdminOrderModal orderOpen={modalOrderOpen} setOrderOpen={setModalOrderOpen} images={images} />
             </div>
             {/*<div className={css.footer}>*/}
 

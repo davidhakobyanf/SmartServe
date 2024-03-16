@@ -1,5 +1,6 @@
 .table {
     cursor: pointer;
+    overflow: auto;
 }
 
 .imageTitleContainer {
