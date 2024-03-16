@@ -134,9 +134,10 @@ class DataApi {
                 'Content-Type': 'application/json',
             };
             const response = await instance.request({
-                url: '/api/basket/all',
+                url: '/api/orders/all',
                 method: 'delete',
                 headers,
+                data:{}
             });
 
             console.log(response,'response')

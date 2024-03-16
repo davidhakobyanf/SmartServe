@@ -17,7 +17,7 @@ module.exports = class UserOrder {
         try {
             const orders = await db.collection('orders').findOne({});
             if (!orders) {
-                res.status(404).json({ error: 'Basket not found' });
+                res.status(404).json({ error: 'Order not found' });
             } else {
                 res.json(orders.orders);
             }

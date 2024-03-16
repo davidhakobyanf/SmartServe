@@ -118,7 +118,7 @@ const AdminOrderModal = ({ orderOpen, setOrderOpen, images }) => {
             title: 'Գին',
             dataIndex: 'price',
             key: 'price',
-            render: (text, record) => <span>{text * record.count + (350 * (record.sauces.length === 0 ? 0 : record.sauces.length))} դրամ</span>,
+            render: (text, record) => <span>{record.price} դրամ</span>,
         },
         {
             title: 'Քանակ',
@@ -143,6 +143,8 @@ const AdminOrderModal = ({ orderOpen, setOrderOpen, images }) => {
         <div>
             <Modal mask={false} open={orderOpen} onCancel={handleCancel} footer={null} className={css.modal_antd}>
                 {loading && <Spin size="large" />}
+                {!loading && orderData.length === 0 && <div>Պատվեր չկա</div>}
+
                 {!loading && (
                     <div className={css.modal}>
                         {orderData.map((order, index) => (
@@ -161,7 +163,7 @@ const AdminOrderModal = ({ orderOpen, setOrderOpen, images }) => {
                         ))}
                         <div className={css.all_price}>
                             <div>
-                                <b>Ընհամենը {orderData.reduce((total, order) => total + order.allPrice, 0)} դրամ </b>
+                                <b>Ընհամենը {orderData.length}  պատվեր </b>
                             </div>
                             <div onClick={() => handleDeleteAll()}>
                                 <IconButton>Ջնջել բոլորը</IconButton>
