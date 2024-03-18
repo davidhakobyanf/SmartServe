@@ -6,6 +6,7 @@ import Quantity from '../../../../hoc/Quantity/Quantity';
 import css from './AdminOrderModal.module.css';
 import IconButton from '@mui/joy/IconButton';
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import {useData} from "../../../../context/DataContext";
 
 const { Panel } = Collapse;
 
@@ -16,11 +17,10 @@ const AdminOrderModal = ({ orderOpen, setOrderOpen, images }) => {
     const [inputWidth, setInputWidth] = useState('100px');
     const [media, setMedia] = useState(0);
     const [checked, setChecked] = useState(false);
-
+    const {orderIsLoading, setOrderIsLoading} = useData()
     const [fetchOrders, orderLoading, orderError] = useFetching(async () => {
         try {
             const { data: res } = await clientAPI.getOrders();
-            console.log(res, 'res');
             setOrderData(res);
         } catch (error) {
             console.error('Error fetching basket:', error);
@@ -33,7 +33,6 @@ const AdminOrderModal = ({ orderOpen, setOrderOpen, images }) => {
         try {
             const { data: res } = await clientAPI.deleteOrder(id);
             if (res) {
-                console.log(res, 'res');
             }
         } catch (error) {
             console.error('Error fetching profile:', error);
@@ -44,18 +43,16 @@ const AdminOrderModal = ({ orderOpen, setOrderOpen, images }) => {
         try {
             const { data: res } = await clientAPI.deleteAllOrders();
             if (res) {
-                console.log(res, 'res');
             }
         } catch (error) {
             console.error('Error fetching profile:', error);
         }
     });
 
-    console.log(deleteAllOrdersLoading,'deleteAllOrdersLoading')
-
+    console.log(orderIsLoading,'orderIsLoading')
     useEffect(() => {
             fetchOrders()
-    }, [orderOpen, deleteOrderLoading, deleteAllOrdersLoading]);
+    }, [orderOpen, deleteOrderLoading, deleteAllOrdersLoading,orderIsLoading]);
 
     useEffect(() => {
         const handleResize = () => {
@@ -100,7 +97,6 @@ const AdminOrderModal = ({ orderOpen, setOrderOpen, images }) => {
         if (id) {
             deleteOrder(id);
         }
-        console.log(id, 'delete_id');
     };
 
     const handleDeleteAll = () => {

@@ -11,6 +11,7 @@ import Dashboard from "./components/Profile/Admin/Dashboard/Dashboard";
 import {ProfileDataProvider} from "./context/ProfileDataContext";
 import ClientDashboard from "./components/Profile/Client/ClientDashboard/ClientDashboard";
 import ClientTable from "./components/Profile/Client/ClientTable/ClientTable";
+import {DataProvider} from "./context/DataContext";
 
 const router = createBrowserRouter([
     {
@@ -40,7 +41,9 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById("root")).render(
     <React.StrictMode>
             <ProfileDataProvider>
-                <RouterProvider router={router}/>
+                <DataProvider>
+                    <RouterProvider router={router}/>
+                </DataProvider>
             </ProfileDataProvider>
     </React.StrictMode>
 );

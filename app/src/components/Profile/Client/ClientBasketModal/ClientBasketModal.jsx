@@ -6,12 +6,15 @@ import Quantity from "../../../../hoc/Quantity/Quantity";
 import css from './ClientBasketModal.module.css'
 import IconButton from "@mui/joy/IconButton";
 import {DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import {useData} from "../../../../context/DataContext";
 
 const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
     const [basketData, setBasketData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [inputWidth, setInputWidth] = useState("100px")
     const [media, setMedia] = useState(0)
+    const {orderIsLoading, setOrderIsLoading} = useData()
+
     const [fetchBasket, basketLoading, basketError] = useFetching(async () => {
         try {
             const {data: res} = await clientAPI.getBasket(clientId);
@@ -28,7 +31,6 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
         try {
             const { data: res } = await clientAPI.deleteBasket(id,table);
             if (res) {
-                console.log(res, 'res');
             }
         } catch (error) {
             console.error('Error fetching profile:', error);
@@ -38,13 +40,13 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
         try {
             const { data: res } = await clientAPI.deleteAllBasket(table);
             if (res) {
-                console.log(res, 'res');
             }
         } catch (error) {
             console.error('Error fetching profile:', error);
         }
     });
     const [fetchAddOrder, AddOrderLoading, AddOrderError] = useFetching(async (card) => {
+        setOrderIsLoading(AddOrderLoading)
         try {
             await clientAPI.createOrder(card);
         } catch (error) {
@@ -58,6 +60,7 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
     useEffect(() => {
         if (basketOpen) {
             fetchBasket();
+
         }
     }, [clientId,basketOpen,deleteBasketLoading,deleteAllBasketLoading]);
     useEffect(() => {
@@ -93,14 +96,11 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
         if (clientId){
             deleteBasket(id,clientId)
         }
-        console.log(id,'delete_id')
-        console.log(clientId,'clientId')
     }
     const handleDeleteAll = (clientId) => {
         if (clientId){
             deleteAllBasket(clientId)
         }
-        console.log(clientId,'clientId')
     }
     const handleOrder = () => {
         const updatedBasketData = basketData.map(item => {
@@ -118,7 +118,6 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
         };
         fetchAddOrder(updatedBasketDataWithTotal)
         success();
-        console.log("All basket data:", updatedBasketDataWithTotal);
     };
 
 
