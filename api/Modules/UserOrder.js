@@ -91,11 +91,21 @@ module.exports = class UserOrder {
     }
     async deleteAllOrders(req, res) {
         try {
-            // Удаляем все документы в коллекции "orders"
-            const deletedOrders = await db.collection('orders').deleteMany({});
+            // Находим документ, содержащий массив orders
+            const documentWithOrders = await db.collection('orders').findOne({});
 
-            if (deletedOrders.deletedCount > 0) {
-                res.json({ message: "Все данные в коллекции 'orders' были удалены" });
+            if (documentWithOrders) {
+                // Обновляем документ, устанавливая orders в пустой массив
+                const updatedDocument = await db.collection('orders').updateOne(
+                    { _id: documentWithOrders._id },
+                    { $set: { orders: [] } }
+                );
+
+                if (updatedDocument.modifiedCount > 0) {
+                    res.json({ message: "Данные в массиве 'orders' были удалены" });
+                } else {
+                    res.status(404).json({ error: "Данные не найдены или что-то пошло не так" });
+                }
             } else {
                 res.status(404).json({ error: "Данные не найдены или что-то пошло не так" });
             }
@@ -104,6 +114,7 @@ module.exports = class UserOrder {
             res.status(500).json({ error: 'Внутренняя ошибка сервера' });
         }
     }
+
 
 
 

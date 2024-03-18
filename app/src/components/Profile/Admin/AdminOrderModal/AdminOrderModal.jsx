@@ -51,18 +51,10 @@ const AdminOrderModal = ({ orderOpen, setOrderOpen, images }) => {
         }
     });
 
-    const [fetchAddOrder, AddOrderLoading, AddOrderError] = useFetching(async (card) => {
-        try {
-            await clientAPI.createOrder(card);
-        } catch (error) {
-            console.error('Error fetching profile:', error);
-        }
-    });
+    console.log(deleteAllOrdersLoading,'deleteAllOrdersLoading')
 
     useEffect(() => {
-        if (orderOpen) {
-            fetchOrders();
-        }
+            fetchOrders()
     }, [orderOpen, deleteOrderLoading, deleteAllOrdersLoading]);
 
     useEffect(() => {
