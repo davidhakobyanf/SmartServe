@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Spin, Table, Image, message, Collapse } from 'antd';
+import {Modal, Spin, Table, Image, message, Collapse, Checkbox} from 'antd';
 import { useFetching } from '../../../../hoc/fetchingHook';
 import clientAPI from '../../../../api/api';
 import Quantity from '../../../../hoc/Quantity/Quantity';
@@ -11,9 +11,12 @@ const { Panel } = Collapse;
 
 const AdminOrderModal = ({ orderOpen, setOrderOpen, images }) => {
     const [orderData, setOrderData] = useState([]);
+    const [selectedRows, setSelectedRows] = useState({});
     const [loading, setLoading] = useState(true);
     const [inputWidth, setInputWidth] = useState('100px');
     const [media, setMedia] = useState(0);
+    const [checked, setChecked] = useState(false);
+
     const [fetchOrders, orderLoading, orderError] = useFetching(async () => {
         try {
             const { data: res } = await clientAPI.getOrders();
@@ -90,6 +93,16 @@ const AdminOrderModal = ({ orderOpen, setOrderOpen, images }) => {
     const handleCancel = () => {
         setOrderOpen(false);
     };
+    const handleCheckboxChange = (record) => {
+        if (selectedRows[record.id]) {
+            const updatedRows = { ...selectedRows };
+            delete updatedRows[record.id];
+            setSelectedRows(updatedRows);
+        } else {
+            setSelectedRows({ ...selectedRows, [record.id]: true });
+        }
+    };
+
 
     const handleDelete = (id) => {
         if (id) {
@@ -108,8 +121,8 @@ const AdminOrderModal = ({ orderOpen, setOrderOpen, images }) => {
             dataIndex: 'image',
             key: 'image',
             render: (text, record) => (
-                <div className={css.imageTitleContainer}>
-                    <span style={{ width: '100px' }}>{record.title.length > 15 ? `${record.title.slice(0, 15)}...` : record.title}</span>
+                <div className={`${css.imageTitleContainer} ${selectedRows[record.id] && css.table_text}`}>
+                    <span style={{width: '100px' }}>{record.title.length > 15 ? `${record.title.slice(0, 15)}...` : record.title}</span>
                     <Image src={images.find((image) => image.id === record.id)?.default} width={100} />
                 </div>
             ),
@@ -118,20 +131,22 @@ const AdminOrderModal = ({ orderOpen, setOrderOpen, images }) => {
             title: 'Գին',
             dataIndex: 'price',
             key: 'price',
-            render: (text, record) => <span>{record.price} դրամ</span>,
+            render: (text, record) => <span
+                className={`${selectedRows[record.id] && css.table_text}`}>{record.price} դրամ</span>
+            ,
         },
         {
             title: 'Քանակ',
             dataIndex: 'count',
             key: 'count',
             render: (text, record) => (
-                <div className={css.right_basket}>
+                <div className={`${css.right_basket} ${selectedRows[record.id] && css.table_text}`}>
                     <div className={css.quantity_component}>
                         <b>{record.count} հատ</b>
                     </div>
                     <div className={css.delete_button}>
-                        <IconButton variant="plain" color="neutral" size="sm" onClick={() => handleDelete(record.id)}>
-                            <DeleteOutlined className={css.icons} style={{ color: 'red' }} />
+                        <IconButton variant="plain" color="neutral" size="sm" onClick={() => handleCheckboxChange(record)}>
+                            <Checkbox checked={selectedRows[record.id]} onChange={() => handleCheckboxChange(record)} />
                         </IconButton>
                     </div>
                 </div>
@@ -157,14 +172,21 @@ const AdminOrderModal = ({ orderOpen, setOrderOpen, images }) => {
                                         className={css.table}
                                         pagination={false}
                                     />
-                                    <div><b>Ընդհամենը {order.allPrice} դրամ</b></div>
+                                    <div className={css.collapse}>
+                                        <div><b>Ընդհամենը {order.allPrice} դրամ</b></div>
+                                        <IconButton variant="plain" color="neutral" size="sm" onClick={() => handleDelete(order?._id)}>
+                                            <DeleteOutlined className={css.icons} style={{color: 'red'}} />
+                                        </IconButton>
+
+                                    </div>
                                 </Panel>
                             </Collapse>
                         ))}
                         <div className={css.all_price}>
                             <div>
-                                <b>Ընհամենը {orderData.length}  պատվեր </b>
+                                <b>Ընհամենը {orderData.length} պատվեր </b>
                             </div>
+
                             <div onClick={() => handleDeleteAll()}>
                                 <IconButton>Ջնջել բոլորը</IconButton>
                             </div>

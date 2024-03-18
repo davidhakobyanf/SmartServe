@@ -2,7 +2,16 @@
     cursor: pointer;
     overflow: auto;
 }
-
+.table_text{
+    text-decoration:line-through solid;
+}
+.collapse{
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 .imageTitleContainer {
     height: 140px;
     display: flex;
@@ -27,7 +36,7 @@
     height: 140px;
     width: 100%;
     display: grid;
-    grid-template-rows: 68% 32%;
+    grid-template-rows: 59% 41%;
 }
 
 .price_count {
