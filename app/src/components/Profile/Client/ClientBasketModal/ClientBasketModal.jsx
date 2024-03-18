@@ -46,7 +46,6 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
         }
     });
     const [fetchAddOrder, AddOrderLoading, AddOrderError] = useFetching(async (card) => {
-        setOrderIsLoading(AddOrderLoading)
         try {
             await clientAPI.createOrder(card);
         } catch (error) {
@@ -57,6 +56,9 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
     const success = () => {
         message.success('Ձեր  պատվերը ընդունված է:');
     };
+    useEffect(() => {
+        setOrderIsLoading(AddOrderLoading)
+    }, [AddOrderLoading]);
     useEffect(() => {
         if (basketOpen) {
             fetchBasket();

@@ -53,7 +53,6 @@ const AdminOrderModal = ({ orderOpen, setOrderOpen, images }) => {
     useEffect(() => {
             fetchOrders()
     }, [orderOpen, deleteOrderLoading, deleteAllOrdersLoading,orderIsLoading]);
-
     useEffect(() => {
         const handleResize = () => {
             if (window.innerWidth <= 330) {
