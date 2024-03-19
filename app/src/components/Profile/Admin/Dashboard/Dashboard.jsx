@@ -21,17 +21,18 @@ import {useNavigate} from "react-router-dom";
 import {useProfileData} from "../../../../context/ProfileDataContext";
 import { BiSolidNotepad } from "react-icons/bi";
 import AdminOrderModal from "../AdminOrderModal/AdminOrderModal";
+import {useData} from "../../../../context/DataContext";
 
 const {Search} = Input;
 
 const Dashboard = () => {
     const {profileDataList, setProfileDataList} = useProfileData();
-    const [cardActive, setCardActive] = useState({})
     const [modalOpen, setModalOpen] = useState(false)
     const [modalOrderOpen, setModalOrderOpen] = useState(false)
     const [selectedItem, setSelectedItem] = useState(null);
     const [selectedItemIndex, setSelectedItemIndex] = useState(null);
     const [images, setImages] = useState([]);
+    const {orderIsLoading, setOrderIsLoading,cardActive, setCardActive} = useData()
     const [cardModalOpen, setCardModalOpen] = useState(false);
     const navigate = useNavigate()
     const [fetchProfile, profileLoading, profileError] = useFetching(async () => {

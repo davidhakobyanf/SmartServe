@@ -16,11 +16,11 @@ import {DataProvider} from "./context/DataContext";
 const router = createBrowserRouter([
     {
         path: "/client",
-        element: <ClientTable />,
+        element: <ClientTable/>,
     },
     {
         path: "/client/:clientId",
-        element: <ClientDashboard />,
+        element: <ClientDashboard/>,
     },
     {
         path: "/",
@@ -40,10 +40,10 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById("root")).render(
     <React.StrictMode>
+        <DataProvider>
             <ProfileDataProvider>
-                <DataProvider>
-                    <RouterProvider router={router}/>
-                </DataProvider>
+                <RouterProvider router={router}/>
             </ProfileDataProvider>
+        </DataProvider>
     </React.StrictMode>
 );

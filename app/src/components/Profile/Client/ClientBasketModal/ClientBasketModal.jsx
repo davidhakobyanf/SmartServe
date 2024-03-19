@@ -56,11 +56,12 @@ const ClientBasketModal = ({basketOpen, setBasketOpen, clientId, images}) => {
     const success = () => {
         message.success('Ձեր  պատվերը ընդունված է:');
     };
-    useEffect(() => {
-        setOrderIsLoading(AddOrderLoading)
-    }, [AddOrderLoading]);
+
+
+
     useEffect(() => {
         if (basketOpen) {
+            setOrderIsLoading(true)
             fetchBasket();
 
         }

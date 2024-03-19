@@ -48,10 +48,12 @@ const AdminOrderModal = ({ orderOpen, setOrderOpen, images }) => {
             console.error('Error fetching profile:', error);
         }
     });
-
     console.log(orderIsLoading,'orderIsLoading')
+
     useEffect(() => {
-            fetchOrders()
+        console.log(orderIsLoading,'orderIsLoading')
+
+        fetchOrders()
     }, [orderOpen, deleteOrderLoading, deleteAllOrdersLoading,orderIsLoading]);
     useEffect(() => {
         const handleResize = () => {

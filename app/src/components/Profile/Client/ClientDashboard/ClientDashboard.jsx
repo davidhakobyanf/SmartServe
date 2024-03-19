@@ -20,6 +20,7 @@ import logo from '../../../../images/logo.jpg'
 import ClientCardModal from "../ClientCardModal/ClientCardModal";
 import { Button, message, Space } from 'antd';
 import ClientBasketModal from "../ClientBasketModal/ClientBasketModal";
+import {useData} from "../../../../context/DataContext";
 
 
 const {Search} = Input;
@@ -31,14 +32,12 @@ const ClientDashboard = () => {
     const success = () => {
         message.success('Շատ լավ, սպասեք մատուցողին:');
     };
-
-    console.log("clientId:", clientId);
     const {profileDataList, setProfileDataList} = useProfileData();
-    const [cardActive, setCardActive] = useState({})
     const [basketOpen, setBasketOpen] = useState(false)
     const [selectedItem, setSelectedItem] = useState(null);
     const [selectedItemIndex, setSelectedItemIndex] = useState(null);
     const [images, setImages] = useState([]);
+    const {orderIsLoading, setOrderIsLoading,cardActive, setCardActive} = useData()
     const [cardModalOpen, setCardModalOpen] = useState(false);
     const navigate = useNavigate()
     const [fetchProfile, profileLoading, profileError] = useFetching(async () => {
@@ -55,8 +54,6 @@ const ClientDashboard = () => {
                     );
                     setImages(importedImages);
                 }
-
-                console.log(res, 'res')
             }
         } catch (error) {
             console.error('Error fetching profile:', error);
@@ -76,7 +73,6 @@ const ClientDashboard = () => {
         try {
             const {data: res} = await clientAPI.createCard(formData);
             if (res) {
-                console.log(res, 'res');
                 const updatedCardArray = res.card ? [...res.card, formData] : [formData];
                 const updatedRes = {...res, card: updatedCardArray};
                 // Use the updatedRes object as needed (e.g., store in state or update UI)
@@ -91,19 +87,16 @@ const ClientDashboard = () => {
     }, []);
     useEffect(() => {
         fetchProfile();
-    }, [AddCardLoading,editCardLoading]);
-    useEffect(() => {
-        if (Object.keys(cardActive).length !== 0) {
-            editCard(cardActive);
-        }
-    }, [cardActive]);
+    }, [AddCardLoading,editCardLoading,cardActive]);
+    // useEffect(() => {
+    //     if (Object.keys(cardActive).length !== 0) {
+    //         editCard(cardActive);
+    //     }
+    // }, [cardActive]);
 
-    console.log(images, 'images')
     const modalCard = (item, index) => {
         setSelectedItemIndex(index)
         setSelectedItem(item)
-        console.log(index, 'index')
-        console.log(item, 'item')
     }
 
     const logoutHandler = () => {
@@ -113,7 +106,6 @@ const ClientDashboard = () => {
 
 
     const onSearch = (value) => {
-        console.log(value);
         if (value.trim() === '') {
             fetchProfile();
         } else {
@@ -122,19 +114,9 @@ const ClientDashboard = () => {
             );
             setProfileDataList({...profileDataList, card: filteredCards});
         }
-        console.log(profileDataList, 'profileDataList');
 
     };
-    const toggleActive = (id) => {
-        setCardActive(prevActive => {
-            const updatedCard = profileDataList.card.find(item => item.id === id);
-            if (updatedCard) {
-                return { ...updatedCard, active: !updatedCard.active };
-            } else {
-                return prevActive;
-            }
-        });
-    };
+
 
     return (
         <div className={css.dashboard}>
