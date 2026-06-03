@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: smartserve-postgres
+    restart: unless-stopped
+    ports:
+      - '5434:5432'
+    environment:
+      POSTGRES_USER: smartserve
+      POSTGRES_PASSWORD: smartserve
+      POSTGRES_DB: smartserve
+    volumes:
+      - smartserve_pg_data:/var/lib/postgresql/data
+
+volumes:
+  smartserve_pg_data:

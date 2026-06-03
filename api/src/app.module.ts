@@ -1,0 +1,40 @@
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from './entities/user.entity';
+import { SessionProfile } from './entities/session-profile.entity';
+import { BasketStore } from './entities/basket-store.entity';
+import { OrderStore } from './entities/order-store.entity';
+import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
+import { ProfileModule } from './profile/profile.module';
+import { MenuModule } from './menu/menu.module';
+import { BasketModule } from './basket/basket.module';
+import { OrdersModule } from './orders/orders.module';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'postgres',
+        host: config.get<string>('DB_HOST', 'localhost'),
+        port: config.get<number>('DB_PORT', 5432),
+        username: config.get<string>('DB_USERNAME', 'smartserve'),
+        password: config.get<string>('DB_PASSWORD', 'smartserve'),
+        database: config.get<string>('DB_DATABASE', 'smartserve'),
+        entities: [User, SessionProfile, BasketStore, OrderStore],
+        synchronize: config.get<string>('DB_SYNC', 'false') === 'true',
+      }),
+    }),
+    UsersModule,
+    AuthModule,
+    ProfileModule,
+    MenuModule,
+    BasketModule,
+    OrdersModule,
+  ],
+})
+export class AppModule {}
