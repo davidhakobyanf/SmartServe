@@ -1,0 +1,218 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { Modal, Spin, Table, Image, message } from 'antd';
+import { useFetching } from '@/hoc/fetchingHook';
+import clientAPI from '@/api/api';
+import Quantity from '@/hoc/Quantity/Quantity';
+import css from './ClientBasketModal.module.css';
+import IconButton from '@mui/joy/IconButton';
+import { DeleteOutlined } from '@ant-design/icons';
+import { useData } from '@/context/DataContext';
+import { normalizeMenuCard, truncateTitle } from '@/lib/normalizeMenuCard';
+import { menuCardRowKey } from '@/lib/tableRowKey';
+import type { MenuCard, MenuImage } from '@/types';
+
+interface ClientBasketModalProps {
+  basketOpen: boolean;
+  setBasketOpen: (open: boolean) => void;
+  clientId: string;
+  images: MenuImage[];
+}
+
+export default function ClientBasketModal({
+  basketOpen,
+  setBasketOpen,
+  clientId,
+  images,
+}: ClientBasketModalProps) {
+  const [basketData, setBasketData] = useState<MenuCard[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [inputWidth, setInputWidth] = useState('100px');
+  const [media, setMedia] = useState(0);
+  const { setOrderIsLoading } = useData();
+
+  const [fetchBasket, , basketError] = useFetching(async () => {
+    try {
+      const { data: res } = await clientAPI.getBasket();
+      const tables = res as Record<string, MenuCard[]>;
+      if (res && clientId) {
+        const raw = tables[clientId] ?? tables[String(clientId)] ?? [];
+        setBasketData(raw.map((item) => normalizeMenuCard(item)));
+      }
+    } catch (error) {
+      console.error('Error fetching basket:', error);
+    } finally {
+      setLoading(false);
+    }
+  });
+
+  const [deleteBasket, deleteBasketLoading] = useFetching(
+    async (id: string, table: string) => {
+      try {
+        await clientAPI.deleteBasket(id, table);
+      } catch (error) {
+        console.error('Error deleting basket item:', error);
+      }
+    },
+  );
+
+  const [deleteAllBasket, deleteAllBasketLoading] = useFetching(async (table: string) => {
+    try {
+      await clientAPI.deleteAllBasket(table);
+    } catch (error) {
+      console.error('Error clearing basket:', error);
+    }
+  });
+
+  const [fetchAddOrder] = useFetching(async (card: {
+    items: MenuCard[];
+    allPrice: number;
+    table: string;
+  }) => {
+    try {
+      await clientAPI.createOrder(card);
+      message.success('Ձեր պատվերը ընդունված է:');
+      await clientAPI.deleteAllBasket(clientId);
+      setBasketData([]);
+      setOrderIsLoading(true);
+    } catch (error) {
+      console.error('Error creating order:', error);
+      message.error('Չհաջողվեց պատվիրել');
+    }
+  });
+
+  const totalPrice = basketData.reduce(
+    (total, item) =>
+      total +
+      item.price * (item.count ?? 1) +
+      350 * (item.sauces.length === 0 ? 0 : item.sauces.length),
+    0,
+  );
+
+  useEffect(() => {
+    if (basketOpen) {
+      setOrderIsLoading(true);
+      void fetchBasket();
+    }
+  }, [clientId, basketOpen, deleteBasketLoading, deleteAllBasketLoading]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 600) {
+        setInputWidth('50px');
+        setMedia(410);
+      } else {
+        setInputWidth('100px');
+        setMedia(0);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const handleQuantityChange = (newQuantity: number, record: MenuCard) => {
+    setBasketData((prev) =>
+      prev.map((item) => (item.id === record.id ? { ...item, count: newQuantity } : item)),
+    );
+  };
+
+  const handleOrder = () => {
+    if (basketData.length === 0) return;
+
+    const items = basketData.map((item) => ({
+      id: item.id,
+      title: item.title,
+      description: item.description,
+      price:
+        item.price * (item.count ?? 1) +
+        350 * (item.sauces.length === 0 ? 0 : item.sauces.length),
+      sauces: item.sauces ?? [],
+      active: item.active,
+      image: item.image,
+      count: item.count ?? 1,
+    }));
+    const allPrice = items.reduce((t, item) => t + item.price, 0);
+    void fetchAddOrder({ items, allPrice, table: clientId });
+  };
+
+  const columns = [
+    {
+      title: 'Զամբյուղ',
+      key: 'image',
+      render: (_: unknown, record: MenuCard) => (
+        <div className={css.imageTitleContainer}>
+          <span style={{ width: '100px' }}>{truncateTitle(record.title)}</span>
+          <Image
+            src={images.find((image) => image.id === record.id)?.src}
+            width={100}
+            alt=""
+          />
+        </div>
+      ),
+    },
+    {
+      title: 'Գին',
+      dataIndex: 'price',
+      key: 'price',
+      render: (text: number, record: MenuCard) => (
+        <span>
+          {text * (record.count ?? 1) +
+            350 * (record.sauces.length === 0 ? 0 : record.sauces.length)}{' '}
+          դրամ
+        </span>
+      ),
+    },
+    {
+      title: 'Քանակ',
+      key: 'count',
+      render: (_: unknown, record: MenuCard) => (
+        <div className={css.right_basket}>
+          <Quantity
+            width={inputWidth}
+            quantity={record.count ?? 1}
+            setQuantity={(q) => handleQuantityChange(q, record)}
+          />
+          <IconButton onClick={() => void deleteBasket(record.id, clientId)}>
+            <DeleteOutlined style={{ color: 'red' }} />
+          </IconButton>
+        </div>
+      ),
+    },
+  ];
+
+  const errorMessage =
+    basketError instanceof Error ? basketError.message : String(basketError ?? '');
+
+  return (
+    <Modal
+      mask={false}
+      open={basketOpen}
+      onCancel={() => setBasketOpen(false)}
+      footer={null}
+      className={css.modal_antd}
+    >
+      {loading && <Spin size="large" />}
+      {!loading && (
+        <>
+          <Table
+            rowKey={(record) => menuCardRowKey(record, `table-${clientId}`)}
+            dataSource={basketData}
+            columns={columns}
+            className={css.table}
+            pagination={false}
+          />
+          <div className={css.all_price}>
+            <b>Ընհամենը {totalPrice} դրամ</b>
+            <IconButton onClick={handleOrder}>Պատվիրել</IconButton>
+            <IconButton onClick={() => void deleteAllBasket(clientId)}>
+              Ջնջել բոլորը
+            </IconButton>
+          </div>
+        </>
+      )}
+      {basketError != null && <p>Error: {errorMessage}</p>}
+    </Modal>
+  );
+}

@@ -1,0 +1,209 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import css from './Dashboard.module.css';
+import ProfileInfo from '../ProfileInfo/ProfileInfo';
+import clientAPI from '@/api/api';
+import { PlusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import AddModal from '../Modal/AddModal';
+import Card from '@mui/joy/Card';
+import { MdOutlineLogout } from 'react-icons/md';
+import CardContent from '@mui/joy/CardContent';
+import IconButton from '@mui/joy/IconButton';
+import Typography from '@mui/joy/Typography';
+import { useFetching } from '@/hoc/fetchingHook';
+import CardModal from '../Modal/CardModal/CardModal';
+import { Input, Switch } from 'antd';
+import { useRouter } from 'next/navigation';
+import { useProfileData } from '@/context/ProfileDataContext';
+import { BiSolidNotepad } from 'react-icons/bi';
+import AdminOrderModal from '../AdminOrderModal/AdminOrderModal';
+import { useData } from '@/context/DataContext';
+import { loadMenuImages } from '@/lib/menuImages';
+import type { MenuCard, MenuImage } from '@/types';
+
+export default function Dashboard() {
+  const { profileDataList, setProfileDataList } = useProfileData();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalOrderOpen, setModalOrderOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<MenuCard | null>(null);
+  const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
+  const [images, setImages] = useState<MenuImage[]>([]);
+  const { cardActive, setCardActive } = useData();
+  const [cardModalOpen, setCardModalOpen] = useState(false);
+  const router = useRouter();
+
+  const [fetchProfile, profileLoading] = useFetching(async () => {
+    try {
+      const { data: res } = await clientAPI.getProfile();
+      if (res) {
+        setProfileDataList(res);
+        if (res.card) {
+          setImages(loadMenuImages(res.card));
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  });
+
+  const [editCard, editCardLoading] = useFetching(async (card: Partial<MenuCard>) => {
+    try {
+      await clientAPI.editCard(card);
+    } catch (err) {
+      console.error('Error editing card:', err);
+    }
+  });
+
+  const [fetchAddCard, addCardLoading] = useFetching(
+    async (formData: Partial<MenuCard>) => {
+      try {
+        await clientAPI.createCard(formData);
+      } catch (error) {
+        console.error('Error adding card:', error);
+      }
+    },
+  );
+
+  useEffect(() => {
+    void fetchProfile();
+  }, []);
+
+  useEffect(() => {
+    void fetchProfile();
+  }, [addCardLoading, editCardLoading]);
+
+  useEffect(() => {
+    if (Object.keys(cardActive).length !== 0) {
+      void editCard(cardActive);
+    }
+  }, [cardActive]);
+
+  const modalCard = (item: MenuCard, index: number) => {
+    setSelectedItemIndex(index);
+    setSelectedItem(item);
+  };
+
+  const logoutHandler = () => {
+    localStorage.removeItem('isLoggedIn');
+    router.push('/');
+  };
+
+  const onSearch = (value: string) => {
+    if (value.trim() === '') {
+      void fetchProfile();
+    } else {
+      const filteredCards = profileDataList.card.filter((card) =>
+        card.title.toLowerCase().includes(value.toLowerCase()),
+      );
+      setProfileDataList({ ...profileDataList, card: filteredCards });
+    }
+  };
+
+  const toggleActive = (id: string) => {
+    setCardActive((prevActive) => {
+      const updatedCard = profileDataList.card.find((item) => item.id === id);
+      if (updatedCard) {
+        return { ...updatedCard, active: !updatedCard.active };
+      }
+      return prevActive;
+    });
+  };
+
+  return (
+    <div className={css.dashboard}>
+      <div className={css.header}>
+        <ProfileInfo />
+        <div className={css.profile_search}>
+          <Input
+            placeholder="input search text"
+            onChange={(e) => onSearch(e.target.value)}
+            style={{ width: 200 }}
+            allowClear
+          />
+        </div>
+        <div className={css.logout} onClick={() => setModalOrderOpen(true)}>
+          <BiSolidNotepad />
+        </div>
+        <div className={css.logout} onClick={logoutHandler}>
+          <MdOutlineLogout />
+        </div>
+      </div>
+      <CardModal
+        cardModalOpen={cardModalOpen}
+        setCardModalOpen={setCardModalOpen}
+        index={selectedItemIndex}
+        item={selectedItem}
+        images={images}
+        fetchProfile={fetchProfile}
+      />
+      <div className={css.body}>
+        {profileDataList?.card?.map((item, index) => (
+          <Card
+            key={item.id}
+            className={css.card}
+            onClick={() => modalCard(item, index)}
+          >
+            <div onClick={() => setCardModalOpen(true)}>
+              <Typography level="title-lg">
+                {item?.title.length > 20
+                  ? `${item?.title.slice(0, 20)}...`
+                  : item?.title}
+              </Typography>
+              <Typography level="body-sm">
+                {item.description.length > 45
+                  ? `${item.description.slice(0, 45)}...`
+                  : item.description}
+              </Typography>
+              <IconButton
+                aria-label={`bookmark ${item.title}`}
+                variant="plain"
+                color="neutral"
+                size="sm"
+                sx={{ position: 'absolute', top: '0.875rem', right: '0.5rem' }}
+              >
+                <PlusCircleOutlined />
+              </IconButton>
+            </div>
+            <img
+              src={images.find((image) => image.id === item.id)?.src}
+              alt={item.title}
+              loading="lazy"
+              className={css.card_img}
+              onClick={() => setCardModalOpen(true)}
+            />
+            <CardContent orientation="horizontal" className={css.content}>
+              <div className={css.footerLeft} onClick={() => setCardModalOpen(true)}>
+                {item.sauces.length > 0 ? <div>Հավելումներ</div> : null}
+                <div className={css.price}>
+                  <Typography fontSize="lg" fontWeight="lg">
+                    {item.price} դրամ
+                  </Typography>
+                </div>
+              </div>
+              <div className={css.footerRight}>
+                <Switch
+                  defaultChecked={item?.active}
+                  onClick={() => toggleActive(item.id)}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+        <AddModal
+          modalOpen={modalOpen}
+          setModalOpen={setModalOpen}
+          fetchAddCard={fetchAddCard}
+        />
+        <AdminOrderModal
+          orderOpen={modalOrderOpen}
+          setOrderOpen={setModalOrderOpen}
+          images={images}
+        />
+      </div>
+      <div className={css.scrollToTop} onClick={() => setModalOpen(true)}>
+        <PlusOutlined />
+      </div>
+    </div>
+  );
+}
