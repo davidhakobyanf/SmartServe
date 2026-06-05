@@ -23,7 +23,7 @@ import { loadMenuImages } from '@/lib/menuImages';
 import type { MenuCard, MenuImage } from '@/types';
 
 export default function Dashboard() {
-  const { profileDataList, setProfileDataList } = useProfileData();
+  const { profileDataList, setProfileDataList, fetchProfile } = useProfileData();
   const [modalOpen, setModalOpen] = useState(false);
   const [modalOrderOpen, setModalOrderOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuCard | null>(null);
@@ -33,45 +33,29 @@ export default function Dashboard() {
   const [cardModalOpen, setCardModalOpen] = useState(false);
   const router = useRouter();
 
-  const [fetchProfile, profileLoading] = useFetching(async () => {
-    try {
-      const { data: res } = await clientAPI.getProfile();
-      if (res) {
-        setProfileDataList(res);
-        if (res.card) {
-          setImages(loadMenuImages(res.card));
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    }
-  });
-
-  const [editCard, editCardLoading] = useFetching(async (card: Partial<MenuCard>) => {
+  const [editCard] = useFetching(async (card: Partial<MenuCard>) => {
     try {
       await clientAPI.editCard(card);
+      await fetchProfile({ force: true });
     } catch (err) {
       console.error('Error editing card:', err);
     }
   });
 
-  const [fetchAddCard, addCardLoading] = useFetching(
-    async (formData: Partial<MenuCard>) => {
-      try {
-        await clientAPI.createCard(formData);
-      } catch (error) {
-        console.error('Error adding card:', error);
-      }
-    },
-  );
+  const [fetchAddCard] = useFetching(async (formData: Partial<MenuCard>) => {
+    try {
+      await clientAPI.createCard(formData);
+      await fetchProfile({ force: true });
+    } catch (error) {
+      console.error('Error adding card:', error);
+    }
+  });
 
   useEffect(() => {
-    void fetchProfile();
-  }, []);
-
-  useEffect(() => {
-    void fetchProfile();
-  }, [addCardLoading, editCardLoading]);
+    if (profileDataList.card.length > 0) {
+      setImages(loadMenuImages(profileDataList.card));
+    }
+  }, [profileDataList.card]);
 
   useEffect(() => {
     if (Object.keys(cardActive).length !== 0) {
@@ -91,7 +75,7 @@ export default function Dashboard() {
 
   const onSearch = (value: string) => {
     if (value.trim() === '') {
-      void fetchProfile();
+      void fetchProfile({ force: true });
     } else {
       const filteredCards = profileDataList.card.filter((card) =>
         card.title.toLowerCase().includes(value.toLowerCase()),

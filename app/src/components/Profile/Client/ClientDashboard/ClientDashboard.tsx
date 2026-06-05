@@ -2,14 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import css from './ClientDashboard.module.css';
-import clientAPI from '@/api/api';
 import { useProfileData } from '@/context/ProfileDataContext';
 import { PlusCircleOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import Card from '@mui/joy/Card';
 import CardContent from '@mui/joy/CardContent';
 import IconButton from '@mui/joy/IconButton';
 import Typography from '@mui/joy/Typography';
-import { useFetching } from '@/hoc/fetchingHook';
 import { Input, message } from 'antd';
 import { useParams } from 'next/navigation';
 import ClientCardModal from '../ClientCardModal/ClientCardModal';
@@ -24,34 +22,18 @@ export default function ClientDashboard() {
   const clientId = params?.clientId as string;
 
   const success = () => message.success('Շատ լավ, սպասեք մատուցողին:');
-  const { profileDataList, setProfileDataList } = useProfileData();
+  const { profileDataList, setProfileDataList, fetchProfile } = useProfileData();
   const [basketOpen, setBasketOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuCard | null>(null);
   const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
   const [images, setImages] = useState<MenuImage[]>([]);
   const [cardModalOpen, setCardModalOpen] = useState(false);
 
-  const [fetchProfile, profileLoading] = useFetching(async () => {
-    try {
-      const { data: res } = await clientAPI.getProfile();
-      if (res) {
-        setProfileDataList(res);
-        if (res.card) {
-          setImages(loadMenuImages(res.card));
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
+  useEffect(() => {
+    if (profileDataList.card.length > 0) {
+      setImages(loadMenuImages(profileDataList.card));
     }
-  });
-
-  useEffect(() => {
-    void fetchProfile();
-  }, []);
-
-  useEffect(() => {
-    void fetchProfile();
-  }, [profileLoading]);
+  }, [profileDataList.card]);
 
   const modalCard = (item: MenuCard, index: number) => {
     setSelectedItemIndex(index);
@@ -60,7 +42,7 @@ export default function ClientDashboard() {
 
   const onSearch = (value: string) => {
     if (value.trim() === '') {
-      void fetchProfile();
+      void fetchProfile({ force: true });
     } else {
       const filteredCards = profileDataList.card.filter((card) =>
         card.title.toLowerCase().includes(value.toLowerCase()),
@@ -94,7 +76,6 @@ export default function ClientDashboard() {
         index={selectedItemIndex}
         item={selectedItem}
         images={images}
-        fetchProfile={fetchProfile}
       />
       <div className={css.body}>
         {profileDataList?.card?.map((item, index) => (

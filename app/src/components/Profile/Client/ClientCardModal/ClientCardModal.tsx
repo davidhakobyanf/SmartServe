@@ -21,7 +21,6 @@ interface ClientCardModalProps {
   index: number | null;
   item: MenuCard | null;
   images: MenuImage[];
-  fetchProfile: () => void;
 }
 
 export default function ClientCardModal({

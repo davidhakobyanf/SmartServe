@@ -22,7 +22,7 @@ interface CardModalProps {
   index: number | null;
   item: MenuCard | null;
   images: MenuImage[];
-  fetchProfile: () => void;
+  fetchProfile: (options?: { force?: boolean }) => void;
 }
 
 export default function CardModal({

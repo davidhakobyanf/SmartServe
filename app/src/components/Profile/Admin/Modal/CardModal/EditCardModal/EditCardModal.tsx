@@ -13,7 +13,7 @@ import type { MenuCard } from '@/types';
 
 interface EditCardModalProps {
   item: MenuCard | null;
-  fetchProfile: () => void;
+  fetchProfile: (options?: { force?: boolean }) => void;
   setShowEditConfirmation: (v: boolean) => void;
   showEditConfirmation: boolean;
   setCardModalOpen: (v: boolean) => void;
@@ -29,19 +29,16 @@ export default function EditCardModal({
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
 
-  const [editCard, editCardLoading] = useFetching(async (card: Partial<MenuCard>) => {
+  const [editCard] = useFetching(async (card: Partial<MenuCard>) => {
     try {
       await clientAPI.editCard(card);
+      await fetchProfile({ force: true });
+      setShowEditConfirmation(false);
+      setCardModalOpen(false);
     } catch (err) {
       console.error('Error editing card:', err);
     }
   });
-
-  useEffect(() => {
-    setShowEditConfirmation(false);
-    setCardModalOpen(false);
-    fetchProfile();
-  }, [editCardLoading]);
 
   useEffect(() => {
     if (!item) return;

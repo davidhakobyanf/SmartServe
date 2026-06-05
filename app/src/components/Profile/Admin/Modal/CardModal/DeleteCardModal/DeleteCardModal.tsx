@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import { Modal } from 'antd';
 import clientAPI from '@/api/api';
 import { useFetching } from '@/hoc/fetchingHook';
@@ -12,7 +11,7 @@ interface DeleteCardModalProps {
   onCancel: () => void;
   okText: string;
   cancelText: string;
-  fetchProfile: () => void;
+  fetchProfile: (options?: { force?: boolean }) => void;
   setShowDeleteConfirmation: (v: boolean) => void;
   card: MenuCard | null;
   setCardModalOpen: (v: boolean) => void;
@@ -29,9 +28,12 @@ export default function DeleteCardModal({
   card,
   setCardModalOpen,
 }: DeleteCardModalProps) {
-  const [deleteCard, deleteCardLoading] = useFetching(async (id: string) => {
+  const [deleteCard] = useFetching(async (id: string) => {
     try {
       await clientAPI.deleteCard(id);
+      await fetchProfile({ force: true });
+      setShowDeleteConfirmation(false);
+      setCardModalOpen(false);
     } catch (error) {
       console.error('Error deleting card:', error);
     }
@@ -40,14 +42,8 @@ export default function DeleteCardModal({
   const onOk = () => {
     if (card) {
       void deleteCard(card.id);
-      setShowDeleteConfirmation(false);
-      setCardModalOpen(false);
     }
   };
-
-  useEffect(() => {
-    fetchProfile();
-  }, [deleteCardLoading]);
 
   return (
     <Modal

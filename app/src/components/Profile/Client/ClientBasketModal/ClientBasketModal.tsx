@@ -8,7 +8,6 @@ import Quantity from '@/hoc/Quantity/Quantity';
 import css from './ClientBasketModal.module.css';
 import IconButton from '@mui/joy/IconButton';
 import { DeleteOutlined } from '@ant-design/icons';
-import { useData } from '@/context/DataContext';
 import { normalizeMenuCard, truncateTitle } from '@/lib/normalizeMenuCard';
 import { menuCardRowKey } from '@/lib/tableRowKey';
 import type { MenuCard, MenuImage } from '@/types';
@@ -30,7 +29,6 @@ export default function ClientBasketModal({
   const [loading, setLoading] = useState(true);
   const [inputWidth, setInputWidth] = useState('100px');
   const [media, setMedia] = useState(0);
-  const { setOrderIsLoading } = useData();
 
   const [fetchBasket, , basketError] = useFetching(async () => {
     try {
@@ -75,7 +73,6 @@ export default function ClientBasketModal({
       message.success('Ձեր պատվերը ընդունված է:');
       await clientAPI.deleteAllBasket(clientId);
       setBasketData([]);
-      setOrderIsLoading(true);
     } catch (error) {
       console.error('Error creating order:', error);
       message.error('Չհաջողվեց պատվիրել');
@@ -92,7 +89,6 @@ export default function ClientBasketModal({
 
   useEffect(() => {
     if (basketOpen) {
-      setOrderIsLoading(true);
       void fetchBasket();
     }
   }, [clientId, basketOpen, deleteBasketLoading, deleteAllBasketLoading]);

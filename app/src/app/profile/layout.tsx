@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import css from '@/components/Profile/Profile.module.css';
 import Content from '@/components/Profile/Content/Content';
+import { OrdersProvider } from '@/context/OrdersContext';
 
 export default function ProfileLayout({
   children,
@@ -20,8 +21,10 @@ export default function ProfileLayout({
   }, [router]);
 
   return (
+    <OrdersProvider>
     <div className={css.all_page}>
       <Content>{children}</Content>
     </div>
+    </OrdersProvider>
   );
 }

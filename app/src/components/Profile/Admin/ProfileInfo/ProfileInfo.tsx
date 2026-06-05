@@ -1,34 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import css from './ProfileInfo.module.css';
-import { useFetching } from '@/hoc/fetchingHook';
-import clientAPI from '@/api/api';
+import { useProfileData } from '@/context/ProfileDataContext';
 import LoadingSpin from '@/hoc/LoadingSpin';
-import type { Profile } from '@/types';
 
 export default function ProfileInfo() {
-  const [userData, setUserData] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { profileDataList, isLoading } = useProfileData();
 
-  const [fetchProfile] = useFetching(async () => {
-    try {
-      const { data: res } = await clientAPI.getProfile();
-      if (res) {
-        setUserData(res);
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    } finally {
-      setLoading(false);
-    }
-  });
-
-  useEffect(() => {
-    void fetchProfile();
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <LoadingSpin>
         <div>Loading...</div>
@@ -38,20 +17,16 @@ export default function ProfileInfo() {
 
   return (
     <div className={css.profile_name}>
-      {userData ? (
+      {profileDataList.name ? (
         <div className={css.profile_username}>
-          {userData.name ? (
-            <div className={css.text}>
-              <p>
-                {userData.name} {userData.surname}
-              </p>
-            </div>
-          ) : (
-            <p>User not found</p>
-          )}
+          <div className={css.text}>
+            <p>
+              {profileDataList.name} {profileDataList.surname}
+            </p>
+          </div>
         </div>
       ) : (
-        <p>Loading...</p>
+        <p>User not found</p>
       )}
     </div>
   );

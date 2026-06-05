@@ -7,12 +7,21 @@ import type { OrderRecord } from '../common/types/menu-card';
 import { CreateOrderDto } from './dto/order.dto';
 import { OrderItemDto } from './dto/order-item.dto';
 
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { DOMAIN_EVENTS } from './orders.gateway';
 @Injectable()
 export class OrdersService {
   constructor(
     @InjectRepository(OrderStore)
     private readonly orderRepo: Repository<OrderStore>,
+    private readonly events: EventEmitter2,
   ) {}
+  
+
+  private notifyOrdersChanged(orders: OrderRecord[]){
+    this.events.emit(DOMAIN_EVENTS.ORDERS_CHANGED, orders);
+  }
+
 
   private async getOrCreateStore(): Promise<OrderStore> {
     let store = await this.orderRepo.findOne({ where: { id: 1 } });
@@ -53,6 +62,7 @@ export class OrdersService {
 
     store.orders = [...(store.orders ?? []), newOrder];
     await this.orderRepo.save(store);
+    this.notifyOrdersChanged(store.orders);
 
     return { message: 'New order added successfully', order: newOrder };
   }
@@ -69,6 +79,7 @@ export class OrdersService {
     }
 
     await this.orderRepo.save(store);
+    this.notifyOrdersChanged(store.orders);
     return store;
   }
 
@@ -82,6 +93,7 @@ export class OrdersService {
 
     store.orders = [];
     await this.orderRepo.save(store);
+    this.notifyOrdersChanged(store.orders);
     return { message: "Данные в массиве 'orders' были удалены" };
   }
 }

@@ -8,13 +8,12 @@ import clientAPI from '@/api/api';
 import css from './AdminOrderModal.module.css';
 import IconButton from '@mui/joy/IconButton';
 import { DeleteOutlined } from '@ant-design/icons';
-import { useData } from '@/context/DataContext';
 import type { MenuImage } from '@/types';
 import type { OrderRecord } from '@/types/orders';
 import { normalizeOrderRecord, truncateTitle } from '@/lib/normalizeMenuCard';
 import { menuCardRowKey } from '@/lib/tableRowKey';
 import type { MenuCard } from '@/types';
-
+import { useOrders } from '@/context/OrdersContext';
 interface AdminOrderModalProps {
   orderOpen: boolean;
   setOrderOpen: (open: boolean) => void;
@@ -29,8 +28,7 @@ export default function AdminOrderModal({
   const [orderData, setOrderData] = useState<OrderRecord[]>([]);
   const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
-  const { orderIsLoading } = useData();
-
+  const { orders: liveOrders } = useOrders();
   const [fetchOrders, , orderError] = useFetching(async () => {
     try {
       const { data: res } = await clientAPI.getOrders();
@@ -62,9 +60,18 @@ export default function AdminOrderModal({
     }
   });
 
+
   useEffect(() => {
-    void fetchOrders();
-  }, [orderOpen, deleteOrderLoading, deleteAllOrdersLoading, orderIsLoading]);
+    setOrderData(liveOrders);
+    setLoading(false);
+  }, [liveOrders]);
+
+  useEffect(() => {
+    if (orderOpen) {
+      setLoading(true);
+      void fetchOrders();
+    }
+  }, [orderOpen, deleteOrderLoading, deleteAllOrdersLoading]);
 
   const handleCheckboxChange = (record: MenuCard) => {
     setSelectedRows((prev) => {
