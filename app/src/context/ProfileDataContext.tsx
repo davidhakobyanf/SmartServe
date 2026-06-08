@@ -10,6 +10,10 @@ import {
 } from 'react';
 import clientAPI from '@/api/api';
 import type { Profile } from '@/types';
+import { createSocket } from '@/lib/ws/socket';
+
+const MENU_NAMESPACE = '/menu';
+const MENU_EVT = { UPDATED: 'menu:updated' } as const;
 
 const emptyProfile: Profile = { name: '', surname: '', card: [] };
 
@@ -60,7 +64,32 @@ export function ProfileDataProvider({ children }: { children: ReactNode }) {
     })();
 
     await profileRequest;
-  }, []);
+  }, []); 
+
+  useEffect(() => {
+    const socket = createSocket(MENU_NAMESPACE);
+
+    socket.on('connect', () => {
+      void fetchProfile({ force: true });
+    });
+
+    socket.on(MENU_EVT.UPDATED, (payload: unknown) => {
+      const profile = payload as Profile;
+      if(!profile?.card) return;
+      cachedProfile = profile;
+      setProfileDataList(profile);
+      setIsLoading(false);
+     });
+
+     socket.on('disconnect', () => {
+
+     });
+
+     return () => {
+      socket.removeAllListeners();
+      socket.disconnect();
+     }
+    },[fetchProfile]);
 
   useEffect(() => {
     void fetchProfile();

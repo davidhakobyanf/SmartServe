@@ -5,12 +5,15 @@ import { UsersService } from '../users/users.service';
 import { BasketService } from '../basket/basket.service';
 import { CreateMenuCardDto, UpdateMenuCardDto } from './dto/menu-card.dto';
 import { sanitizeMenuCards } from '../common/utils/menu-card-response.util';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { DOMAIN_EVENTS } from './menu.gateway';
 
 @Injectable()
 export class MenuService {
   constructor(
     private readonly usersService: UsersService,
     private readonly basketService: BasketService,
+    private readonly events:EventEmitter2
   ) {}
 
   async addCard(dto: CreateMenuCardDto) {
@@ -31,6 +34,7 @@ export class MenuService {
 
     user.cards = [...(user.cards ?? []), card];
     const saved = await this.usersService.saveUser(user);
+    this.notifyMenuChanged(saved);
     return { ...saved, cards: sanitizeMenuCards(saved.cards) };
   }
 
@@ -43,7 +47,7 @@ export class MenuService {
     user.cards = (user.cards ?? []).filter((c) => c.id !== id);
     const saved = await this.usersService.saveUser(user);
     await this.basketService.removeCardFromAllTables(id);
-
+    this.notifyMenuChanged(saved);
     return { ...saved, cards: sanitizeMenuCards(saved.cards) };
   }
 
@@ -73,7 +77,7 @@ export class MenuService {
     user.cards[index] = updated;
     const saved = await this.usersService.saveUser(user);
     const cards = sanitizeMenuCards(saved.cards);
-
+    this.notifyMenuChanged(saved);
     return {
       user: { ...saved, cards },
       profile: {
@@ -135,5 +139,18 @@ export class MenuService {
       name: incoming.name ?? current.name,
       mimeType: incoming.mimeType ?? current.mimeType,
     };
+  }
+
+  private buildProfilePayload(user: {name:string; surname:string; cards?: MenuCard[]}) {
+    return {
+      name:user.name,
+      surname:user.surname,
+      card:sanitizeMenuCards(user.cards ?? []),
+    }
+  }
+
+
+  private notifyMenuChanged(user: {name:string; surname: string; cards?: MenuCard[]}) {
+    this.events.emit(DOMAIN_EVENTS.MENU_CHANGED, this.buildProfilePayload(user));
   }
 }
