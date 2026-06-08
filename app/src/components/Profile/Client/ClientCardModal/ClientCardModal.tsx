@@ -56,11 +56,17 @@ export default function ClientCardModal({
   useEffect(() => {
     setPlainOptions(item?.sauces?.map((option) => ({ option, total: 0 })) ?? []);
   }, [item]);
-
+  
   useEffect(() => {
     const total = plainOptions.reduce((acc, curr) => acc + curr.total, 0);
     setAllTotal((item?.price ?? 0) * quantity + total);
   }, [plainOptions, quantity, item]);
+
+  useEffect(() => {
+    if (cardModalOpen && (!item || !item.active)) {
+      setCardModalOpen(false);
+    }
+  }, [cardModalOpen, item, setCardModalOpen]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -77,7 +83,7 @@ export default function ClientCardModal({
     index !== null ? images[index]?.src : item ? images.find((i) => i.id === item.id)?.src : undefined;
 
   const handleAddButtonClick = async () => {
-    if (!item) return;
+    if (!item?.active) return;
     const modifiedItem: MenuCard = {
       ...item,
       sauces: Object.keys(selectedOptions).filter((key) => selectedOptions[key]),
@@ -127,12 +133,12 @@ export default function ClientCardModal({
     option: option.option,
     total: option.total,
   }));
-
   return (
     <Modal
       title={
         item && item.title.length > 20 ? `${item.title.slice(0, 20)}...` : item?.title
       }
+
       open={cardModalOpen}
       onCancel={() => setCardModalOpen(false)}
       width={modalWidth}

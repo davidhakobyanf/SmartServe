@@ -28,13 +28,14 @@ export default function ClientDashboard() {
   const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
   const [images, setImages] = useState<MenuImage[]>([]);
   const [cardModalOpen, setCardModalOpen] = useState(false);
-
+  
   useEffect(() => {
     if (profileDataList.card.length > 0) {
       setImages(loadMenuImages(profileDataList.card));
     }
   }, [profileDataList.card]);
-
+  
+  console.log(selectedItem,'selectedItem')
   const modalCard = (item: MenuCard, index: number) => {
     setSelectedItemIndex(index);
     setSelectedItem(item);
@@ -74,7 +75,11 @@ export default function ClientDashboard() {
         cardModalOpen={cardModalOpen}
         setCardModalOpen={setCardModalOpen}
         index={selectedItemIndex}
-        item={selectedItem}
+        item={
+          selectedItem
+            ? profileDataList.card.find((card) => card.id === selectedItem.id) ?? null
+            : null
+        }
         images={images}
       />
       <div className={css.body}>
