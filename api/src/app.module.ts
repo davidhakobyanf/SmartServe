@@ -12,7 +12,7 @@ import { ProfileModule } from './profile/profile.module';
 import { MenuModule } from './menu/menu.module';
 import { BasketModule } from './basket/basket.module';
 import { OrdersModule } from './orders/orders.module';
-
+import { WaiterModule } from './waiter/waiter.module';
 @Module({
   imports: [
     EventEmitterModule.forRoot(),
@@ -37,6 +37,7 @@ import { OrdersModule } from './orders/orders.module';
     MenuModule,
     BasketModule,
     OrdersModule,
+    WaiterModule,
   ],
 })
 export class AppModule {}

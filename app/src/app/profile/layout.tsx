@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import css from '@/components/Profile/Profile.module.css';
 import Content from '@/components/Profile/Content/Content';
 import { OrdersProvider } from '@/context/OrdersContext';
+import { WaiterCallsProvider } from '@/context/WaiterCallsContext';
 
 export default function ProfileLayout({
   children,
@@ -22,9 +23,11 @@ export default function ProfileLayout({
 
   return (
     <OrdersProvider>
-    <div className={css.all_page}>
-      <Content>{children}</Content>
-    </div>
+      <WaiterCallsProvider>
+        <div className={css.all_page}>
+          <Content>{children}</Content>
+        </div>
+      </WaiterCallsProvider>
     </OrdersProvider>
   );
 }

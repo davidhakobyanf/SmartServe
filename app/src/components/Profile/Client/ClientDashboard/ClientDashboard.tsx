@@ -14,14 +14,21 @@ import ClientCardModal from '../ClientCardModal/ClientCardModal';
 import ClientBasketModal from '../ClientBasketModal/ClientBasketModal';
 import { loadMenuImages } from '@/lib/menuImages';
 import type { MenuCard, MenuImage } from '@/types';
-
+import { useWaiterClient } from '@/hooks/useWaiterClient';
 const logo = '/images/logo.jpg';
 
 export default function ClientDashboard() {
   const params = useParams();
   const clientId = params?.clientId as string;
-
-  const success = () => message.success('Շատ լավ, սպասեք մատուցողին:');
+  const { callWaiter } = useWaiterClient(clientId);
+  const handleCallWaiter = async () => {
+    const result = await callWaiter();
+    if (result.ok) {
+      message.success('Շատ լավ, սպասեք մատուցողին:');
+    } else {
+      message.error('Չհաջողվեց կապվել սերվերի հետ');
+    }
+  };
   const { profileDataList, setProfileDataList, fetchProfile } = useProfileData();
   const [basketOpen, setBasketOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuCard | null>(null);
@@ -35,7 +42,6 @@ export default function ClientDashboard() {
     }
   }, [profileDataList.card]);
   
-  console.log(selectedItem,'selectedItem')
   const modalCard = (item: MenuCard, index: number) => {
     setSelectedItemIndex(index);
     setSelectedItem(item);
@@ -137,7 +143,7 @@ export default function ClientDashboard() {
           images={images}
         />
       </div>
-      <div className={css.scrollToTop} onClick={success}>
+      <div className={css.scrollToTop} onClick={() => void handleCallWaiter()}>
         Կանչել մատուցողին
       </div>
     </div>

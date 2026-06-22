@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import css from './Dashboard.module.css';
 import ProfileInfo from '../ProfileInfo/ProfileInfo';
 import clientAPI from '@/api/api';
-import { PlusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import { BellOutlined, PlusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import AddModal from '../Modal/AddModal';
 import Card from '@mui/joy/Card';
 import { MdOutlineLogout } from 'react-icons/md';
@@ -21,6 +21,8 @@ import AdminOrderModal from '../AdminOrderModal/AdminOrderModal';
 import { useData } from '@/context/DataContext';
 import { loadMenuImages } from '@/lib/menuImages';
 import type { MenuCard, MenuImage } from '@/types';
+import { useWaiterCalls } from '@/context/WaiterCallsContext';
+import { Badge } from 'antd';
 
 export default function Dashboard() {
   const { profileDataList, setProfileDataList, fetchProfile } = useProfileData();
@@ -67,6 +69,7 @@ export default function Dashboard() {
     setSelectedItemIndex(index);
     setSelectedItem(item);
   };
+  const { calls, dismissCall } = useWaiterCalls();
 
   const logoutHandler = () => {
     localStorage.removeItem('isLoggedIn');
@@ -111,6 +114,11 @@ export default function Dashboard() {
         </div>
         <div className={css.logout} onClick={logoutHandler}>
           <MdOutlineLogout />
+        </div>
+        <div className={css.logout}>
+          <Badge count={calls.length} size="small">
+            <BellOutlined onClick={() => calls.forEach((call) => dismissCall(call.id))} />
+          </Badge>
         </div>
       </div>
       <CardModal
