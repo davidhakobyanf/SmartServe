@@ -1,11 +1,15 @@
-import { Body, Controller, Delete, Get, Patch } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Patch, UseGuards } from '@nestjs/common';
 import { BasketService } from './basket.service';
 import {
   AddBasketItemDto,
   DeleteAllBasketDto,
   DeleteBasketItemDto,
 } from './dto/basket.dto';
+import { RequestWithSession } from 'src/common/guards/open-session.guard';
+import { OpenSessionGuard } from 'src/common/guards/open-session.guard';
+import { Req } from '@nestjs/common';
 
+  
 @Controller('api/basket')
 export class BasketController {
   constructor(private readonly basketService: BasketService) {}
@@ -15,15 +19,28 @@ export class BasketController {
     return this.basketService.getTables();
   }
 
+  @UseGuards(OpenSessionGuard)
+  @Get('mine')
+  getMine(@Req() req: RequestWithSession) {
+    const table = String(req.diningSession!.tableNumber);
+    return this.basketService.getTableBasket(table);
+  }
+  
+  @UseGuards(OpenSessionGuard)
   @Patch()
-  addToBasket(@Body() dto: AddBasketItemDto) {
-    return this.basketService.addItem(dto);
+  addToBasket(@Req() req: RequestWithSession, @Body() dto: AddBasketItemDto) {
+    const table = String(req.diningSession!.tableNumber);
+    return this.basketService.addItem({ ...dto, table });
   }
 
+  @UseGuards(OpenSessionGuard)
   @Delete()
-  deleteItem(@Body() dto: DeleteBasketItemDto) {
-    return this.basketService.deleteItem(dto.table, dto.id);
+  deleteItem(@Req() req: RequestWithSession, @Body() dto: DeleteBasketItemDto) {
+    const table = String(req.diningSession!.tableNumber);
+    return this.basketService.deleteItem(table, dto.id);
   }
+
+
 }
 
 @Controller('api/basket/all')

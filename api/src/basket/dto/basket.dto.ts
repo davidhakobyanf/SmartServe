@@ -23,9 +23,10 @@ export class AddBasketItemDto implements Partial<MenuCard> {
 
   @IsOptional()
   active?: boolean;
-
+   
+  @IsOptional()
   @IsString()
-  table!: string;
+  table?: string;
 
   @NumericField()
   count!: number;
@@ -35,8 +36,9 @@ export class DeleteBasketItemDto {
   @IsString()
   id!: string;
 
+  @IsOptional()
   @IsString()
-  table!: string;
+  table?: string;
 }
 
 export class DeleteAllBasketDto {

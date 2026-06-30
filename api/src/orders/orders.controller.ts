@@ -1,6 +1,9 @@
-import { Body, Controller, Delete, Get, Patch } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Patch, UseGuards } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto, DeleteOrderDto } from './dto/order.dto';
+import { RequestWithSession } from 'src/common/guards/open-session.guard';
+import { OpenSessionGuard } from 'src/common/guards/open-session.guard';
+import { Req } from '@nestjs/common';
 
 @Controller('api/orders')
 export class OrdersController {
@@ -11,10 +14,16 @@ export class OrdersController {
     return this.ordersService.getOrders();
   }
 
+  @UseGuards(OpenSessionGuard)
   @Patch()
-  addOrder(@Body() dto: CreateOrderDto) {
-    return this.ordersService.addOrder(dto);
+  addOrder(@Req() req: RequestWithSession, @Body() dto: CreateOrderDto) {
+    const session = req.diningSession!;
+    return this.ordersService.addOrder(dto, {
+      table: String(session.tableNumber),
+      sessionId: session.id,
+    });
   }
+
 
   @Delete()
   deleteOrder(@Body() dto: DeleteOrderDto) {

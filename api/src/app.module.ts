@@ -13,6 +13,9 @@ import { MenuModule } from './menu/menu.module';
 import { BasketModule } from './basket/basket.module';
 import { OrdersModule } from './orders/orders.module';
 import { WaiterModule } from './waiter/waiter.module';
+import { DiningSession } from './entities/dining-session.entity';
+import { SessionsModule } from './sessions/sessions.module';
+
 @Module({
   imports: [
     EventEmitterModule.forRoot(),
@@ -27,7 +30,7 @@ import { WaiterModule } from './waiter/waiter.module';
         username: config.get<string>('DB_USERNAME', 'smartserve'),
         password: config.get<string>('DB_PASSWORD', 'smartserve'),
         database: config.get<string>('DB_DATABASE', 'smartserve'),
-        entities: [User, SessionProfile, BasketStore, OrderStore],
+        entities: [User, SessionProfile, BasketStore, OrderStore, DiningSession],
         synchronize: config.get<string>('DB_SYNC', 'false') === 'true',
       }),
     }),
@@ -35,9 +38,11 @@ import { WaiterModule } from './waiter/waiter.module';
     AuthModule,
     ProfileModule,
     MenuModule,
+    SessionsModule,
     BasketModule,
     OrdersModule,
     WaiterModule,
+    
   ],
 })
 export class AppModule {}

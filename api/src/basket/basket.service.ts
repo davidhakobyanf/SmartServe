@@ -28,6 +28,10 @@ export class BasketService {
     }
     return store.tables;
   }
+  async getTableBasket(table: string): Promise<MenuCard[]> {
+    const store = await this.basketRepo.findOne({ where: { id: 1 } });
+    return store?.tables?.[String(table)] ?? [];
+  }
 
   async addItem(dto: AddBasketItemDto) {
     const card: MenuCard = {

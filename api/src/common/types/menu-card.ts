@@ -24,6 +24,7 @@ export type BasketTables = Record<string, MenuCard[]>;
 
 export interface OrderRecord {
   _id: string;
+  sessionId?: string;
   items: MenuCard[];
   allPrice: number;
   table: string | number;

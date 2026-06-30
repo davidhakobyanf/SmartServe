@@ -50,13 +50,17 @@ export class OrdersService {
     };
   }
 
-  async addOrder(dto: CreateOrderDto) {
+  async addOrder(
+    dto: CreateOrderDto,
+    ctx: { table: string; sessionId: string },
+  ) {
     const store = await this.getOrCreateStore();
     const newOrder: OrderRecord = {
       _id: uuidv4(),
+      sessionId: ctx.sessionId,
       items: dto.items.map((item) => this.mapOrderItem(item)),
       allPrice: Number(dto.allPrice),
-      table: dto.table,
+      table: ctx.table,
       createdAt: new Date().toISOString(),
     };
 
@@ -66,6 +70,7 @@ export class OrdersService {
 
     return { message: 'New order added successfully', order: newOrder };
   }
+
 
   async deleteOrder(id: string) {
     const store = await this.getOrCreateStore();
