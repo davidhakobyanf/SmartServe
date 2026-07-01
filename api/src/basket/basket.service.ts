@@ -4,6 +4,9 @@ import { Repository } from 'typeorm';
 import { BasketStore } from '../entities/basket-store.entity';
 import type { BasketTables, MenuCard } from '../common/types/menu-card';
 import { AddBasketItemDto } from './dto/basket.dto';
+import { DOMAIN_EVENTS, SessionClosedPayload } from 'src/sessions/session.gateway';
+import { OnEvent } from '@nestjs/event-emitter';
+
 
 @Injectable()
 export class BasketService {
@@ -121,5 +124,21 @@ export class BasketService {
     }
     store.tables = tables;
     await this.basketRepo.save(store);
+  }
+
+  async clearTable(table:string): Promise<void> {
+    const store = await this.basketRepo.findOne({where: {id: 1}})
+    const key = String(table);
+    if (!store?.tables?.[key]) return;
+
+    const tables = {...store.tables};
+    delete tables[key];
+    store.tables = tables;
+    await this.basketRepo.save(store);
+  }
+
+  @OnEvent(DOMAIN_EVENTS.SESSION_CLOSED)
+  async onSessionClosed(payload: SessionClosedPayload) {
+    await this.clearTable(String(payload.tableNumber));
   }
 }
