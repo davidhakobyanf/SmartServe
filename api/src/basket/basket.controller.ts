@@ -25,6 +25,13 @@ export class BasketController {
     const table = String(req.diningSession!.tableNumber);
     return this.basketService.getTableBasket(table);
   }
+
+  @UseGuards(OpenSessionGuard)
+  @Delete('mine')
+  clearMine(@Req() req: RequestWithSession) {
+    const table = String(req.diningSession!.tableNumber);
+    return this.basketService.clearTable(table);
+  }
   
   @UseGuards(OpenSessionGuard)
   @Patch()
@@ -37,7 +44,7 @@ export class BasketController {
   @Delete()
   deleteItem(@Req() req: RequestWithSession, @Body() dto: DeleteBasketItemDto) {
     const table = String(req.diningSession!.tableNumber);
-    return this.basketService.deleteItem(table, dto.id);
+    return this.basketService.deleteItem(table, dto.id, dto.sauces);
   }
 
 

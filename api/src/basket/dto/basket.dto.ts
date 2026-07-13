@@ -37,6 +37,9 @@ export class DeleteBasketItemDto {
   id!: string;
 
   @IsOptional()
+  sauces?: string[];
+
+  @IsOptional()
   @IsString()
   table?: string;
 }

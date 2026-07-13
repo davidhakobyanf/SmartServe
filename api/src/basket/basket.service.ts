@@ -80,7 +80,7 @@ export class BasketService {
     return store;
   }
 
-  async deleteItem(table: string, id: string) {
+  async deleteItem(table: string, id: string, sauces?: string[]) {
     const store = await this.getOrCreateStore();
     const tableKey = String(table);
     const tables = { ...(store.tables ?? {}) };
@@ -91,7 +91,24 @@ export class BasketService {
       });
     }
 
-    tables[tableKey] = tables[tableKey].filter((item) => item.id !== id);
+    // A basket line is uniquely identified by id + sauces (addItem merges
+    // identical ones). Remove exactly ONE matching line, so removing one
+    // dish never wipes other lines that happen to share the same id.
+    const target = sauces === undefined ? undefined : JSON.stringify(sauces);
+    let removed = false;
+    tables[tableKey] = tables[tableKey].filter((item) => {
+      if (removed) return true;
+      const match =
+        item.id === id &&
+        (target === undefined ||
+          JSON.stringify(item.sauces ?? []) === target);
+      if (match) {
+        removed = true;
+        return false;
+      }
+      return true;
+    });
+
     store.tables = tables;
     await this.basketRepo.save(store);
     return store;
