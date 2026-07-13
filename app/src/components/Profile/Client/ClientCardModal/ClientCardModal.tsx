@@ -1,18 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Modal, Table, Checkbox, Button, message } from 'antd';
+import { Modal, message } from 'antd';
+import { TbX, TbMinus, TbPlus, TbCheck, TbStar, TbFlame } from 'react-icons/tb';
 import css from './ClientCardModal.module.css';
-import Typography from '@mui/joy/Typography';
-import Quantity from '@/hoc/Quantity/Quantity';
 import { useFetching } from '@/hoc/fetchingHook';
 import clientAPI from '@/api/api';
 import type { MenuCard, MenuImage } from '@/types';
 
-interface SauceOption {
-  option: string;
-  total: number;
-}
+const SAUCE_PRICE = 350;
+
+const fmt = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
 interface ClientCardModalProps {
   clientId: string;
@@ -21,6 +19,8 @@ interface ClientCardModalProps {
   index: number | null;
   item: MenuCard | null;
   images: MenuImage[];
+  badge?: 'popular' | 'chef' | null;
+  editItem?: MenuCard | null;
 }
 
 export default function ClientCardModal({
@@ -30,37 +30,42 @@ export default function ClientCardModal({
   index,
   item,
   images,
+  badge = null,
+  editItem = null,
 }: ClientCardModalProps) {
   const [quantity, setQuantity] = useState(1);
-  const [allTotal, setAllTotal] = useState(item?.price ?? 0);
-  const [plainOptions, setPlainOptions] = useState<SauceOption[]>([]);
-  const [selectedOptions, setSelectedOptions] = useState<Record<string, boolean>>({});
-  const [modalWidth, setModalWidth] = useState(650);
+  const [selected, setSelected] = useState<Record<string, boolean>>({});
 
-  const [fetchAddCard, addCardLoading, addCardError] = useFetching(async (modifiedItem: MenuCard) => {
-    try {
-      await clientAPI.createBasket({
-        ...modifiedItem,
-        table: clientId,
-        count: quantity,
+  const [fetchAddCard, addCardLoading, addCardError] = useFetching(
+    async (modifiedItem: MenuCard) => {
+      try {
+        await clientAPI.createBasket({
+          ...modifiedItem,
+          table: clientId,
+          count: quantity,
+        });
+      } catch (err) {
+        console.error('Error adding to basket:', err);
+      }
+    },
+  );
+
+  // Pre-fill from the edited cart line, or reset for a fresh add.
+  useEffect(() => {
+    if (!cardModalOpen) return;
+    if (editItem) {
+      setQuantity(editItem.count ?? 1);
+      const preset: Record<string, boolean> = {};
+      (editItem.sauces ?? []).forEach((s) => {
+        preset[s] = true;
       });
-    } catch (err) {
-      console.error('Error adding to basket:', err);
+      setSelected(preset);
+    } else {
+      setQuantity(1);
+      setSelected({});
     }
-  });
-
-  useEffect(() => {
-    setAllTotal((item?.price ?? 0) * quantity);
-  }, [item, quantity]);
-
-  useEffect(() => {
-    setPlainOptions(item?.sauces?.map((option) => ({ option, total: 0 })) ?? []);
-  }, [item]);
-  
-  useEffect(() => {
-    const total = plainOptions.reduce((acc, curr) => acc + curr.total, 0);
-    setAllTotal((item?.price ?? 0) * quantity + total);
-  }, [plainOptions, quantity, item]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cardModalOpen, item?.id, editItem?.id]);
 
   useEffect(() => {
     if (cardModalOpen && (!item || !item.active)) {
@@ -68,99 +73,178 @@ export default function ClientCardModal({
     }
   }, [cardModalOpen, item, setCardModalOpen]);
 
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth <= 330) setModalWidth(250);
-      else if (window.innerWidth <= 630) setModalWidth(400);
-      else setModalWidth(650);
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
   const imageSrc =
-    index !== null ? images[index]?.src : item ? images.find((i) => i.id === item.id)?.src : undefined;
+    index !== null
+      ? images[index]?.src
+      : item
+        ? images.find((i) => i.id === item.id)?.src
+        : undefined;
 
-  const handleAddButtonClick = async () => {
+  const selectedCount = Object.values(selected).filter(Boolean).length;
+  const total = (item?.price ?? 0) * quantity + selectedCount * SAUCE_PRICE;
+
+  const toggleSauce = (sauce: string) =>
+    setSelected((prev) => ({ ...prev, [sauce]: !prev[sauce] }));
+
+  const handleAdd = async () => {
     if (!item?.active) return;
     const modifiedItem: MenuCard = {
       ...item,
-      sauces: Object.keys(selectedOptions).filter((key) => selectedOptions[key]),
+      sauces: Object.keys(selected).filter((key) => selected[key]),
       table: clientId,
       count: quantity,
     };
+    // Edit mode: drop the original line first, then re-add the updated one.
+    if (editItem) {
+      await clientAPI.deleteBasket(editItem.id, clientId, editItem.sauces ?? []);
+    }
     await fetchAddCard(modifiedItem);
     if (!addCardLoading) {
       if (addCardError) message.error('Խնդիր է սերվերի հետ');
+      else if (editItem) message.success('Թարմացվել է');
       else message.success('Հաջողությամբ ավելացվել է զամբյուղում');
     }
     setCardModalOpen(false);
   };
 
-  const columns = [
-    {
-      title: 'Սոուսներ',
-      dataIndex: 'option',
-      key: 'option',
-      render: (_: unknown, record: SauceOption) => (
-        <Checkbox
-          checked={!!selectedOptions[record.option]}
-          onChange={(e) => {
-            const checked = e.target.checked;
-            setSelectedOptions((prev) => ({ ...prev, [record.option]: checked }));
-            setPlainOptions((prev) =>
-              prev.map((o) =>
-                o.option === record.option ? { ...o, total: checked ? 350 : 0 } : o,
-              ),
-            );
-          }}
-        >
-          {record.option}
-        </Checkbox>
-      ),
-    },
-    {
-      title: 'Total',
-      dataIndex: 'total',
-      key: 'total',
-      render: (_: unknown, record: SauceOption) => (record.total ? record.total : 350),
-    },
-  ];
-
-  const data = plainOptions.map((option, i) => ({
-    key: i,
-    option: option.option,
-    total: option.total,
-  }));
   return (
     <Modal
-      title={
-        item && item.title.length > 20 ? `${item.title.slice(0, 20)}...` : item?.title
-      }
-
       open={cardModalOpen}
       onCancel={() => setCardModalOpen(false)}
-      width={modalWidth}
       footer={null}
+      closable={false}
+      centered
+      width={860}
+      zIndex={1100}
       className={css.modal}
+      styles={{ body: { padding: 0 } }}
     >
       {item ? (
-        <div className={css.container}>
-          <div className={css.container_top}>
-            <img src={imageSrc} alt={item.title} loading="lazy" className={css.card_img} />
-            <div className={css.text}>
-              <Typography level="title-lg">{item.title}</Typography>
-              <Typography level="body-sm">{item.description}</Typography>
-              <Quantity quantity={quantity} setQuantity={setQuantity} />
+        <div className={css.sheet}>
+          <button
+            type="button"
+            className={css.close}
+            onClick={() => setCardModalOpen(false)}
+            aria-label="close"
+          >
+            <TbX />
+          </button>
+
+          <div className={css.top}>
+            <div className={css.hero}>
+              {imageSrc ? (
+                <img src={imageSrc} alt={item.title} className={css.heroImg} />
+              ) : (
+                <div className={css.heroFallback} />
+              )}
+            </div>
+
+            <div className={css.info}>
+              <h2 className={css.title}>{item.title}</h2>
+
+              {badge === 'popular' && (
+                <span className={`${css.badge} ${css.badgePopular}`}>
+                  <TbFlame /> Popular
+                </span>
+              )}
+              {badge === 'chef' && (
+                <span className={`${css.badge} ${css.badgeChef}`}>
+                  <TbStar /> Chef&apos;s Choice
+                </span>
+              )}
+
+              {item.description && (
+                <p className={css.desc}>{item.description}</p>
+              )}
+
+              <div className={css.unitPrice}>{fmt(item.price)} ֏</div>
+
+              <div className={css.stepper}>
+                <button
+                  type="button"
+                  className={css.stepBtn}
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                >
+                  <TbMinus />
+                </button>
+                <span className={css.qtyBox}>{quantity}</span>
+                <button
+                  type="button"
+                  className={css.stepBtn}
+                  onClick={() => setQuantity((q) => q + 1)}
+                >
+                  <TbPlus />
+                </button>
+              </div>
             </div>
           </div>
-          <Table columns={columns} dataSource={data} pagination={false} />
-          <div className={css.modal_footer}>
-            <div style={{ marginTop: 16, fontSize: '20px' }}>
-              Ընդհանուր գումար <b>{String(allTotal)}</b> դրամ
+
+          {item.sauces?.length > 0 && (
+            <div className={css.extras}>
+              <div className={css.extrasHead}>
+                <span className={css.extrasTitle}>Add extras</span>
+                <span className={css.extrasOptional}>Optional</span>
+              </div>
+              <div className={css.sauceList}>
+                {item.sauces.map((sauce) => {
+                  const on = !!selected[sauce];
+                  return (
+                    <button
+                      key={sauce}
+                      type="button"
+                      className={css.sauceRow}
+                      onClick={() => toggleSauce(sauce)}
+                    >
+                      <span
+                        className={`${css.check} ${on ? css.checkOn : ''}`}
+                      >
+                        {on && <TbCheck />}
+                      </span>
+                      <span className={css.sauceName}>{sauce}</span>
+                      <span className={css.saucePrice}>
+                        {fmt(SAUCE_PRICE)} ֏
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <Button onClick={() => void handleAddButtonClick()}>Ավելացնել</Button>
+          )}
+
+          <div className={css.footer}>
+            <div className={css.totalBox}>
+              <img
+                src="/images/leftIcon.png"
+                alt=""
+                className={css.basketIcon}
+              />
+              <div className={css.totalText}>
+                <span className={css.totalLabel}>Total amount</span>
+                <span className={css.totalValue}>{fmt(total)} ֏</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              className={css.addBtn}
+              onClick={() => void handleAdd()}
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+              >
+                <circle cx="9" cy="21" r="1" />
+                <circle cx="20" cy="21" r="1" />
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+              </svg>
+              {editItem ? 'Update' : 'Add to Order'}
+            </button>
           </div>
         </div>
       ) : null}

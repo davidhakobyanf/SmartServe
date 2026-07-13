@@ -1,9 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { TbToolsKitchen2, TbArrowRight } from 'react-icons/tb';
 import css from './ClientTable.module.css';
-import { GiTable } from 'react-icons/gi';
-import Card from '@mui/joy/Card';
 
 export default function ClientTable() {
   const router = useRouter();
@@ -13,16 +12,32 @@ export default function ClientTable() {
   };
 
   return (
-    <div className={css.clientTable}>
-      {[1, 2, 3, 4, 5, 6, 7, 8].map((clientId) => (
-        <Card
-          key={clientId}
-          className={css.chair}
-          onClick={() => handleNavigateToClient(clientId)}
-        >
-          Client {clientId} <GiTable />
-        </Card>
-      ))}
+    <div className={css.page}>
+      <div className={css.brand}>
+        <span className={css.logo}>
+          <TbToolsKitchen2 />
+        </span>
+        <div>
+          <h1 className={css.title}>SmartServe</h1>
+          <p className={css.subtitle}>Ընտրեք ձեր սեղանը</p>
+        </div>
+      </div>
+
+      <div className={css.grid}>
+        {[1, 2, 3, 4, 5, 6, 7, 8].map((clientId) => (
+          <button
+            key={clientId}
+            type="button"
+            className={css.tile}
+            onClick={() => handleNavigateToClient(clientId)}
+          >
+            <span className={css.tileNum}>{clientId}</span>
+            <span className={css.tileLabel}>
+              Table {clientId} <TbArrowRight />
+            </span>
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

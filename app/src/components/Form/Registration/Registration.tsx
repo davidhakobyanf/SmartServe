@@ -29,11 +29,10 @@ export default function Registration({ form, setCheck }: RegistrationProps) {
         return;
       }
 
-      const data = await response.json();
+      await response.json();
       form.resetFields();
       setCheck(false);
       success();
-      console.log(data);
     } catch (err) {
       console.error('Error:', err);
       showError();
@@ -46,32 +45,46 @@ export default function Registration({ form, setCheck }: RegistrationProps) {
   };
 
   return (
-    <div className={css.right}>
-      <h2 className={css.title}>Registration</h2>
-      <Form form={form} onFinish={handleCreate} className={css.form}>
-        <Form.Item
-          name="name"
-          rules={[{ required: true, message: 'Please enter your name' }]}
-        >
-          <Input placeholder="Name" />
-        </Form.Item>
-        <Form.Item
-          name="surname"
-          rules={[{ required: true, message: 'Please enter your surname' }]}
-        >
-          <Input placeholder="Surname" />
-        </Form.Item>
+    <div className={css.wrap}>
+      <h2 className={css.title}>Create account</h2>
+      <p className={css.subtitle}>Start managing your restaurant</p>
+
+      <Form
+        form={form}
+        onFinish={handleCreate}
+        layout="vertical"
+        requiredMark={false}
+        className={css.form}
+      >
+        <div className={css.grid}>
+          <Form.Item
+            name="name"
+            label="Name"
+            rules={[{ required: true, message: 'Please enter your name' }]}
+          >
+            <Input size="large" placeholder="Name" />
+          </Form.Item>
+          <Form.Item
+            name="surname"
+            label="Surname"
+            rules={[{ required: true, message: 'Please enter your surname' }]}
+          >
+            <Input size="large" placeholder="Surname" />
+          </Form.Item>
+        </div>
         <Form.Item
           name="email"
+          label="Email"
           rules={[
             { required: true, message: 'Please enter your email' },
             { type: 'email', message: 'Please enter a valid email' },
           ]}
         >
-          <Input placeholder="Email" />
+          <Input size="large" placeholder="Enter your email" />
         </Form.Item>
         <Form.Item
           name="password"
+          label="Password"
           rules={[
             { required: true, message: 'Please enter your password' },
             { min: 6, message: 'Password must be at least 6 characters long' },
@@ -84,6 +97,7 @@ export default function Registration({ form, setCheck }: RegistrationProps) {
           ]}
         >
           <Input.Password
+            size="large"
             placeholder="Enter your password"
             iconRender={(visible) =>
               visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
@@ -92,6 +106,7 @@ export default function Registration({ form, setCheck }: RegistrationProps) {
         </Form.Item>
         <Form.Item
           name="confirmPassword"
+          label="Confirm password"
           dependencies={['password']}
           rules={[
             { required: true, message: 'Please re-enter your password' },
@@ -106,28 +121,24 @@ export default function Registration({ form, setCheck }: RegistrationProps) {
           ]}
         >
           <Input.Password
+            size="large"
             placeholder="Re-enter your password"
             iconRender={(visible) =>
               visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
             }
           />
         </Form.Item>
-        <Button type="primary" htmlType="submit">
-          Create
+        <Button type="primary" htmlType="submit" size="large" block>
+          Create account
         </Button>
       </Form>
-      <div className={css.network}>
-        <div className={css.networkTwitter} />
-        <div className={css.networkFacebook} />
-        <div className={css.networkGithub} />
-        <div className={css.networkLinkedin} />
-      </div>
-      <div className={css.registartion_link}>
-        <p>If you already have an account, click on</p>
-        <button type="button" className={css.linkButton} onClick={switchToLogin}>
+
+      <p className={css.switch}>
+        Already have an account?{' '}
+        <button type="button" className={css.link} onClick={switchToLogin}>
           Login
         </button>
-      </div>
+      </p>
     </div>
   );
 }

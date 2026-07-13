@@ -32,12 +32,8 @@ export default function ClientBasketModal({
 
   const [fetchBasket, , basketError] = useFetching(async () => {
     try {
-      const { data: res } = await clientAPI.getBasket();
-      const tables = res as Record<string, MenuCard[]>;
-      if (res && clientId) {
-        const raw = tables[clientId] ?? tables[String(clientId)] ?? [];
-        setBasketData(raw.map((item) => normalizeMenuCard(item)));
-      }
+      const { data: raw } = await clientAPI.getMine();
+      setBasketData((raw ?? []).map((item) => normalizeMenuCard(item)));
     } catch (error) {
       console.error('Error fetching basket:', error);
     } finally {
@@ -57,8 +53,8 @@ export default function ClientBasketModal({
 
   const [deleteAllBasket, deleteAllBasketLoading] = useFetching(async (table: string) => {
     try {
-      await clientAPI.deleteAllBasket(table);
-    } catch (error) {
+      await clientAPI.clearMine();
+        } catch (error) {
       console.error('Error clearing basket:', error);
     }
   });
@@ -71,7 +67,7 @@ export default function ClientBasketModal({
     try {
       await clientAPI.createOrder(card);
       message.success('Ձեր պատվերը ընդունված է:');
-      await clientAPI.deleteAllBasket(clientId);
+      await clientAPI.clearMine();
       setBasketData([]);
     } catch (error) {
       console.error('Error creating order:', error);

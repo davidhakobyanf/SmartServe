@@ -1,8 +1,20 @@
-.all_page{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #172333;
-    width: 100%;
-    height: 100vh;
+.shell {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 28px 32px;
+}
+
+@media screen and (max-width: 640px) {
+  .main {
+    padding: 18px 16px;
+  }
 }

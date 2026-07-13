@@ -1,151 +1,565 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useParams } from 'next/navigation';
+import { message, Input, Select, ConfigProvider } from 'antd';
+import {
+  TbUser,
+  TbBell,
+  TbShoppingCart,
+  TbPlus,
+  TbMinus,
+  TbTrash,
+  TbX,
+  TbSearch,
+  TbLayoutGrid,
+  TbSoup,
+  TbMeat,
+  TbCake,
+  TbGlassFull,
+  TbFlame,
+  TbStar,
+  TbChevronDown,
+  TbSun,
+  TbLock,
+  TbArrowRight,
+} from 'react-icons/tb';
 import css from './ClientDashboard.module.css';
 import { useProfileData } from '@/context/ProfileDataContext';
-import { PlusCircleOutlined, ShoppingCartOutlined } from '@ant-design/icons';
-import Card from '@mui/joy/Card';
-import CardContent from '@mui/joy/CardContent';
-import IconButton from '@mui/joy/IconButton';
-import Typography from '@mui/joy/Typography';
-import { Input, message } from 'antd';
-import { useParams } from 'next/navigation';
+import { useFetching } from '@/hoc/fetchingHook';
+import clientAPI, { setSessionToken } from '@/api/api';
 import ClientCardModal from '../ClientCardModal/ClientCardModal';
-import ClientBasketModal from '../ClientBasketModal/ClientBasketModal';
 import { loadMenuImages } from '@/lib/menuImages';
+import { normalizeMenuCard } from '@/lib/normalizeMenuCard';
 import type { MenuCard, MenuImage } from '@/types';
 import { useWaiterClient } from '@/hooks/useWaiterClient';
-const logo = '/images/logo.jpg';
+import { useSessionLock } from '@/hooks/useSessionLock';
+
+const SAUCE_PRICE = 350;
+
+const PAGE_SIZE = 8;
+
+const CATEGORIES = [
+  { key: 'All Items', label: 'All Items', icon: TbLayoutGrid },
+  { key: 'Starters', label: 'Starters', icon: TbSoup },
+  { key: 'Main Courses', label: 'Main Courses', icon: TbMeat },
+  { key: 'Desserts', label: 'Desserts', icon: TbCake },
+  { key: 'Drinks', label: 'Drinks', icon: TbGlassFull },
+];
+
+const SORT_OPTIONS = [
+  { value: 'popular', label: 'Sort by: Popular' },
+  { value: 'price-asc', label: 'Price: Low to High' },
+  { value: 'price-desc', label: 'Price: High to Low' },
+  { value: 'name', label: 'Name: A–Z' },
+];
+
+// Purely cosmetic ribbon that mirrors the reference design.
+const badgeFor = (index: number): 'popular' | 'chef' | null => {
+  if (index % 4 === 0) return 'popular';
+  if (index % 4 === 1) return 'chef';
+  return null;
+};
+
+const lineTotal = (item: MenuCard) =>
+  item.price * (item.count ?? 1) + SAUCE_PRICE * (item.sauces?.length ?? 0);
+
+const fmt = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
 export default function ClientDashboard() {
   const params = useParams();
   const clientId = params?.clientId as string;
+  const { closed } = useSessionLock(clientId ?? null);
+
+  useEffect(() => {
+    setSessionToken(clientId ?? null);
+    return () => setSessionToken(null);
+  }, [clientId]);
+
   const { callWaiter } = useWaiterClient(clientId);
-  const handleCallWaiter = async () => {
-    const result = await callWaiter();
-    if (result.ok) {
-      message.success('Շատ լավ, սպասեք մատուցողին:');
-    } else {
-      message.error('Չհաջողվեց կապվել սերվերի հետ');
-    }
-  };
-  const { profileDataList, setProfileDataList, fetchProfile } = useProfileData();
-  const [basketOpen, setBasketOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<MenuCard | null>(null);
-  const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
+  const { profileDataList } = useProfileData();
+
   const [images, setImages] = useState<MenuImage[]>([]);
+  const [category, setCategory] = useState('All Items');
+  const [search, setSearch] = useState('');
+  const [sort, setSort] = useState('popular');
+  const [visible, setVisible] = useState(PAGE_SIZE);
+  const [basket, setBasket] = useState<MenuCard[]>([]);
+  const [cartOpen, setCartOpen] = useState(false);
   const [cardModalOpen, setCardModalOpen] = useState(false);
-  
+  const [selectedItem, setSelectedItem] = useState<MenuCard | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [selectedBadge, setSelectedBadge] = useState<'popular' | 'chef' | null>(
+    null,
+  );
+  const [editingLine, setEditingLine] = useState<MenuCard | null>(null);
+
   useEffect(() => {
     if (profileDataList.card.length > 0) {
       setImages(loadMenuImages(profileDataList.card));
     }
   }, [profileDataList.card]);
-  
-  const modalCard = (item: MenuCard, index: number) => {
-    setSelectedItemIndex(index);
+
+  const [fetchBasket] = useFetching(async () => {
+    const { data: raw } = await clientAPI.getMine();
+    setBasket((raw ?? []).map((item) => normalizeMenuCard(item)));
+  });
+
+  useEffect(() => {
+    void fetchBasket();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clientId]);
+
+  // refresh basket whenever the detail modal closes (it may have added an item)
+  useEffect(() => {
+    if (!cardModalOpen) void fetchBasket();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cardModalOpen]);
+
+  const handleCallWaiter = useCallback(async () => {
+    const result = await callWaiter();
+    if (result.ok) message.success('Շատ լավ, սպասեք մատուցողին:');
+    else message.error('Չհաջողվեց կապվել սերվերի հետ');
+  }, [callWaiter]);
+
+  const cards = useMemo(() => {
+    let list = [...(profileDataList.card ?? [])];
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter((c) => c.title.toLowerCase().includes(q));
+    }
+    switch (sort) {
+      case 'price-asc':
+        list = [...list].sort((a, b) => a.price - b.price);
+        break;
+      case 'price-desc':
+        list = [...list].sort((a, b) => b.price - a.price);
+        break;
+      case 'name':
+        list = [...list].sort((a, b) => a.title.localeCompare(b.title));
+        break;
+    }
+    // Keep unavailable dishes visible but pushed to the end.
+    return [...list].sort(
+      (a, b) => Number(b.active) - Number(a.active),
+    );
+  }, [profileDataList.card, search, sort]);
+
+  // Reset pagination whenever the visible set changes.
+  useEffect(() => {
+    setVisible(PAGE_SIZE);
+  }, [search, sort, category]);
+
+  const shown = cards.slice(0, visible);
+  const hasMore = cards.length > visible;
+
+  const openDetail = (
+    item: MenuCard,
+    badge: 'popular' | 'chef' | null = null,
+  ) => {
+    const idx = profileDataList.card.findIndex((c) => c.id === item.id);
     setSelectedItem(item);
+    setSelectedIndex(idx >= 0 ? idx : null);
+    setSelectedBadge(badge);
+    setEditingLine(null);
+    setCardModalOpen(true);
   };
 
-  const onSearch = (value: string) => {
-    if (value.trim() === '') {
-      void fetchProfile({ force: true });
-    } else {
-      const filteredCards = profileDataList.card.filter((card) =>
-        card.title.toLowerCase().includes(value.toLowerCase()),
-      );
-      setProfileDataList({ ...profileDataList, card: filteredCards });
+  // Open the popup to EDIT an existing cart line (pre-fills its sauces & qty).
+  const openCartLine = (line: MenuCard) => {
+    const menuCard = profileDataList.card.find((c) => c.id === line.id) ?? line;
+    openDetail(menuCard, null);
+    setEditingLine(line);
+  };
+
+  const quickAdd = async (
+    item: MenuCard,
+    badge: 'popular' | 'chef' | null = null,
+  ) => {
+    if (item.sauces?.length) {
+      openDetail(item, badge);
+      return;
+    }
+    try {
+      await clientAPI.createBasket({
+        ...item,
+        sauces: [],
+        table: clientId,
+        count: 1,
+      });
+      await fetchBasket();
+      message.success('Ավելացվել է զամբյուղում');
+    } catch {
+      message.error('Խնդիր է սերվերի հետ');
     }
   };
 
-  return (
-    <div className={css.dashboard}>
-      <div className={css.header}>
-        <div className={css.left_header}>
-          <img src={logo} className={css.logo} alt="Logo" />
-        </div>
-        <div className={css.profile_search}>
-          <Input
-            placeholder="input search text"
-            onChange={(e) => onSearch(e.target.value)}
-            style={{ width: 200 }}
-            allowClear
-          />
-        </div>
-        <div className={css.basket} onClick={() => setBasketOpen(true)}>
-          <ShoppingCartOutlined />
+  // A basket line is unique per (id + sauces), never by id alone.
+  const lineKey = (it: MenuCard) =>
+    `${it.id}|${JSON.stringify(it.sauces ?? [])}`;
+
+  const changeCount = (line: MenuCard, next: number) => {
+    const key = lineKey(line);
+    setBasket((prev) =>
+      prev.map((it) =>
+        lineKey(it) === key ? { ...it, count: Math.max(1, next) } : it,
+      ),
+    );
+  };
+
+  const removeItem = async (item: MenuCard) => {
+    try {
+      await clientAPI.deleteBasket(item.id, clientId, item.sauces ?? []);
+      await fetchBasket();
+    } catch {
+      message.error('Չհաջողվեց ջնջել');
+    }
+  };
+
+  const total = basket.reduce((sum, it) => sum + lineTotal(it), 0);
+  const count = basket.reduce((n, it) => n + (it.count ?? 1), 0);
+  const avatarInitial = (profileDataList.name?.[0] ?? 'N').toUpperCase();
+
+  const [placeOrder] = useFetching(async () => {
+    if (basket.length === 0) return;
+    const items = basket.map((it) => ({
+      id: it.id,
+      title: it.title,
+      description: it.description,
+      price: lineTotal(it),
+      sauces: it.sauces ?? [],
+      active: it.active,
+      image: it.image,
+      count: it.count ?? 1,
+    }));
+    const allPrice = items.reduce((t, it) => t + it.price, 0);
+    try {
+      await clientAPI.createOrder({ items, allPrice, table: clientId });
+      await clientAPI.clearMine();
+      setBasket([]);
+      setCartOpen(false);
+      message.success('Ձեր պատվերը ընդունված է:');
+    } catch {
+      message.error('Չհաջողվեց պատվիրել');
+    }
+  });
+
+  if (closed) {
+    setSessionToken(null);
+    return (
+      <div className={css.closed}>
+        <div className={css.closedCard}>
+          <span className={css.closedIcon}>🍽️</span>
+          <h2>Սեղանը փակված է</h2>
+          <p>Շնորհակալություն այցելության համար։</p>
         </div>
       </div>
+    );
+  }
+
+  return (
+    <ConfigProvider
+      theme={{ token: { colorPrimary: '#e21d2c', colorInfo: '#e21d2c' } }}
+    >
+    <div className={css.page}>
+      <div className={css.panel}>
+        <header className={css.topbar}>
+          <div className={css.tableChip}>
+            <TbUser />
+            <span>Table {clientId}</span>
+          </div>
+          <button
+            type="button"
+            className={css.callBtn}
+            onClick={() => void handleCallWaiter()}
+          >
+            <TbBell /> Call Waiter
+          </button>
+          <button
+            type="button"
+            className={css.orderToggle}
+            onClick={() => setCartOpen(true)}
+          >
+            <TbShoppingCart />
+            My Order
+            <span className={css.orderCount}>{count}</span>
+          </button>
+        </header>
+
+        <div className={css.body}>
+          <nav className={css.sidebar}>
+            <ul className={css.navList}>
+              {CATEGORIES.map(({ key, label, icon: Icon }) => (
+                <li key={key}>
+                  <button
+                    type="button"
+                    className={`${css.navItem} ${
+                      category === key ? css.navItemActive : ''
+                    }`}
+                    onClick={() => setCategory(key)}
+                  >
+                    <Icon className={css.navIcon} />
+                    <span>{label}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+
+            <div className={css.sidebarArt} aria-hidden>
+              <img src="/images/leftIcon.png" alt="" className={css.sidebarArtImg} />
+            </div>
+
+            <div className={css.sidebarUser}>
+              <span className={css.avatar}>{avatarInitial}</span>
+              <span className={css.userNote}>
+                <TbSun /> Enjoy your meal!
+              </span>
+            </div>
+          </nav>
+
+          <main className={`${css.menu} ss-scroll`}>
+            <h2 className={css.menuTitle}>Our Menu</h2>
+
+            <div className={css.tools}>
+              <Input
+                className={css.search}
+                size="large"
+                allowClear
+                prefix={<TbSearch className={css.searchIcon} />}
+                placeholder="Search for dishes..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <Select
+                size="large"
+                className={css.sort}
+                value={sort}
+                onChange={setSort}
+                options={SORT_OPTIONS}
+              />
+            </div>
+
+            <div className={css.tabs}>
+              {CATEGORIES.map(({ key, label }) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={`${css.tab} ${
+                    category === key ? css.tabActive : ''
+                  }`}
+                  onClick={() => setCategory(key)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <div className={css.grid}>
+              {shown.map((item, i) => {
+                const src = images.find((im) => im.id === item.id)?.src;
+                const badge = badgeFor(i);
+                const unavailable = !item.active;
+                return (
+                  <article
+                    key={item.id}
+                    className={`${css.card} ${
+                      unavailable ? css.cardDisabled : ''
+                    }`}
+                  >
+                    <div
+                      className={css.imgWrap}
+                      onClick={() => !unavailable && openDetail(item, badge)}
+                    >
+                      {src ? (
+                        <img
+                          src={src}
+                          alt={item.title}
+                          loading="lazy"
+                          className={css.img}
+                        />
+                      ) : (
+                        <div className={css.imgFallback} />
+                      )}
+                      {unavailable && (
+                        <span className={css.unavailBadge}>Առկա չէ</span>
+                      )}
+                      {!unavailable && badge === 'popular' && (
+                        <span className={`${css.badge} ${css.badgePopular}`}>
+                          <TbFlame /> Popular
+                        </span>
+                      )}
+                      {!unavailable && badge === 'chef' && (
+                        <span className={`${css.badge} ${css.badgeChef}`}>
+                          <TbStar /> Chef&apos;s Choice
+                        </span>
+                      )}
+                    </div>
+                    <div className={css.cardBody}>
+                      <h3
+                        className={css.cardTitle}
+                        onClick={() => !unavailable && openDetail(item, badge)}
+                      >
+                        {item.title}
+                      </h3>
+                      <p className={css.cardDesc}>{item.description}</p>
+                      <div className={css.cardFoot}>
+                        <span className={css.price}>{fmt(item.price)} ֏</span>
+                        {unavailable ? (
+                          <button
+                            type="button"
+                            className={css.addBtn}
+                            disabled
+                          >
+                            Առկա չէ
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className={css.addBtn}
+                            onClick={() => void quickAdd(item, badge)}
+                          >
+                            <TbPlus /> Add
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+
+            {hasMore && (
+              <div className={css.loadMoreWrap}>
+                <button
+                  type="button"
+                  className={css.loadMore}
+                  onClick={() => setVisible((v) => v + PAGE_SIZE)}
+                >
+                  <TbChevronDown /> Load More
+                </button>
+              </div>
+            )}
+          </main>
+
+          <aside className={`${css.order} ${cartOpen ? css.orderOpen : ''}`}>
+            <div className={css.orderHead}>
+              <h3>Your Order</h3>
+              <button
+                type="button"
+                className={css.orderClose}
+                onClick={() => setCartOpen(false)}
+              >
+                <TbX />
+              </button>
+            </div>
+
+            <div className={`${css.orderList} ss-scroll`}>
+              {basket.length === 0 ? (
+                <div className={css.orderEmpty}>
+                  <TbShoppingCart />
+                  <p>Ձեր զամբյուղը դատարկ է</p>
+                </div>
+              ) : (
+                basket.map((it) => {
+                  const src = images.find((im) => im.id === it.id)?.src;
+                  return (
+                    <div key={lineKey(it)} className={css.orderItem}>
+                      {src ? (
+                        <img
+                          src={src}
+                          alt={it.title}
+                          className={css.orderThumb}
+                          onClick={() => openCartLine(it)}
+                        />
+                      ) : (
+                        <div
+                          className={css.orderThumbFallback}
+                          onClick={() => openCartLine(it)}
+                        />
+                      )}
+                      <div className={css.orderItemInfo}>
+                        <div className={css.orderItemTop}>
+                          <span
+                            className={css.orderItemName}
+                            onClick={() => openCartLine(it)}
+                          >
+                            {it.title}
+                          </span>
+                          <button
+                            type="button"
+                            className={css.removeBtn}
+                            onClick={() => void removeItem(it)}
+                          >
+                            <TbTrash />
+                          </button>
+                        </div>
+                        <span className={css.orderItemPrice}>
+                          {fmt(lineTotal(it))} ֏
+                        </span>
+                        <div className={css.stepper}>
+                          <button
+                            type="button"
+                            onClick={() => changeCount(it, (it.count ?? 1) - 1)}
+                          >
+                            <TbMinus />
+                          </button>
+                          <span>{it.count ?? 1}</span>
+                          <button
+                            type="button"
+                            onClick={() => changeCount(it, (it.count ?? 1) + 1)}
+                          >
+                            <TbPlus />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            <div className={css.orderFooter}>
+              <div className={css.totalRow}>
+                <span>Total</span>
+                <span className={css.totalValue}>{fmt(total)} ֏</span>
+              </div>
+              <button
+                type="button"
+                className={css.placeBtn}
+                disabled={basket.length === 0}
+                onClick={() => void placeOrder()}
+              >
+                <TbLock className={css.placeLock} />
+                Place Order
+                <TbArrowRight className={css.placeArrow} />
+              </button>
+              <p className={css.kitchenNote}>
+                <TbLock /> Your order is sent to the kitchen
+              </p>
+            </div>
+          </aside>
+
+          {cartOpen && (
+            <div className={css.backdrop} onClick={() => setCartOpen(false)} />
+          )}
+        </div>
+      </div>
+
       <ClientCardModal
         clientId={clientId}
         cardModalOpen={cardModalOpen}
         setCardModalOpen={setCardModalOpen}
-        index={selectedItemIndex}
+        index={selectedIndex}
         item={
           selectedItem
-            ? profileDataList.card.find((card) => card.id === selectedItem.id) ?? null
+            ? profileDataList.card.find((c) => c.id === selectedItem.id) ?? null
             : null
         }
         images={images}
+        badge={selectedBadge}
+        editItem={editingLine}
       />
-      <div className={css.body}>
-        {profileDataList?.card?.map((item, index) => (
-          <Card
-            key={item.id}
-            className={`${css.card} ${!item?.active ? css.card_unactive : ''}`}
-            onClick={() => modalCard(item, index)}
-          >
-            <div onClick={() => setCardModalOpen(true)}>
-              <Typography level="title-lg">
-                {item?.title.length > 20
-                  ? `${item?.title.slice(0, 20)}...`
-                  : item?.title}
-              </Typography>
-              <Typography level="body-sm">
-                {item.description.length > 45
-                  ? `${item.description.slice(0, 45)}...`
-                  : item.description}
-              </Typography>
-              <IconButton
-                aria-label={`bookmark ${item.title}`}
-                variant="plain"
-                color="neutral"
-                size="sm"
-                sx={{ position: 'absolute', top: '0.875rem', right: '0.5rem' }}
-              >
-                <PlusCircleOutlined />
-              </IconButton>
-            </div>
-            <img
-              src={images.find((image) => image.id === item.id)?.src}
-              alt={item.title}
-              loading="lazy"
-              className={css.card_img}
-              onClick={() => setCardModalOpen(true)}
-            />
-            <CardContent orientation="horizontal" className={css.content}>
-              <div className={css.footerLeft} onClick={() => setCardModalOpen(true)}>
-                {item.sauces.length > 0 ? <div>Հավելումներ</div> : null}
-                <div className={css.price}>
-                  <Typography fontSize="lg" fontWeight="lg">
-                    {item.price} դրամ
-                  </Typography>
-                </div>
-              </div>
-              <div className={css.footerRight} onClick={() => setCardModalOpen(true)} />
-            </CardContent>
-          </Card>
-        ))}
-        <ClientBasketModal
-          basketOpen={basketOpen}
-          setBasketOpen={setBasketOpen}
-          clientId={clientId}
-          images={images}
-        />
-      </div>
-      <div className={css.scrollToTop} onClick={() => void handleCallWaiter()}>
-        Կանչել մատուցողին
-      </div>
     </div>
+    </ConfigProvider>
   );
 }

@@ -1,7 +1,14 @@
 'use client';
 
-import Dashboard from '@/components/Profile/Admin/Dashboard/Dashboard';
+import { TbLayoutDashboard } from 'react-icons/tb';
+import Placeholder from '@/components/Profile/Placeholder/Placeholder';
 
 export default function ProfileDashboardPage() {
-  return <Dashboard />;
+  return (
+    <Placeholder
+      icon={<TbLayoutDashboard />}
+      title="Dashboard"
+      subtitle="Overview of your restaurant activity"
+    />
+  );
 }

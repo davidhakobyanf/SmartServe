@@ -9,6 +9,18 @@ const instance = axios.create({
     'Content-Type': 'application/json',
   },
 });
+let sessionToken: string | null = null;
+export function setSessionToken(token: string | null): void {
+  sessionToken = token;
+}
+
+instance.interceptors.request.use((config) => {
+  if (sessionToken) {
+    config.headers.set('x-session-token', sessionToken);
+  }
+  return config;
+});
+
 
 type BasketPayload = MenuCard & { table: string | number; count: number };
 type OrderPayload = {
@@ -43,6 +55,12 @@ class DataApi {
         'Content-Type': 'application/json',
       },
     });
+  }
+  static async getMine(): Promise<AxiosResponse<MenuCard[]>> {
+    return instance.get<MenuCard[]>('/api/basket/mine');
+  }
+  static async clearMine(): Promise<AxiosResponse<unknown>> {
+    return instance.delete('/api/basket/mine');
   }
 
   static async createCard(card: Partial<MenuCard>): Promise<AxiosResponse<Profile>> {
@@ -111,6 +129,7 @@ class DataApi {
   static async deleteBasket(
     id: string,
     table: string | number,
+    sauces?: string[],
   ): Promise<AxiosResponse<unknown>> {
     return instance.request({
       url: '/api/basket',
@@ -119,7 +138,7 @@ class DataApi {
         Authorization: 'Bearer',
         'Content-Type': 'application/json',
       },
-      data: { id, table },
+      data: { id, table, sauces },
     });
   }
 
@@ -142,6 +161,18 @@ class DataApi {
         'Content-Type': 'application/json',
       },
     });
+  }
+
+  static async openSession(
+    table: number,
+  ): Promise<AxiosResponse<{ id: string; tableNumber:number; status:string}>> {
+    return instance.post('/api/sessions/open', {table});
+  }
+
+  static async getSession(
+    table: string,
+  ): Promise<AxiosResponse<{id: string; tableNumber: number; status:string}>> {
+    return instance.get(``)
   }
 }
 

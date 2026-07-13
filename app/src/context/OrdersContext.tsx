@@ -1,87 +1,125 @@
-import { createContext, useState, useCallback, useRef, useEffect, useContext } from 'react';
+'use client';
+
+import {
+  createContext,
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+  useContext,
+} from 'react';
+import { notification } from 'antd';
 import type { OrderRecord } from '@/types/orders';
 import { normalizeOrderRecord } from '@/lib/normalizeMenuCard';
 import { createSocket } from '@/lib/ws/socket';
 import clientAPI from '@/api/api';
 
-
-
-
-
 const NAMESPACE = '/orders';
 const EVT = { JOIN: 'join', UPDATED: 'orders:updated' } as const;
 
+const fmt = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+
 let ordersRequest: Promise<void> | null = null;
 
-
 interface OrdersContextValue {
-    orders: OrderRecord[];
-    isConnected: boolean;
-    refreshOrders: () => Promise<void>;
+  orders: OrderRecord[];
+  isConnected: boolean;
+  refreshOrders: () => Promise<void>;
+  newCount: number;
+  markSeen: () => void;
 }
 
 const OrdersContext = createContext<OrdersContextValue | null>(null);
 
-function normalizeList(raw: unknown) : OrderRecord[] {
-    if (!Array.isArray(raw)) return [];
-    return raw.map((item) => normalizeOrderRecord(item as OrderRecord));
+function normalizeList(raw: unknown): OrderRecord[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((item) => normalizeOrderRecord(item as OrderRecord));
 }
 
 export function OrdersProvider({ children }: { children: React.ReactNode }) {
-    const [orders,setOrders] = useState<OrderRecord[]>([]) 
-    const [isConnected, setIsConnected] = useState(false);
-    const socketRef = useRef<ReturnType<typeof createSocket> | null>(null);
+  const [orders, setOrders] = useState<OrderRecord[]>([]);
+  const [isConnected, setIsConnected] = useState(false);
+  const [newCount, setNewCount] = useState(0);
+  const socketRef = useRef<ReturnType<typeof createSocket> | null>(null);
+  const seenIdsRef = useRef<Set<string>>(new Set());
+  const initializedRef = useRef(false);
 
-    const refreshOrders = useCallback(async () => {
-        if (ordersRequest) {
-            await ordersRequest;
-            return;
-        }
+  // Apply a fresh orders list; fire a toast + badge for genuinely new orders.
+  const applyOrders = useCallback((list: OrderRecord[]) => {
+    if (initializedRef.current) {
+      const added = list.filter((o) => o._id && !seenIdsRef.current.has(o._id));
+      if (added.length > 0) {
+        setNewCount((c) => c + added.length);
+        added.forEach((o) =>
+          notification.open({
+            type: 'info',
+            message: 'Նոր պատվեր',
+            description: `Սեղան ${o.table} — ${fmt(o.allPrice)} ֏`,
+            placement: 'topRight',
+            duration: 6,
+            key: o._id,
+          }),
+        );
+      }
+    }
+    seenIdsRef.current = new Set(list.map((o) => o._id));
+    initializedRef.current = true;
+    setOrders(list);
+  }, []);
 
-        ordersRequest = (async () => {
-            try {
-                const { data } = await clientAPI.getOrders();
-                setOrders(normalizeList(data));
-            } finally {
-                ordersRequest = null;
-            }
-        })();
+  const markSeen = useCallback(() => setNewCount(0), []);
 
-        await ordersRequest;
-    }, []);
+  const refreshOrders = useCallback(async () => {
+    if (ordersRequest) {
+      await ordersRequest;
+      return;
+    }
 
-    useEffect(() => {
-        const socket = createSocket(NAMESPACE);
-        socketRef.current = socket;
+    ordersRequest = (async () => {
+      try {
+        const { data } = await clientAPI.getOrders();
+        applyOrders(normalizeList(data));
+      } finally {
+        ordersRequest = null;
+      }
+    })();
 
-        socket.on('connect', () => {
-            setIsConnected(true);
-            socket.emit(EVT.JOIN, { role: 'admin' });
-            void refreshOrders();
-        });
+    await ordersRequest;
+  }, [applyOrders]);
 
-        socket.on(EVT.UPDATED, (payload: unknown) => {
-            setOrders(normalizeList(payload));
-        })
+  useEffect(() => {
+    const socket = createSocket(NAMESPACE);
+    socketRef.current = socket;
 
-        socket.on('disconnect', () => setIsConnected(false));
-        
-        return () => {
-            socket.removeAllListeners();
-            socket.disconnect();
-        };
-    }, [refreshOrders]);
+    socket.on('connect', () => {
+      setIsConnected(true);
+      socket.emit(EVT.JOIN, { role: 'admin' });
+      void refreshOrders();
+    });
 
-    return (
-        <OrdersContext.Provider value={{orders, isConnected, refreshOrders}}>
-            {children}
-        </OrdersContext.Provider>
+    socket.on(EVT.UPDATED, (payload: unknown) => {
+      applyOrders(normalizeList(payload));
+    });
 
-    )
+    socket.on('disconnect', () => setIsConnected(false));
+
+    return () => {
+      socket.removeAllListeners();
+      socket.disconnect();
+    };
+  }, [refreshOrders, applyOrders]);
+
+  return (
+    <OrdersContext.Provider
+      value={{ orders, isConnected, refreshOrders, newCount, markSeen }}
+    >
+      {children}
+    </OrdersContext.Provider>
+  );
 }
 
 export function useOrders(): OrdersContextValue {
-    const ctx = useContext(OrdersContext);
-    if (!ctx) throw new Error('useOrders must be used within OrdersProvider');
-    return ctx;
+  const ctx = useContext(OrdersContext);
+  if (!ctx) throw new Error('useOrders must be used within OrdersProvider');
+  return ctx;
 }
