@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button, Input, InputNumber, Modal, Select, Form, Upload } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
 import { UploadOutlined } from '@ant-design/icons';
@@ -26,6 +27,7 @@ export default function EditCardModal({
   showEditConfirmation,
   setCardModalOpen,
 }: EditCardModalProps) {
+  const t = useTranslations('menuModal');
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
 
@@ -80,7 +82,7 @@ export default function EditCardModal({
 
   return (
     <Modal
-      title="Edit MenuCard"
+      title={t('edit.title')}
       open={showEditConfirmation}
       onCancel={() => {
         form.resetFields();
@@ -90,16 +92,16 @@ export default function EditCardModal({
       footer={null}
     >
       <Form form={form} onFinish={onFinish} layout="vertical">
-        <Form.Item name="title" label="Title" rules={[{ required: true }]}>
-          <Input placeholder="Title" />
+        <Form.Item name="title" label={t('fields.title')} rules={[{ required: true }]}>
+          <Input placeholder={t('fields.titlePlaceholder')} />
         </Form.Item>
-        <Form.Item name="sauces" label="Sauces">
-          <Select mode="tags" style={{ width: '100%' }} placeholder="Tags Mode" />
+        <Form.Item name="sauces" label={t('fields.sauces')}>
+          <Select mode="tags" style={{ width: '100%' }} placeholder={t('fields.tagsPlaceholder')} />
         </Form.Item>
-        <Form.Item name="description" label="Description" rules={[{ required: true }]}>
+        <Form.Item name="description" label={t('fields.description')} rules={[{ required: true }]}>
           <TextArea rows={4} />
         </Form.Item>
-        <Form.Item name="image" label="Image">
+        <Form.Item name="image" label={t('fields.image')}>
           <Upload
             fileList={fileList}
             onChange={({ fileList: fl }) => setFileList(fl)}
@@ -107,20 +109,20 @@ export default function EditCardModal({
             maxCount={1}
             accept="image/*"
           >
-            <Button icon={<UploadOutlined />}>Select Image</Button>
+            <Button icon={<UploadOutlined />}>{t('fields.selectImage')}</Button>
           </Upload>
         </Form.Item>
-        <Form.Item name="price" label="Price" rules={[{ required: true }]}>
+        <Form.Item name="price" label={t('fields.price')} rules={[{ required: true }]}>
           <InputNumber
             min={0}
             style={{ width: '100%' }}
-            placeholder="Price"
-            addonAfter="դրամ"
+            placeholder={t('fields.pricePlaceholder')}
+            addonAfter={t('dram')}
           />
         </Form.Item>
         <Form.Item>
           <Button type="primary" htmlType="submit">
-            Պահպանել
+            {t('edit.submit')}
           </Button>
         </Form.Item>
       </Form>

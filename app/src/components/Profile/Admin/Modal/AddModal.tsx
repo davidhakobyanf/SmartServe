@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button, Input, InputNumber, Modal, Select, Form, Upload } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
 import { UploadOutlined } from '@ant-design/icons';
@@ -19,6 +20,7 @@ export default function AddModal({
   setModalOpen,
   fetchAddCard,
 }: AddModalProps) {
+  const t = useTranslations('menuModal');
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
 
@@ -34,7 +36,7 @@ export default function AddModal({
   const onFinish = async (values: Record<string, unknown>) => {
     const uploadFile = fileList[0]?.originFileObj as File | undefined;
     if (!uploadFile) {
-      form.setFields([{ name: 'image', errors: ['Ընտրեք նկար'] }]);
+      form.setFields([{ name: 'image', errors: [t('validation.image')] }]);
       return;
     }
     const image = await fileToImagePayload(uploadFile);
@@ -52,7 +54,7 @@ export default function AddModal({
 
   return (
     <Modal
-      title="Create MenuCard"
+      title={t('add.title')}
       open={modalOpen}
       onOk={() => form.submit()}
       onCancel={() => setModalOpen(false)}
@@ -62,25 +64,25 @@ export default function AddModal({
       <Form form={form} onFinish={onFinish} layout="vertical">
         <Form.Item
           name="title"
-          label="Title"
-          rules={[{ required: true, message: 'Please input title!' }]}
+          label={t('fields.title')}
+          rules={[{ required: true, message: t('validation.title') }]}
         >
-          <Input placeholder="Title" />
+          <Input placeholder={t('fields.titlePlaceholder')} />
         </Form.Item>
-        <Form.Item name="sauces" label="Sauces">
-          <Select mode="tags" style={{ width: '100%' }} placeholder="Tags Mode" options={options} />
+        <Form.Item name="sauces" label={t('fields.sauces')}>
+          <Select mode="tags" style={{ width: '100%' }} placeholder={t('fields.tagsPlaceholder')} options={options} />
         </Form.Item>
         <Form.Item
           name="description"
-          label="Description"
-          rules={[{ required: true, message: 'Please input Description!' }]}
+          label={t('fields.description')}
+          rules={[{ required: true, message: t('validation.description') }]}
         >
           <TextArea rows={4} />
         </Form.Item>
         <Form.Item
           name="image"
-          label="Image"
-          rules={[{ required: true, message: 'Ընտրեք նկար' }]}
+          label={t('fields.image')}
+          rules={[{ required: true, message: t('validation.image') }]}
         >
           <Upload
             fileList={fileList}
@@ -89,24 +91,24 @@ export default function AddModal({
             maxCount={1}
             accept="image/*"
           >
-            <Button icon={<UploadOutlined />}>Select Image</Button>
+            <Button icon={<UploadOutlined />}>{t('fields.selectImage')}</Button>
           </Upload>
         </Form.Item>
         <Form.Item
           name="price"
-          label="Price"
-          rules={[{ required: true, message: 'Please input price!' }]}
+          label={t('fields.price')}
+          rules={[{ required: true, message: t('validation.price') }]}
         >
           <InputNumber
             min={0}
             style={{ width: '100%' }}
-            placeholder="Price"
-            addonAfter="դրամ"
+            placeholder={t('fields.pricePlaceholder')}
+            addonAfter={t('dram')}
           />
         </Form.Item>
         <Form.Item>
           <Button type="primary" htmlType="submit">
-            Create
+            {t('add.submit')}
           </Button>
         </Form.Item>
       </Form>

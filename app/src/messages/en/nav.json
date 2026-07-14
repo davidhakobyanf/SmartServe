@@ -1,0 +1,12 @@
+{
+  "dashboard": "Dashboard",
+  "menu": "Menu Management",
+  "orders": "Orders",
+  "tables": "Tables",
+  "waiter": "Waiter Calls",
+  "profile": "Profile",
+  "settings": "Settings",
+  "logout": "Logout",
+  "online": "Online",
+  "ownerFallback": "Restaurant Owner"
+}

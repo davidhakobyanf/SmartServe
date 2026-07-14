@@ -14,7 +14,8 @@ import Typography from '@mui/joy/Typography';
 import { useFetching } from '@/hoc/fetchingHook';
 import CardModal from '../Modal/CardModal/CardModal';
 import { Input, Switch } from 'antd';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
 import { useProfileData } from '@/context/ProfileDataContext';
 import { BiSolidNotepad } from 'react-icons/bi';
 import AdminOrderModal from '../AdminOrderModal/AdminOrderModal';
@@ -25,6 +26,7 @@ import { useWaiterCalls } from '@/context/WaiterCallsContext';
 import { Badge } from 'antd';
 
 export default function Dashboard() {
+  const t = useTranslations('dashboard');
   const { profileDataList, setProfileDataList, fetchProfile } = useProfileData();
   const [modalOpen, setModalOpen] = useState(false);
   const [modalOrderOpen, setModalOrderOpen] = useState(false);
@@ -103,7 +105,7 @@ export default function Dashboard() {
         <ProfileInfo />
         <div className={css.profile_search}>
           <Input
-            placeholder="input search text"
+            placeholder={t('searchPlaceholder')}
             onChange={(e) => onSearch(e.target.value)}
             style={{ width: 200 }}
             allowClear
@@ -148,7 +150,7 @@ export default function Dashboard() {
                   : item.description}
               </Typography>
               <IconButton
-                aria-label={`bookmark ${item.title}`}
+                aria-label={t('bookmark', { title: item.title })}
                 variant="plain"
                 color="neutral"
                 size="sm"
@@ -166,10 +168,10 @@ export default function Dashboard() {
             />
             <CardContent orientation="horizontal" className={css.content}>
               <div className={css.footerLeft} onClick={() => setCardModalOpen(true)}>
-                {item.sauces.length > 0 ? <div>Հավելումներ</div> : null}
+                {item.sauces.length > 0 ? <div>{t('extras')}</div> : null}
                 <div className={css.price}>
                   <Typography fontSize="lg" fontWeight="lg">
-                    {item.price} դրամ
+                    {t('price', { price: item.price })}
                   </Typography>
                 </div>
               </div>

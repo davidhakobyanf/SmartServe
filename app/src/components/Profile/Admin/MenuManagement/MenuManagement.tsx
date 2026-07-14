@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { Input, Select, Dropdown, Empty } from 'antd';
 import { TbPlus, TbSearch, TbDotsVertical, TbCategory } from 'react-icons/tb';
 import clientAPI from '@/api/api';
@@ -13,22 +14,16 @@ import AddModal from '../Modal/AddModal';
 import CardModal from '../Modal/CardModal/CardModal';
 import css from './MenuManagement.module.css';
 
-const CATEGORIES = ['All Items', 'Starters', 'Main Courses', 'Desserts', 'Drinks'];
-
-const SORT_OPTIONS = [
-  { value: 'newest', label: 'Sort by: Newest' },
-  { value: 'price-asc', label: 'Price: Low to High' },
-  { value: 'price-desc', label: 'Price: High to Low' },
-  { value: 'name', label: 'Name: A–Z' },
-];
+const CATEGORIES = ['all', 'starters', 'mainCourses', 'desserts', 'drinks'];
 
 export default function MenuManagement() {
+  const t = useTranslations('menu');
   const { profileDataList, fetchProfile } = useProfileData();
   const { setCardActive, cardActive } = useData();
   const [images, setImages] = useState<MenuImage[]>([]);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('newest');
-  const [category, setCategory] = useState('All Items');
+  const [category, setCategory] = useState('all');
   const [addOpen, setAddOpen] = useState(false);
   const [cardOpen, setCardOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuCard | null>(null);
@@ -87,25 +82,30 @@ export default function MenuManagement() {
     setCardActive({ ...item, active: !item.active });
   };
 
+  const SORT_OPTIONS = [
+    { value: 'newest', label: t('sort.newest') },
+    { value: 'price-asc', label: t('sort.priceAsc') },
+    { value: 'price-desc', label: t('sort.priceDesc') },
+    { value: 'name', label: t('sort.name') },
+  ];
+
   return (
     <div className={css.page}>
       <header className={css.header}>
         <div>
-          <h1 className={css.title}>Menu Management</h1>
-          <p className={css.subtitle}>
-            Manage your restaurant menu and menu items
-          </p>
+          <h1 className={css.title}>{t('title')}</h1>
+          <p className={css.subtitle}>{t('subtitle')}</p>
         </div>
         <div className={css.headerActions}>
           <button type="button" className={css.btnGhost}>
-            <TbCategory /> Categories
+            <TbCategory /> {t('categoriesButton')}
           </button>
           <button
             type="button"
             className={css.btnPrimary}
             onClick={() => setAddOpen(true)}
           >
-            <TbPlus /> Add New Item
+            <TbPlus /> {t('addNewItem')}
           </button>
         </div>
       </header>
@@ -118,7 +118,7 @@ export default function MenuManagement() {
             className={`${css.tab} ${category === cat ? css.tabActive : ''}`}
             onClick={() => setCategory(cat)}
           >
-            {cat}
+            {t(`categories.${cat}`)}
           </button>
         ))}
       </div>
@@ -129,7 +129,7 @@ export default function MenuManagement() {
           size="large"
           allowClear
           prefix={<TbSearch className={css.searchIcon} />}
-          placeholder="Search menu items..."
+          placeholder={t('searchPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -144,7 +144,7 @@ export default function MenuManagement() {
 
       {cards.length === 0 ? (
         <div className={css.empty}>
-          <Empty description="No menu items" />
+          <Empty description={t('empty')} />
         </div>
       ) : (
         <div className={css.grid}>
@@ -181,14 +181,14 @@ export default function MenuManagement() {
                         items: [
                           {
                             key: 'edit',
-                            label: 'Edit',
+                            label: t('edit'),
                             onClick: () => openCard(item, index),
                           },
                           {
                             key: 'toggle',
                             label: item.active
-                              ? 'Mark unavailable'
-                              : 'Mark available',
+                              ? t('markUnavailable')
+                              : t('markAvailable'),
                             onClick: () => toggleActive(item),
                           },
                         ],
@@ -199,7 +199,7 @@ export default function MenuManagement() {
                       </button>
                     </Dropdown>
                   </div>
-                  <div className={css.price}>{item.price} դրամ</div>
+                  <div className={css.price}>{t('price', { price: item.price })}</div>
                   <p className={css.desc}>{item.description}</p>
                   <button
                     type="button"
@@ -208,7 +208,7 @@ export default function MenuManagement() {
                     }`}
                     onClick={() => toggleActive(item)}
                   >
-                    {item.active ? 'Available' : 'Unavailable'}
+                    {item.active ? t('available') : t('unavailable')}
                   </button>
                 </div>
               </article>

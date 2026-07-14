@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { message, Input, Select, ConfigProvider } from 'antd';
 import {
   TbUser,
@@ -34,24 +35,18 @@ import { normalizeMenuCard } from '@/lib/normalizeMenuCard';
 import type { MenuCard, MenuImage } from '@/types';
 import { useWaiterClient } from '@/hooks/useWaiterClient';
 import { useSessionLock } from '@/hooks/useSessionLock';
+import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
 
 const SAUCE_PRICE = 350;
 
 const PAGE_SIZE = 8;
 
 const CATEGORIES = [
-  { key: 'All Items', label: 'All Items', icon: TbLayoutGrid },
-  { key: 'Starters', label: 'Starters', icon: TbSoup },
-  { key: 'Main Courses', label: 'Main Courses', icon: TbMeat },
-  { key: 'Desserts', label: 'Desserts', icon: TbCake },
-  { key: 'Drinks', label: 'Drinks', icon: TbGlassFull },
-];
-
-const SORT_OPTIONS = [
-  { value: 'popular', label: 'Sort by: Popular' },
-  { value: 'price-asc', label: 'Price: Low to High' },
-  { value: 'price-desc', label: 'Price: High to Low' },
-  { value: 'name', label: 'Name: A–Z' },
+  { key: 'All Items', tKey: 'allItems', icon: TbLayoutGrid },
+  { key: 'Starters', tKey: 'starters', icon: TbSoup },
+  { key: 'Main Courses', tKey: 'mainCourses', icon: TbMeat },
+  { key: 'Desserts', tKey: 'desserts', icon: TbCake },
+  { key: 'Drinks', tKey: 'drinks', icon: TbGlassFull },
 ];
 
 // Purely cosmetic ribbon that mirrors the reference design.
@@ -67,9 +62,20 @@ const lineTotal = (item: MenuCard) =>
 const fmt = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
 export default function ClientDashboard() {
+  const t = useTranslations('client');
   const params = useParams();
   const clientId = params?.clientId as string;
   const { closed } = useSessionLock(clientId ?? null);
+
+  const SORT_OPTIONS = useMemo(
+    () => [
+      { value: 'popular', label: t('sort.popular') },
+      { value: 'price-asc', label: t('sort.priceAsc') },
+      { value: 'price-desc', label: t('sort.priceDesc') },
+      { value: 'name', label: t('sort.name') },
+    ],
+    [t],
+  );
 
   useEffect(() => {
     setSessionToken(clientId ?? null);
@@ -118,9 +124,9 @@ export default function ClientDashboard() {
 
   const handleCallWaiter = useCallback(async () => {
     const result = await callWaiter();
-    if (result.ok) message.success('Շատ լավ, սպասեք մատուցողին:');
-    else message.error('Չհաջողվեց կապվել սերվերի հետ');
-  }, [callWaiter]);
+    if (result.ok) message.success(t('dashboard.waiterCalled'));
+    else message.error(t('dashboard.waiterFailed'));
+  }, [callWaiter, t]);
 
   const cards = useMemo(() => {
     let list = [...(profileDataList.card ?? [])];
@@ -188,9 +194,9 @@ export default function ClientDashboard() {
         count: 1,
       });
       await fetchBasket();
-      message.success('Ավելացվել է զամբյուղում');
+      message.success(t('dashboard.addedToBasket'));
     } catch {
-      message.error('Խնդիր է սերվերի հետ');
+      message.error(t('dashboard.serverError'));
     }
   };
 
@@ -212,7 +218,7 @@ export default function ClientDashboard() {
       await clientAPI.deleteBasket(item.id, clientId, item.sauces ?? []);
       await fetchBasket();
     } catch {
-      message.error('Չհաջողվեց ջնջել');
+      message.error(t('dashboard.deleteFailed'));
     }
   };
 
@@ -238,9 +244,9 @@ export default function ClientDashboard() {
       await clientAPI.clearMine();
       setBasket([]);
       setCartOpen(false);
-      message.success('Ձեր պատվերը ընդունված է:');
+      message.success(t('dashboard.orderPlaced'));
     } catch {
-      message.error('Չհաջողվեց պատվիրել');
+      message.error(t('dashboard.orderFailed'));
     }
   });
 
@@ -250,8 +256,8 @@ export default function ClientDashboard() {
       <div className={css.closed}>
         <div className={css.closedCard}>
           <span className={css.closedIcon}>🍽️</span>
-          <h2>Սեղանը փակված է</h2>
-          <p>Շնորհակալություն այցելության համար։</p>
+          <h2>{t('closed.title')}</h2>
+          <p>{t('closed.message')}</p>
         </div>
       </div>
     );
@@ -266,14 +272,15 @@ export default function ClientDashboard() {
         <header className={css.topbar}>
           <div className={css.tableChip}>
             <TbUser />
-            <span>Table {clientId}</span>
+            <span>{t('dashboard.tableChip', { table: clientId })}</span>
           </div>
+          <LanguageSwitcher size="small" />
           <button
             type="button"
             className={css.callBtn}
             onClick={() => void handleCallWaiter()}
           >
-            <TbBell /> Call Waiter
+            <TbBell /> {t('dashboard.callWaiter')}
           </button>
           <button
             type="button"
@@ -281,7 +288,7 @@ export default function ClientDashboard() {
             onClick={() => setCartOpen(true)}
           >
             <TbShoppingCart />
-            My Order
+            {t('dashboard.myOrder')}
             <span className={css.orderCount}>{count}</span>
           </button>
         </header>
@@ -289,7 +296,7 @@ export default function ClientDashboard() {
         <div className={css.body}>
           <nav className={css.sidebar}>
             <ul className={css.navList}>
-              {CATEGORIES.map(({ key, label, icon: Icon }) => (
+              {CATEGORIES.map(({ key, tKey, icon: Icon }) => (
                 <li key={key}>
                   <button
                     type="button"
@@ -299,7 +306,7 @@ export default function ClientDashboard() {
                     onClick={() => setCategory(key)}
                   >
                     <Icon className={css.navIcon} />
-                    <span>{label}</span>
+                    <span>{t(`categories.${tKey}`)}</span>
                   </button>
                 </li>
               ))}
@@ -312,13 +319,13 @@ export default function ClientDashboard() {
             <div className={css.sidebarUser}>
               <span className={css.avatar}>{avatarInitial}</span>
               <span className={css.userNote}>
-                <TbSun /> Enjoy your meal!
+                <TbSun /> {t('dashboard.enjoyMeal')}
               </span>
             </div>
           </nav>
 
           <main className={`${css.menu} ss-scroll`}>
-            <h2 className={css.menuTitle}>Our Menu</h2>
+            <h2 className={css.menuTitle}>{t('dashboard.menuTitle')}</h2>
 
             <div className={css.tools}>
               <Input
@@ -326,7 +333,7 @@ export default function ClientDashboard() {
                 size="large"
                 allowClear
                 prefix={<TbSearch className={css.searchIcon} />}
-                placeholder="Search for dishes..."
+                placeholder={t('dashboard.searchPlaceholder')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -340,7 +347,7 @@ export default function ClientDashboard() {
             </div>
 
             <div className={css.tabs}>
-              {CATEGORIES.map(({ key, label }) => (
+              {CATEGORIES.map(({ key, tKey }) => (
                 <button
                   key={key}
                   type="button"
@@ -349,7 +356,7 @@ export default function ClientDashboard() {
                   }`}
                   onClick={() => setCategory(key)}
                 >
-                  {label}
+                  {t(`categories.${tKey}`)}
                 </button>
               ))}
             </div>
@@ -381,16 +388,16 @@ export default function ClientDashboard() {
                         <div className={css.imgFallback} />
                       )}
                       {unavailable && (
-                        <span className={css.unavailBadge}>Առկա չէ</span>
+                        <span className={css.unavailBadge}>{t('dashboard.outOfStock')}</span>
                       )}
                       {!unavailable && badge === 'popular' && (
                         <span className={`${css.badge} ${css.badgePopular}`}>
-                          <TbFlame /> Popular
+                          <TbFlame /> {t('dashboard.badgePopular')}
                         </span>
                       )}
                       {!unavailable && badge === 'chef' && (
                         <span className={`${css.badge} ${css.badgeChef}`}>
-                          <TbStar /> Chef&apos;s Choice
+                          <TbStar /> {t('dashboard.badgeChef')}
                         </span>
                       )}
                     </div>
@@ -410,7 +417,7 @@ export default function ClientDashboard() {
                             className={css.addBtn}
                             disabled
                           >
-                            Առկա չէ
+                            {t('dashboard.outOfStock')}
                           </button>
                         ) : (
                           <button
@@ -418,7 +425,7 @@ export default function ClientDashboard() {
                             className={css.addBtn}
                             onClick={() => void quickAdd(item, badge)}
                           >
-                            <TbPlus /> Add
+                            <TbPlus /> {t('dashboard.add')}
                           </button>
                         )}
                       </div>
@@ -435,7 +442,7 @@ export default function ClientDashboard() {
                   className={css.loadMore}
                   onClick={() => setVisible((v) => v + PAGE_SIZE)}
                 >
-                  <TbChevronDown /> Load More
+                  <TbChevronDown /> {t('dashboard.loadMore')}
                 </button>
               </div>
             )}
@@ -443,7 +450,7 @@ export default function ClientDashboard() {
 
           <aside className={`${css.order} ${cartOpen ? css.orderOpen : ''}`}>
             <div className={css.orderHead}>
-              <h3>Your Order</h3>
+              <h3>{t('order.title')}</h3>
               <button
                 type="button"
                 className={css.orderClose}
@@ -457,7 +464,7 @@ export default function ClientDashboard() {
               {basket.length === 0 ? (
                 <div className={css.orderEmpty}>
                   <TbShoppingCart />
-                  <p>Ձեր զամբյուղը դատարկ է</p>
+                  <p>{t('order.empty')}</p>
                 </div>
               ) : (
                 basket.map((it) => {
@@ -520,7 +527,7 @@ export default function ClientDashboard() {
 
             <div className={css.orderFooter}>
               <div className={css.totalRow}>
-                <span>Total</span>
+                <span>{t('order.total')}</span>
                 <span className={css.totalValue}>{fmt(total)} ֏</span>
               </div>
               <button
@@ -530,11 +537,11 @@ export default function ClientDashboard() {
                 onClick={() => void placeOrder()}
               >
                 <TbLock className={css.placeLock} />
-                Place Order
+                {t('order.placeOrder')}
                 <TbArrowRight className={css.placeArrow} />
               </button>
               <p className={css.kitchenNote}>
-                <TbLock /> Your order is sent to the kitchen
+                <TbLock /> {t('order.kitchenNote')}
               </p>
             </div>
           </aside>

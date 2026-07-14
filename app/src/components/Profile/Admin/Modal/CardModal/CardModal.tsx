@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Modal, Table, Checkbox } from 'antd';
 import css from './CardModal.module.css';
 import Typography from '@mui/joy/Typography';
@@ -33,6 +34,7 @@ export default function CardModal({
   images,
   fetchProfile,
 }: CardModalProps) {
+  const t = useTranslations('menuModal');
   const [quantity, setQuantity] = useState(1);
   const [allTotal, setAllTotal] = useState(item?.price ?? 0);
   const [plainOptions, setPlainOptions] = useState<SauceOption[]>([]);
@@ -76,7 +78,7 @@ export default function CardModal({
 
   const columns = [
     {
-      title: 'Սոուսներ',
+      title: t('card.saucesColumn'),
       dataIndex: 'option',
       key: 'option',
       render: (_: unknown, record: SauceOption) => (
@@ -97,7 +99,7 @@ export default function CardModal({
       ),
     },
     {
-      title: 'Total',
+      title: t('card.totalColumn'),
       dataIndex: 'total',
       key: 'total',
       render: (_: unknown, record: SauceOption) => (record.total ? record.total : 350),
@@ -143,7 +145,10 @@ export default function CardModal({
             <Table columns={columns} dataSource={data} pagination={false} />
             <div className={css.modal_footer}>
               <div style={{ marginTop: 16, fontSize: '20px' }}>
-                Ընդհանուր գումար <b>{String(allTotal)}</b> դրամ
+                {t.rich('card.totalAmount', {
+                  total: String(allTotal),
+                  b: (chunks) => <b>{chunks}</b>,
+                })}
               </div>
               <div className={css.card_buttons}>
                 <IconButton variant="plain" color="neutral" size="sm">
@@ -175,12 +180,12 @@ export default function CardModal({
       />
       <DeleteCardModal
         fetchProfile={fetchProfile}
-        title={`Դուք իրոք ցանկանում եք ջնջել այս ${item?.title} քարտը?`}
+        title={t('card.deleteConfirm', { title: item?.title ?? '' })}
         isVisible={showDeleteConfirmation}
         onCancel={() => setShowDeleteConfirmation(false)}
         setShowDeleteConfirmation={setShowDeleteConfirmation}
-        okText="Ջնջել"
-        cancelText="Չեղարկել"
+        okText={t('card.deleteOk')}
+        cancelText={t('card.deleteCancel')}
         card={item}
         setCardModalOpen={setCardModalOpen}
       />

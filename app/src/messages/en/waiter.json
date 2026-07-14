@@ -1,0 +1,18 @@
+{
+  "title": "Waiter Calls",
+  "subtitle": "Manage customer service requests",
+  "resolveAll": "Resolve all",
+  "resolve": "Resolve",
+  "new": "New",
+  "needsAssistance": "Customer needs assistance",
+  "table": "Table {n}",
+  "empty": {
+    "title": "All quiet",
+    "subtitle": "No active calls right now."
+  },
+  "time": {
+    "justNow": "just now",
+    "minAgo": "{min} min ago",
+    "hourAgo": "{hrs} h ago"
+  }
+}

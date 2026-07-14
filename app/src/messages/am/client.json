@@ -1,0 +1,79 @@
+{
+  "dashboard": {
+    "tableChip": "Սեղան {table}",
+    "callWaiter": "Կանչել մատուցողին",
+    "myOrder": "Իմ պատվերը",
+    "enjoyMeal": "Բարի ախորժակ!",
+    "menuTitle": "Մեր մենյուն",
+    "searchPlaceholder": "Փնտրել ուտեստներ...",
+    "add": "Ավելացնել",
+    "outOfStock": "Առկա չէ",
+    "loadMore": "Ցույց տալ ավելին",
+    "badgePopular": "Հանրաճանաչ",
+    "badgeChef": "Խոհարարի ընտրություն",
+    "waiterCalled": "Շատ լավ, սպասեք մատուցողին:",
+    "waiterFailed": "Չհաջողվեց կապվել սերվերի հետ",
+    "addedToBasket": "Ավելացվել է զամբյուղում",
+    "serverError": "Խնդիր է սերվերի հետ",
+    "deleteFailed": "Չհաջողվեց ջնջել",
+    "orderPlaced": "Ձեր պատվերը ընդունված է:",
+    "orderFailed": "Չհաջողվեց պատվիրել"
+  },
+  "categories": {
+    "allItems": "Բոլորը",
+    "starters": "Նախուտեստներ",
+    "mainCourses": "Հիմնական ուտեստներ",
+    "desserts": "Աղանդեր",
+    "drinks": "Ըմպելիքներ"
+  },
+  "sort": {
+    "popular": "Դասավորել՝ Հանրաճանաչ",
+    "priceAsc": "Գին՝ աճման կարգով",
+    "priceDesc": "Գին՝ նվազման կարգով",
+    "name": "Անուն՝ Ա–Ֆ"
+  },
+  "order": {
+    "title": "Ձեր պատվերը",
+    "empty": "Ձեր զամբյուղը դատարկ է",
+    "total": "Ընդամենը",
+    "placeOrder": "Պատվիրել",
+    "kitchenNote": "Ձեր պատվերն ուղարկվում է խոհանոց"
+  },
+  "closed": {
+    "title": "Սեղանը փակված է",
+    "message": "Շնորհակալություն այցելության համար։"
+  },
+  "card": {
+    "close": "փակել",
+    "badgePopular": "Հանրաճանաչ",
+    "badgeChef": "Խոհարարի ընտրություն",
+    "addExtras": "Ավելացնել հավելումներ",
+    "optional": "Ըստ ցանկության",
+    "totalAmount": "Ընդհանուր գումարը",
+    "addToOrder": "Ավելացնել պատվերին",
+    "update": "Թարմացնել",
+    "added": "Հաջողությամբ ավելացվել է զամբյուղում",
+    "updated": "Թարմացվել է",
+    "serverError": "Խնդիր է սերվերի հետ"
+  },
+  "basket": {
+    "colImage": "Զամբյուղ",
+    "colPrice": "Գին",
+    "colCount": "Քանակ",
+    "currency": "դրամ",
+    "total": "Ընդամենը {total} դրամ",
+    "order": "Պատվիրել",
+    "deleteAll": "Ջնջել բոլորը",
+    "orderPlaced": "Ձեր պատվերը ընդունված է:",
+    "orderFailed": "Չհաջողվեց պատվիրել",
+    "error": "Սխալ՝ {message}"
+  },
+  "table": {
+    "subtitle": "Ընտրեք ձեր սեղանը",
+    "tableLabel": "Սեղան {number}"
+  },
+  "qr": {
+    "opening": "Բացվում է QR...",
+    "error": "Չստացվեց բացել QR խնդրում ենք նորից սկան անել QR-ը:"
+  }
+}

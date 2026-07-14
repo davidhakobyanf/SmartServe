@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Input, Popconfirm, message } from 'antd';
 import {
   TbShoppingBag,
@@ -16,23 +17,27 @@ import clientAPI from '@/api/api';
 import type { OrderRecord } from '@/types/orders';
 import css from './Orders.module.css';
 
-function timeAgo(iso?: string): string {
+function timeAgo(
+  t: ReturnType<typeof useTranslations>,
+  iso?: string,
+): string {
   if (!iso) return '—';
   const then = new Date(iso).getTime();
   if (Number.isNaN(then)) return '—';
   const diff = Math.max(0, Date.now() - then);
   const min = Math.floor(diff / 60000);
-  if (min < 1) return 'just now';
-  if (min < 60) return `${min} min ago`;
+  if (min < 1) return t('time.justNow');
+  if (min < 60) return t('time.minAgo', { min });
   const hrs = Math.floor(min / 60);
-  if (hrs < 24) return `${hrs} h ago`;
-  return `${Math.floor(hrs / 24)} d ago`;
+  if (hrs < 24) return t('time.hourAgo', { hrs });
+  return t('time.dayAgo', { days: Math.floor(hrs / 24) });
 }
 
 const orderId = (o: OrderRecord, i: number) =>
   o._id ? `#${o._id.slice(-5).toUpperCase()}` : `#${1000 + i}`;
 
 export default function Orders() {
+  const t = useTranslations('orders');
   const { orders, refreshOrders, markSeen } = useOrders();
   const [search, setSearch] = useState('');
 
@@ -66,18 +71,18 @@ export default function Orders() {
     try {
       await clientAPI.deleteAllOrders();
       await refreshOrders();
-      message.success('Բոլոր պատվերները ջնջվեցին');
+      message.success(t('clearedSuccess'));
     } catch {
-      message.error('Չհաջողվեց ջնջել');
+      message.error(t('clearedError'));
     }
   };
 
   const tiles = [
-    { label: 'Total Orders', value: stats.total, icon: TbShoppingBag, tone: 'primary' },
-    { label: 'Total Items', value: stats.items, icon: TbToolsKitchen2, tone: 'amber' },
-    { label: 'Tables Served', value: stats.tables, icon: TbTable, tone: 'green' },
+    { label: t('tiles.totalOrders'), value: stats.total, icon: TbShoppingBag, tone: 'primary' },
+    { label: t('tiles.totalItems'), value: stats.items, icon: TbToolsKitchen2, tone: 'amber' },
+    { label: t('tiles.tablesServed'), value: stats.tables, icon: TbTable, tone: 'green' },
     {
-      label: 'Revenue',
+      label: t('tiles.revenue'),
       value: `${stats.revenue.toLocaleString()} ֏`,
       icon: TbCurrencyDram,
       tone: 'violet',
@@ -88,8 +93,8 @@ export default function Orders() {
     <div className={css.page}>
       <header className={css.header}>
         <div>
-          <h1 className={css.title}>Orders</h1>
-          <p className={css.subtitle}>Real-time order management and analytics</p>
+          <h1 className={css.title}>{t('title')}</h1>
+          <p className={css.subtitle}>{t('subtitle')}</p>
         </div>
         <div className={css.headerActions}>
           <button
@@ -97,17 +102,17 @@ export default function Orders() {
             className={css.btnGhost}
             onClick={() => void refreshOrders()}
           >
-            <TbRefresh /> Refresh
+            <TbRefresh /> {t('refresh')}
           </button>
           {orders.length > 0 && (
             <Popconfirm
-              title="Ջնջե՞լ բոլոր պատվերները"
-              okText="Այո"
-              cancelText="Ոչ"
+              title={t('clearConfirm')}
+              okText={t('confirmYes')}
+              cancelText={t('confirmNo')}
               onConfirm={() => void clearAll()}
             >
               <button type="button" className={css.btnDanger}>
-                <TbTrash /> Clear all
+                <TbTrash /> {t('clearAll')}
               </button>
             </Popconfirm>
           )}
@@ -135,7 +140,7 @@ export default function Orders() {
             size="large"
             allowClear
             prefix={<TbSearch className={css.searchIcon} />}
-            placeholder="Search by table or item..."
+            placeholder={t('searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -145,35 +150,35 @@ export default function Orders() {
           <table className={css.table}>
             <thead>
               <tr>
-                <th>Order ID</th>
-                <th>Table</th>
-                <th>Items</th>
-                <th>Time</th>
-                <th>Status</th>
-                <th className={css.right}>Total</th>
+                <th>{t('columns.orderId')}</th>
+                <th>{t('columns.table')}</th>
+                <th>{t('columns.items')}</th>
+                <th>{t('columns.time')}</th>
+                <th>{t('columns.status')}</th>
+                <th className={css.right}>{t('columns.total')}</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={6} className={css.emptyRow}>
-                    Դեռ պատվերներ չկան
+                    {t('empty')}
                   </td>
                 </tr>
               ) : (
                 filtered.map((o, i) => (
                   <tr key={o._id || i}>
                     <td className={css.mono}>{orderId(o, i)}</td>
-                    <td>Table {o.table}</td>
+                    <td>{t('table', { n: o.table })}</td>
                     <td className={css.items}>
                       {o.items.map((it) => it.title).join(', ') || '—'}
                     </td>
-                    <td className={css.muted}>{timeAgo(o.createdAt)}</td>
+                    <td className={css.muted}>{timeAgo(t, o.createdAt)}</td>
                     <td>
-                      <span className={css.badge}>Placed</span>
+                      <span className={css.badge}>{t('statusPlaced')}</span>
                     </td>
                     <td className={`${css.right} ${css.total}`}>
-                      {o.allPrice} դր.
+                      {o.allPrice} {t('dramShort')}
                     </td>
                   </tr>
                 ))

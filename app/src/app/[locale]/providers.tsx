@@ -3,8 +3,19 @@
 import '@ant-design/v5-patch-for-react-19';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { ConfigProvider } from 'antd';
+import type { Locale as AntdLocale } from 'antd/es/locale';
+import enUS from 'antd/locale/en_US';
+import ruRU from 'antd/locale/ru_RU';
+import hyAM from 'antd/locale/hy_AM';
 import { DataProvider } from '@/context/DataContext';
 import { ProfileDataProvider } from '@/context/ProfileDataContext';
+import type { Locale } from '@/i18n/routing';
+
+const antdLocales: Record<Locale, AntdLocale> = {
+  en: enUS,
+  ru: ruRU,
+  am: hyAM,
+};
 
 const theme = {
   token: {
@@ -39,10 +50,16 @@ const theme = {
   },
 };
 
-export default function Providers({ children }: { children: React.ReactNode }) {
+export default function Providers({
+  children,
+  locale,
+}: {
+  children: React.ReactNode;
+  locale: Locale;
+}) {
   return (
     <AntdRegistry>
-      <ConfigProvider theme={theme}>
+      <ConfigProvider theme={theme} locale={antdLocales[locale]}>
         <DataProvider>
           <ProfileDataProvider>{children}</ProfileDataProvider>
         </DataProvider>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import css from '@/components/Profile/Profile.module.css';
 import Sidebar from '@/components/Profile/Sidebar/Sidebar';
 import { OrdersProvider } from '@/context/OrdersContext';

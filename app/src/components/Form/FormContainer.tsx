@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Form as AntdForm } from 'antd';
 import {
   TbChefHat,
@@ -12,15 +13,17 @@ import {
 import css from './FormContainer.module.css';
 import Registration from './Registration/Registration';
 import Login from './Login/Login';
+import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
 
 const FEATURES = [
-  { icon: TbRefresh, text: 'Real-time order updates' },
-  { icon: TbToolsKitchen2, text: 'Digital menu management' },
-  { icon: TbBell, text: 'Waiter call notifications' },
-  { icon: TbTable, text: 'Multi-table management' },
+  { icon: TbRefresh, key: 'realtimeOrders' },
+  { icon: TbToolsKitchen2, key: 'menuManagement' },
+  { icon: TbBell, key: 'waiterNotifications' },
+  { icon: TbTable, key: 'multiTable' },
 ];
 
 export default function FormContainer() {
+  const t = useTranslations('auth');
   const [form] = AntdForm.useForm();
   const [check, setCheck] = useState(false);
 
@@ -37,24 +40,22 @@ export default function FormContainer() {
               <TbChefHat />
             </span>
             <span className={css.brandName}>SmartServe</span>
+            <span className={css.langSwitcher}>
+              <LanguageSwitcher />
+            </span>
           </div>
 
           <div className={css.heroBody}>
-            <h1 className={css.heroTitle}>
-              Smart restaurant management made simple
-            </h1>
-            <p className={css.heroSub}>
-              Manage your menu, orders and customers in real-time. Built for
-              modern restaurants.
-            </p>
+            <h1 className={css.heroTitle}>{t('hero.title')}</h1>
+            <p className={css.heroSub}>{t('hero.subtitle')}</p>
 
             <ul className={css.features}>
-              {FEATURES.map(({ icon: Icon, text }) => (
-                <li key={text} className={css.feature}>
+              {FEATURES.map(({ icon: Icon, key }) => (
+                <li key={key} className={css.feature}>
                   <span className={css.featureIcon}>
                     <Icon />
                   </span>
-                  {text}
+                  {t(`hero.features.${key}`)}
                 </li>
               ))}
             </ul>

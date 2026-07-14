@@ -1,16 +1,18 @@
 'use client';
 
 import css from './ProfileInfo.module.css';
+import { useTranslations } from 'next-intl';
 import { useProfileData } from '@/context/ProfileDataContext';
 import LoadingSpin from '@/hoc/LoadingSpin';
 
 export default function ProfileInfo() {
+  const t = useTranslations('account');
   const { profileDataList, isLoading } = useProfileData();
 
   if (isLoading) {
     return (
       <LoadingSpin>
-        <div>Loading...</div>
+        <div>{t('loading')}</div>
       </LoadingSpin>
     );
   }
@@ -26,7 +28,7 @@ export default function ProfileInfo() {
           </div>
         </div>
       ) : (
-        <p>User not found</p>
+        <p>{t('notFound')}</p>
       )}
     </div>
   );

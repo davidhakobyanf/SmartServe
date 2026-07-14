@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Modal, message } from 'antd';
 import { TbX, TbMinus, TbPlus, TbCheck, TbStar, TbFlame } from 'react-icons/tb';
 import css from './ClientCardModal.module.css';
@@ -33,6 +34,7 @@ export default function ClientCardModal({
   badge = null,
   editItem = null,
 }: ClientCardModalProps) {
+  const t = useTranslations('client');
   const [quantity, setQuantity] = useState(1);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
 
@@ -100,9 +102,9 @@ export default function ClientCardModal({
     }
     await fetchAddCard(modifiedItem);
     if (!addCardLoading) {
-      if (addCardError) message.error('Խնդիր է սերվերի հետ');
-      else if (editItem) message.success('Թարմացվել է');
-      else message.success('Հաջողությամբ ավելացվել է զամբյուղում');
+      if (addCardError) message.error(t('card.serverError'));
+      else if (editItem) message.success(t('card.updated'));
+      else message.success(t('card.added'));
     }
     setCardModalOpen(false);
   };
@@ -125,7 +127,7 @@ export default function ClientCardModal({
             type="button"
             className={css.close}
             onClick={() => setCardModalOpen(false)}
-            aria-label="close"
+            aria-label={t('card.close')}
           >
             <TbX />
           </button>
@@ -144,12 +146,12 @@ export default function ClientCardModal({
 
               {badge === 'popular' && (
                 <span className={`${css.badge} ${css.badgePopular}`}>
-                  <TbFlame /> Popular
+                  <TbFlame /> {t('card.badgePopular')}
                 </span>
               )}
               {badge === 'chef' && (
                 <span className={`${css.badge} ${css.badgeChef}`}>
-                  <TbStar /> Chef&apos;s Choice
+                  <TbStar /> {t('card.badgeChef')}
                 </span>
               )}
 
@@ -182,8 +184,8 @@ export default function ClientCardModal({
           {item.sauces?.length > 0 && (
             <div className={css.extras}>
               <div className={css.extrasHead}>
-                <span className={css.extrasTitle}>Add extras</span>
-                <span className={css.extrasOptional}>Optional</span>
+                <span className={css.extrasTitle}>{t('card.addExtras')}</span>
+                <span className={css.extrasOptional}>{t('card.optional')}</span>
               </div>
               <div className={css.sauceList}>
                 {item.sauces.map((sauce) => {
@@ -219,7 +221,7 @@ export default function ClientCardModal({
                 className={css.basketIcon}
               />
               <div className={css.totalText}>
-                <span className={css.totalLabel}>Total amount</span>
+                <span className={css.totalLabel}>{t('card.totalAmount')}</span>
                 <span className={css.totalValue}>{fmt(total)} ֏</span>
               </div>
             </div>
@@ -243,7 +245,7 @@ export default function ClientCardModal({
                 <circle cx="20" cy="21" r="1" />
                 <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
               </svg>
-              {editItem ? 'Update' : 'Add to Order'}
+              {editItem ? t('card.update') : t('card.addToOrder')}
             </button>
           </div>
         </div>

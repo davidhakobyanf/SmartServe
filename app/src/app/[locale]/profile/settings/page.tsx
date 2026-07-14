@@ -1,14 +1,16 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { TbSettings } from 'react-icons/tb';
 import Placeholder from '@/components/Profile/Placeholder/Placeholder';
 
 export default function SettingsPage() {
+  const t = useTranslations('settings');
   return (
     <Placeholder
       icon={<TbSettings />}
-      title="Settings"
-      subtitle="Configure your restaurant preferences"
+      title={t('pageTitle')}
+      subtitle={t('pageSubtitle')}
     />
   );
 }

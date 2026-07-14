@@ -3,6 +3,7 @@
 import css from './Registration.module.css';
 import { Button, Form, Input, message } from 'antd';
 import { EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
+import { useTranslations } from 'next-intl';
 import type { FormInstance } from 'antd';
 import { API_URL } from '@/lib/apiUrl';
 import type { RegisterFormValues } from '@/types';
@@ -13,8 +14,9 @@ interface RegistrationProps {
 }
 
 export default function Registration({ form, setCheck }: RegistrationProps) {
-  const success = () => message.success('Registration was successful.');
-  const showError = () => message.error('Email is already registered.');
+  const t = useTranslations('auth');
+  const success = () => message.success(t('register.toast.success'));
+  const showError = () => message.error(t('register.toast.error'));
 
   const handleCreate = async (values: RegisterFormValues) => {
     try {
@@ -46,8 +48,8 @@ export default function Registration({ form, setCheck }: RegistrationProps) {
 
   return (
     <div className={css.wrap}>
-      <h2 className={css.title}>Create account</h2>
-      <p className={css.subtitle}>Start managing your restaurant</p>
+      <h2 className={css.title}>{t('register.title')}</h2>
+      <p className={css.subtitle}>{t('register.subtitle')}</p>
 
       <Form
         form={form}
@@ -59,46 +61,45 @@ export default function Registration({ form, setCheck }: RegistrationProps) {
         <div className={css.grid}>
           <Form.Item
             name="name"
-            label="Name"
-            rules={[{ required: true, message: 'Please enter your name' }]}
+            label={t('fields.name.label')}
+            rules={[{ required: true, message: t('fields.name.required') }]}
           >
-            <Input size="large" placeholder="Name" />
+            <Input size="large" placeholder={t('fields.name.placeholder')} />
           </Form.Item>
           <Form.Item
             name="surname"
-            label="Surname"
-            rules={[{ required: true, message: 'Please enter your surname' }]}
+            label={t('fields.surname.label')}
+            rules={[{ required: true, message: t('fields.surname.required') }]}
           >
-            <Input size="large" placeholder="Surname" />
+            <Input size="large" placeholder={t('fields.surname.placeholder')} />
           </Form.Item>
         </div>
         <Form.Item
           name="email"
-          label="Email"
+          label={t('fields.email.label')}
           rules={[
-            { required: true, message: 'Please enter your email' },
-            { type: 'email', message: 'Please enter a valid email' },
+            { required: true, message: t('fields.email.required') },
+            { type: 'email', message: t('fields.email.invalid') },
           ]}
         >
-          <Input size="large" placeholder="Enter your email" />
+          <Input size="large" placeholder={t('fields.email.placeholder')} />
         </Form.Item>
         <Form.Item
           name="password"
-          label="Password"
+          label={t('fields.password.label')}
           rules={[
-            { required: true, message: 'Please enter your password' },
-            { min: 6, message: 'Password must be at least 6 characters long' },
+            { required: true, message: t('fields.password.required') },
+            { min: 6, message: t('fields.password.minLength') },
             {
               pattern:
                 /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]+$/,
-              message:
-                'Password must contain uppercase, lowercase, number, and special character',
+              message: t('fields.password.pattern'),
             },
           ]}
         >
           <Input.Password
             size="large"
-            placeholder="Enter your password"
+            placeholder={t('fields.password.placeholder')}
             iconRender={(visible) =>
               visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
             }
@@ -106,37 +107,39 @@ export default function Registration({ form, setCheck }: RegistrationProps) {
         </Form.Item>
         <Form.Item
           name="confirmPassword"
-          label="Confirm password"
+          label={t('fields.confirmPassword.label')}
           dependencies={['password']}
           rules={[
-            { required: true, message: 'Please re-enter your password' },
+            { required: true, message: t('fields.confirmPassword.required') },
             ({ getFieldValue }) => ({
               validator(_, value) {
                 if (!value || getFieldValue('password') === value) {
                   return Promise.resolve();
                 }
-                return Promise.reject(new Error('The two passwords do not match'));
+                return Promise.reject(
+                  new Error(t('fields.confirmPassword.mismatch')),
+                );
               },
             }),
           ]}
         >
           <Input.Password
             size="large"
-            placeholder="Re-enter your password"
+            placeholder={t('fields.confirmPassword.placeholder')}
             iconRender={(visible) =>
               visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
             }
           />
         </Form.Item>
         <Button type="primary" htmlType="submit" size="large" block>
-          Create account
+          {t('register.submit')}
         </Button>
       </Form>
 
       <p className={css.switch}>
-        Already have an account?{' '}
+        {t('register.haveAccount')}{' '}
         <button type="button" className={css.link} onClick={switchToLogin}>
-          Login
+          {t('register.loginLink')}
         </button>
       </p>
     </div>

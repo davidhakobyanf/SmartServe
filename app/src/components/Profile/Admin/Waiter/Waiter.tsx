@@ -1,33 +1,38 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { TbBell, TbBellRinging, TbCheck, TbChecks } from 'react-icons/tb';
 import { useWaiterCalls } from '@/context/WaiterCallsContext';
 import type { WaiterCall } from '@/types/waiter';
 import css from './Waiter.module.css';
 
-function timeAgo(iso?: string): string {
-  if (!iso) return 'just now';
+function timeAgo(
+  t: ReturnType<typeof useTranslations>,
+  iso?: string,
+): string {
+  if (!iso) return t('time.justNow');
   const then = new Date(iso).getTime();
-  if (Number.isNaN(then)) return 'just now';
+  if (Number.isNaN(then)) return t('time.justNow');
   const min = Math.floor(Math.max(0, Date.now() - then) / 60000);
-  if (min < 1) return 'just now';
-  if (min < 60) return `${min} min ago`;
-  return `${Math.floor(min / 60)} h ago`;
+  if (min < 1) return t('time.justNow');
+  if (min < 60) return t('time.minAgo', { min });
+  return t('time.hourAgo', { hrs: Math.floor(min / 60) });
 }
 
 export default function Waiter() {
+  const t = useTranslations('waiter');
   const { calls, dismissCall, clearAll } = useWaiterCalls();
 
   return (
     <div className={css.page}>
       <header className={css.header}>
         <div>
-          <h1 className={css.title}>Waiter Calls</h1>
-          <p className={css.subtitle}>Manage customer service requests</p>
+          <h1 className={css.title}>{t('title')}</h1>
+          <p className={css.subtitle}>{t('subtitle')}</p>
         </div>
         {calls.length > 0 && (
           <button type="button" className={css.clearBtn} onClick={clearAll}>
-            <TbChecks /> Resolve all
+            <TbChecks /> {t('resolveAll')}
           </button>
         )}
       </header>
@@ -37,8 +42,8 @@ export default function Waiter() {
           <span className={css.emptyIcon}>
             <TbBell />
           </span>
-          <h2>Ամեն ինչ հանգիստ է</h2>
-          <p>Ակտիվ կանչեր չկան այս պահին։</p>
+          <h2>{t('empty.title')}</h2>
+          <p>{t('empty.subtitle')}</p>
         </div>
       ) : (
         <div className={css.list}>
@@ -49,19 +54,19 @@ export default function Waiter() {
               </span>
               <div className={css.callInfo}>
                 <div className={css.callTop}>
-                  <span className={css.callTable}>Table {call.table}</span>
-                  <span className={css.newTag}>New</span>
+                  <span className={css.callTable}>{t('table', { n: call.table })}</span>
+                  <span className={css.newTag}>{t('new')}</span>
                 </div>
-                <span className={css.callText}>Customer needs assistance</span>
+                <span className={css.callText}>{t('needsAssistance')}</span>
               </div>
               <div className={css.callRight}>
-                <span className={css.callTime}>{timeAgo(call.calledAt)}</span>
+                <span className={css.callTime}>{timeAgo(t, call.calledAt)}</span>
                 <button
                   type="button"
                   className={css.resolveBtn}
                   onClick={() => dismissCall(call.id)}
                 >
-                  <TbCheck /> Resolve
+                  <TbCheck /> {t('resolve')}
                 </button>
               </div>
             </div>

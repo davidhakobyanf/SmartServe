@@ -1,0 +1,36 @@
+{
+  "dram": "դրամ",
+  "fields": {
+    "title": "Անվանում",
+    "titlePlaceholder": "Անվանում",
+    "sauces": "Սոուսներ",
+    "tagsPlaceholder": "Թեգերի ռեժիմ",
+    "description": "Նկարագրություն",
+    "image": "Նկար",
+    "selectImage": "Ընտրել նկար",
+    "price": "Գին",
+    "pricePlaceholder": "Գին"
+  },
+  "validation": {
+    "title": "Մուտքագրեք անվանումը!",
+    "description": "Մուտքագրեք նկարագրությունը!",
+    "price": "Մուտքագրեք գինը!",
+    "image": "Ընտրեք նկար"
+  },
+  "add": {
+    "title": "Ստեղծել քարտ",
+    "submit": "Ստեղծել"
+  },
+  "edit": {
+    "title": "Խմբագրել քարտը",
+    "submit": "Պահպանել"
+  },
+  "card": {
+    "saucesColumn": "Սոուսներ",
+    "totalColumn": "Ընդամենը",
+    "totalAmount": "Ընդհանուր գումար <b>{total}</b> դրամ",
+    "deleteConfirm": "Դուք իրոք ցանկանում եք ջնջել այս {title} քարտը?",
+    "deleteOk": "Ջնջել",
+    "deleteCancel": "Չեղարկել"
+  }
+}

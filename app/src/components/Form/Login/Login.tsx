@@ -3,7 +3,8 @@
 import css from './Login.module.css';
 import { Button, Form, Input, Checkbox, message } from 'antd';
 import { EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
-import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/navigation';
 import type { FormInstance } from 'antd';
 import { API_URL } from '@/lib/apiUrl';
 import type { LoginFormValues } from '@/types';
@@ -16,6 +17,7 @@ interface LoginProps {
 }
 
 export default function Login({ form, setCheck }: LoginProps) {
+  const t = useTranslations('auth');
   const router = useRouter();
 
   const handleLogin = async (values: LoginFormValues) => {
@@ -29,15 +31,15 @@ export default function Login({ form, setCheck }: LoginProps) {
       const data = await response.json();
       if (response.ok) {
         localStorage.setItem('isLoggedIn', 'true');
-        message.success('Login was successful');
+        message.success(t('login.toast.success'));
         router.push('/profile/menu');
       } else {
         console.log('Login failed:', data.error);
-        message.error('Login attempt was unsuccessful.');
+        message.error(t('login.toast.error'));
       }
     } catch (err) {
       console.error('Error:', err);
-      message.error('Login attempt was unsuccessful.');
+      message.error(t('login.toast.error'));
     }
   };
 
@@ -48,8 +50,8 @@ export default function Login({ form, setCheck }: LoginProps) {
 
   return (
     <div className={css.wrap}>
-      <h2 className={css.title}>Welcome back!</h2>
-      <p className={css.subtitle}>Sign in to your account</p>
+      <h2 className={css.title}>{t('login.title')}</h2>
+      <p className={css.subtitle}>{t('login.subtitle')}</p>
 
       <Form
         form={form}
@@ -60,22 +62,22 @@ export default function Login({ form, setCheck }: LoginProps) {
       >
         <Form.Item
           name="email"
-          label="Email"
+          label={t('fields.email.label')}
           rules={[
-            { required: true, message: 'Please enter your email' },
-            { type: 'email', message: 'Please enter a valid email' },
+            { required: true, message: t('fields.email.required') },
+            { type: 'email', message: t('fields.email.invalid') },
           ]}
         >
-          <Input size="large" placeholder="Enter your email" />
+          <Input size="large" placeholder={t('fields.email.placeholder')} />
         </Form.Item>
         <Form.Item
           name="password"
-          label="Password"
-          rules={[{ required: true, message: 'Please enter your password' }]}
+          label={t('fields.password.label')}
+          rules={[{ required: true, message: t('fields.password.required') }]}
         >
           <Input.Password
             size="large"
-            placeholder="Enter your password"
+            placeholder={t('fields.password.placeholder')}
             iconRender={(visible) =>
               visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
             }
@@ -84,22 +86,22 @@ export default function Login({ form, setCheck }: LoginProps) {
 
         <div className={css.row}>
           <Form.Item name="remember" valuePropName="checked" noStyle>
-            <Checkbox>Remember me</Checkbox>
+            <Checkbox>{t('login.rememberMe')}</Checkbox>
           </Form.Item>
           <button type="button" className={css.link}>
-            Forgot password?
+            {t('login.forgotPassword')}
           </button>
         </div>
 
         <Button type="primary" htmlType="submit" size="large" block>
-          Sign In
+          {t('login.submit')}
         </Button>
       </Form>
 
       <p className={css.switch}>
-        Don&apos;t have an account?{' '}
+        {t('login.noAccount')}{' '}
         <button type="button" className={css.link} onClick={switchToRegistration}>
-          Register
+          {t('login.registerLink')}
         </button>
       </p>
     </div>

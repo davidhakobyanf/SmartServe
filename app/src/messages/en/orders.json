@@ -1,0 +1,48 @@
+{
+  "title": "Orders",
+  "subtitle": "Real-time order management and analytics",
+  "refresh": "Refresh",
+  "clearAll": "Clear all",
+  "clearConfirm": "Delete all orders?",
+  "confirmYes": "Yes",
+  "confirmNo": "No",
+  "clearedSuccess": "All orders were deleted",
+  "clearedError": "Failed to delete",
+  "searchPlaceholder": "Search by table or item...",
+  "empty": "No orders yet",
+  "table": "Table {n}",
+  "statusPlaced": "Placed",
+  "dram": "dram",
+  "dramShort": "AMD",
+  "time": {
+    "justNow": "just now",
+    "minAgo": "{min} min ago",
+    "hourAgo": "{hrs} h ago",
+    "dayAgo": "{days} d ago"
+  },
+  "tiles": {
+    "totalOrders": "Total Orders",
+    "totalItems": "Total Items",
+    "tablesServed": "Tables Served",
+    "revenue": "Revenue"
+  },
+  "columns": {
+    "orderId": "Order ID",
+    "table": "Table",
+    "items": "Items",
+    "time": "Time",
+    "status": "Status",
+    "total": "Total"
+  },
+  "modal": {
+    "basketColumn": "Basket",
+    "priceColumn": "Price",
+    "countColumn": "Quantity",
+    "pieces": "{count, plural, one {# pc} other {# pcs}}",
+    "orderTotal": "Total {price} dram",
+    "noOrders": "No orders",
+    "ordersTotal": "{count, plural, one {# order in total} other {# orders in total}}",
+    "deleteAll": "Delete all",
+    "error": "Error: {message}"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "dram": "dram",
+  "fields": {
+    "title": "Title",
+    "titlePlaceholder": "Title",
+    "sauces": "Sauces",
+    "tagsPlaceholder": "Tags Mode",
+    "description": "Description",
+    "image": "Image",
+    "selectImage": "Select Image",
+    "price": "Price",
+    "pricePlaceholder": "Price"
+  },
+  "validation": {
+    "title": "Please input title!",
+    "description": "Please input Description!",
+    "price": "Please input price!",
+    "image": "Select an image"
+  },
+  "add": {
+    "title": "Create Menu Item",
+    "submit": "Create"
+  },
+  "edit": {
+    "title": "Edit Menu Item",
+    "submit": "Save"
+  },
+  "card": {
+    "saucesColumn": "Sauces",
+    "totalColumn": "Total",
+    "totalAmount": "Total amount <b>{total}</b> dram",
+    "deleteConfirm": "Do you really want to delete the {title} card?",
+    "deleteOk": "Delete",
+    "deleteCancel": "Cancel"
+  }
+}

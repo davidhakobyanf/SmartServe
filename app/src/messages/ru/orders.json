@@ -1,0 +1,48 @@
+{
+  "title": "Заказы",
+  "subtitle": "Управление заказами и аналитика в реальном времени",
+  "refresh": "Обновить",
+  "clearAll": "Очистить все",
+  "clearConfirm": "Удалить все заказы?",
+  "confirmYes": "Да",
+  "confirmNo": "Нет",
+  "clearedSuccess": "Все заказы удалены",
+  "clearedError": "Не удалось удалить",
+  "searchPlaceholder": "Поиск по столу или блюду...",
+  "empty": "Заказов пока нет",
+  "table": "Стол {n}",
+  "statusPlaced": "Оформлен",
+  "dram": "драм",
+  "dramShort": "др.",
+  "time": {
+    "justNow": "только что",
+    "minAgo": "{min} мин назад",
+    "hourAgo": "{hrs} ч назад",
+    "dayAgo": "{days} дн назад"
+  },
+  "tiles": {
+    "totalOrders": "Всего заказов",
+    "totalItems": "Всего позиций",
+    "tablesServed": "Обслужено столов",
+    "revenue": "Выручка"
+  },
+  "columns": {
+    "orderId": "Номер заказа",
+    "table": "Стол",
+    "items": "Позиции",
+    "time": "Время",
+    "status": "Статус",
+    "total": "Итого"
+  },
+  "modal": {
+    "basketColumn": "Корзина",
+    "priceColumn": "Цена",
+    "countColumn": "Количество",
+    "pieces": "{count, plural, one {# шт} few {# шт} many {# шт} other {# шт}}",
+    "orderTotal": "Итого {price} драм",
+    "noOrders": "Нет заказов",
+    "ordersTotal": "{count, plural, one {# заказ всего} few {# заказа всего} many {# заказов всего} other {# заказов всего}}",
+    "deleteAll": "Удалить все",
+    "error": "Ошибка: {message}"
+  }
+}

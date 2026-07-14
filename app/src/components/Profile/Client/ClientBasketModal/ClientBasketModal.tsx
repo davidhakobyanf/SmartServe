@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Modal, Spin, Table, Image, message } from 'antd';
 import { useFetching } from '@/hoc/fetchingHook';
 import clientAPI from '@/api/api';
@@ -25,6 +26,7 @@ export default function ClientBasketModal({
   clientId,
   images,
 }: ClientBasketModalProps) {
+  const t = useTranslations('client');
   const [basketData, setBasketData] = useState<MenuCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [inputWidth, setInputWidth] = useState('100px');
@@ -66,12 +68,12 @@ export default function ClientBasketModal({
   }) => {
     try {
       await clientAPI.createOrder(card);
-      message.success('Ձեր պատվերը ընդունված է:');
+      message.success(t('basket.orderPlaced'));
       await clientAPI.clearMine();
       setBasketData([]);
     } catch (error) {
       console.error('Error creating order:', error);
-      message.error('Չհաջողվեց պատվիրել');
+      message.error(t('basket.orderFailed'));
     }
   });
 
@@ -131,7 +133,7 @@ export default function ClientBasketModal({
 
   const columns = [
     {
-      title: 'Զամբյուղ',
+      title: t('basket.colImage'),
       key: 'image',
       render: (_: unknown, record: MenuCard) => (
         <div className={css.imageTitleContainer}>
@@ -145,19 +147,19 @@ export default function ClientBasketModal({
       ),
     },
     {
-      title: 'Գին',
+      title: t('basket.colPrice'),
       dataIndex: 'price',
       key: 'price',
       render: (text: number, record: MenuCard) => (
         <span>
           {text * (record.count ?? 1) +
             350 * (record.sauces.length === 0 ? 0 : record.sauces.length)}{' '}
-          դրամ
+          {t('basket.currency')}
         </span>
       ),
     },
     {
-      title: 'Քանակ',
+      title: t('basket.colCount'),
       key: 'count',
       render: (_: unknown, record: MenuCard) => (
         <div className={css.right_basket}>
@@ -196,15 +198,15 @@ export default function ClientBasketModal({
             pagination={false}
           />
           <div className={css.all_price}>
-            <b>Ընհամենը {totalPrice} դրամ</b>
-            <IconButton onClick={handleOrder}>Պատվիրել</IconButton>
+            <b>{t('basket.total', { total: totalPrice })}</b>
+            <IconButton onClick={handleOrder}>{t('basket.order')}</IconButton>
             <IconButton onClick={() => void deleteAllBasket(clientId)}>
-              Ջնջել բոլորը
+              {t('basket.deleteAll')}
             </IconButton>
           </div>
         </>
       )}
-      {basketError != null && <p>Error: {errorMessage}</p>}
+      {basketError != null && <p>{t('basket.error', { message: errorMessage })}</p>}
     </Modal>
   );
 }

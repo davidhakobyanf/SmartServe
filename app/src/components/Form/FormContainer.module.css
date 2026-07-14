@@ -53,6 +53,14 @@
   font-weight: 700;
   letter-spacing: -0.02em;
 }
+.langSwitcher {
+  margin-left: auto;
+}
+.langSwitcher :global(.ant-select-selection-item),
+.langSwitcher :global(.ant-select-arrow),
+.langSwitcher :global(.anticon) {
+  color: #fff;
+}
 
 .heroBody {
   position: relative;

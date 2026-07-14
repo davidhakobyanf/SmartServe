@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Modal, Spin, Table, Image, Collapse, Checkbox } from 'antd';
 import type { CollapseProps } from 'antd';
 import { useFetching } from '@/hoc/fetchingHook';
@@ -25,6 +26,7 @@ export default function AdminOrderModal({
   setOrderOpen,
   images,
 }: AdminOrderModalProps) {
+  const t = useTranslations('orders');
   const [orderData, setOrderData] = useState<OrderRecord[]>([]);
   const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
@@ -84,7 +86,7 @@ export default function AdminOrderModal({
 
   const columns = [
     {
-      title: 'Զամբյուղ',
+      title: t('modal.basketColumn'),
       dataIndex: 'image',
       key: 'image',
       render: (_: unknown, record: MenuCard) => (
@@ -101,22 +103,22 @@ export default function AdminOrderModal({
       ),
     },
     {
-      title: 'Գին',
+      title: t('modal.priceColumn'),
       dataIndex: 'price',
       key: 'price',
       render: (_: unknown, record: MenuCard) => (
         <span className={selectedRows[record.id] ? css.table_text : ''}>
-          {record.price} դրամ
+          {record.price} {t('dram')}
         </span>
       ),
     },
     {
-      title: 'Քանակ',
+      title: t('modal.countColumn'),
       dataIndex: 'count',
       key: 'count',
       render: (_: unknown, record: MenuCard) => (
         <div className={`${css.right_basket} ${selectedRows[record.id] ? css.table_text : ''}`}>
-          <b>{record.count} հատ</b>
+          <b>{t('modal.pieces', { count: record.count ?? 0 })}</b>
           <Checkbox
             checked={selectedRows[record.id]}
             onChange={() => handleCheckboxChange(record)}
@@ -135,7 +137,7 @@ export default function AdminOrderModal({
 
     return {
       key: orderKey,
-      label: `Սեղան ${order?.table}`,
+      label: t('table', { n: order?.table ?? '' }),
       children: (
         <div>
           <Table
@@ -147,10 +149,14 @@ export default function AdminOrderModal({
           />
           <div className={css.collapse}>
             <b>
-              Ընդհամենը{' '}
-              {order.allPrice ||
-                items.reduce((sum, item) => sum + (Number(item.price) || 0), 0)}{' '}
-              դրամ
+              {t('modal.orderTotal', {
+                price:
+                  order.allPrice ||
+                  items.reduce(
+                    (sum, item) => sum + (Number(item.price) || 0),
+                    0,
+                  ),
+              })}
             </b>
             <IconButton
               type="button"
@@ -176,19 +182,19 @@ export default function AdminOrderModal({
       className={css.modal_antd}
     >
       {loading && <Spin size="large" />}
-      {!loading && orderData.length === 0 && <div>Պատվեր չկա</div>}
+      {!loading && orderData.length === 0 && <div>{t('modal.noOrders')}</div>}
       {!loading && orderData.length > 0 && (
         <div className={css.modal}>
           <Collapse accordion items={collapseItems} />
           <div className={css.all_price}>
-            <b>Ընդամենը {orderData.length} պատվեր</b>
+            <b>{t('modal.ordersTotal', { count: orderData.length })}</b>
             <IconButton type="button" onClick={() => void deleteAllOrders()}>
-              Ջնջել բոլորը
+              {t('modal.deleteAll')}
             </IconButton>
           </div>
         </div>
       )}
-      {orderError != null && <p>Error: {errorMessage}</p>}
+      {orderError != null && <p>{t('modal.error', { message: errorMessage })}</p>}
     </Modal>
   );
 }

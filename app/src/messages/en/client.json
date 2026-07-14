@@ -1,0 +1,79 @@
+{
+  "dashboard": {
+    "tableChip": "Table {table}",
+    "callWaiter": "Call Waiter",
+    "myOrder": "My Order",
+    "enjoyMeal": "Enjoy your meal!",
+    "menuTitle": "Our Menu",
+    "searchPlaceholder": "Search for dishes...",
+    "add": "Add",
+    "outOfStock": "Out of stock",
+    "loadMore": "Load More",
+    "badgePopular": "Popular",
+    "badgeChef": "Chef's Choice",
+    "waiterCalled": "Great, please wait for the waiter.",
+    "waiterFailed": "Couldn't reach the server",
+    "addedToBasket": "Added to your basket",
+    "serverError": "There was a problem with the server",
+    "deleteFailed": "Couldn't remove the item",
+    "orderPlaced": "Your order has been placed.",
+    "orderFailed": "Couldn't place the order"
+  },
+  "categories": {
+    "allItems": "All Items",
+    "starters": "Starters",
+    "mainCourses": "Main Courses",
+    "desserts": "Desserts",
+    "drinks": "Drinks"
+  },
+  "sort": {
+    "popular": "Sort by: Popular",
+    "priceAsc": "Price: Low to High",
+    "priceDesc": "Price: High to Low",
+    "name": "Name: A–Z"
+  },
+  "order": {
+    "title": "Your Order",
+    "empty": "Your basket is empty",
+    "total": "Total",
+    "placeOrder": "Place Order",
+    "kitchenNote": "Your order is sent to the kitchen"
+  },
+  "closed": {
+    "title": "The table is closed",
+    "message": "Thank you for your visit."
+  },
+  "card": {
+    "close": "close",
+    "badgePopular": "Popular",
+    "badgeChef": "Chef's Choice",
+    "addExtras": "Add extras",
+    "optional": "Optional",
+    "totalAmount": "Total amount",
+    "addToOrder": "Add to Order",
+    "update": "Update",
+    "added": "Successfully added to your basket",
+    "updated": "Updated",
+    "serverError": "There was a problem with the server"
+  },
+  "basket": {
+    "colImage": "Basket",
+    "colPrice": "Price",
+    "colCount": "Quantity",
+    "currency": "AMD",
+    "total": "Total {total} AMD",
+    "order": "Order",
+    "deleteAll": "Delete all",
+    "orderPlaced": "Your order has been placed.",
+    "orderFailed": "Couldn't place the order",
+    "error": "Error: {message}"
+  },
+  "table": {
+    "subtitle": "Choose your table",
+    "tableLabel": "Table {number}"
+  },
+  "qr": {
+    "opening": "Opening QR...",
+    "error": "Couldn't open the QR, please scan the QR again."
+  }
+}

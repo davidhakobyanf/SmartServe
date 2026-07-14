@@ -1,0 +1,48 @@
+{
+  "title": "Պատվերներ",
+  "subtitle": "Պատվերների կառավարում և վերլուծություն իրական ժամանակում",
+  "refresh": "Թարմացնել",
+  "clearAll": "Ջնջել բոլորը",
+  "clearConfirm": "Ջնջե՞լ բոլոր պատվերները",
+  "confirmYes": "Այո",
+  "confirmNo": "Ոչ",
+  "clearedSuccess": "Բոլոր պատվերները ջնջվեցին",
+  "clearedError": "Չհաջողվեց ջնջել",
+  "searchPlaceholder": "Որոնել ըստ սեղանի կամ ապրանքի...",
+  "empty": "Դեռ պատվերներ չկան",
+  "table": "Սեղան {n}",
+  "statusPlaced": "Ընդունված",
+  "dram": "դրամ",
+  "dramShort": "դր.",
+  "time": {
+    "justNow": "հենց հիմա",
+    "minAgo": "{min} րոպե առաջ",
+    "hourAgo": "{hrs} ժ առաջ",
+    "dayAgo": "{days} օր առաջ"
+  },
+  "tiles": {
+    "totalOrders": "Ընդամենը պատվերներ",
+    "totalItems": "Ընդամենը ապրանքներ",
+    "tablesServed": "Սպասարկված սեղաններ",
+    "revenue": "Հասույթ"
+  },
+  "columns": {
+    "orderId": "Պատվերի համար",
+    "table": "Սեղան",
+    "items": "Ապրանքներ",
+    "time": "Ժամանակ",
+    "status": "Կարգավիճակ",
+    "total": "Ընդամենը"
+  },
+  "modal": {
+    "basketColumn": "Զամբյուղ",
+    "priceColumn": "Գին",
+    "countColumn": "Քանակ",
+    "pieces": "{count, plural, one {# հատ} other {# հատ}}",
+    "orderTotal": "Ընդհամենը {price} դրամ",
+    "noOrders": "Պատվեր չկա",
+    "ordersTotal": "{count, plural, one {Ընդամենը # պատվեր} other {Ընդամենը # պատվեր}}",
+    "deleteAll": "Ջնջել բոլորը",
+    "error": "Սխալ: {message}"
+  }
+}

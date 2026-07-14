@@ -11,6 +11,12 @@
   top: 0;
 }
 
+.langSwitch {
+  margin-top: auto;
+  padding: 4px 0 8px;
+  border-top: 1px solid var(--border);
+}
+
 .brand {
   display: flex;
   align-items: center;

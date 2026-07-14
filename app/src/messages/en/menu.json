@@ -1,0 +1,27 @@
+{
+  "title": "Menu Management",
+  "subtitle": "Manage your restaurant menu and menu items",
+  "categoriesButton": "Categories",
+  "addNewItem": "Add New Item",
+  "categories": {
+    "all": "All Items",
+    "starters": "Starters",
+    "mainCourses": "Main Courses",
+    "desserts": "Desserts",
+    "drinks": "Drinks"
+  },
+  "sort": {
+    "newest": "Sort by: Newest",
+    "priceAsc": "Price: Low to High",
+    "priceDesc": "Price: High to Low",
+    "name": "Name: A–Z"
+  },
+  "searchPlaceholder": "Search menu items...",
+  "empty": "No menu items",
+  "edit": "Edit",
+  "markUnavailable": "Mark unavailable",
+  "markAvailable": "Mark available",
+  "price": "{price} AMD",
+  "available": "Available",
+  "unavailable": "Unavailable"
+}

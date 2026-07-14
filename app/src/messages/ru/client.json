@@ -1,0 +1,79 @@
+{
+  "dashboard": {
+    "tableChip": "Стол {table}",
+    "callWaiter": "Позвать официанта",
+    "myOrder": "Мой заказ",
+    "enjoyMeal": "Приятного аппетита!",
+    "menuTitle": "Наше меню",
+    "searchPlaceholder": "Поиск блюд...",
+    "add": "Добавить",
+    "outOfStock": "Нет в наличии",
+    "loadMore": "Показать ещё",
+    "badgePopular": "Популярное",
+    "badgeChef": "Выбор шефа",
+    "waiterCalled": "Хорошо, ожидайте официанта.",
+    "waiterFailed": "Не удалось связаться с сервером",
+    "addedToBasket": "Добавлено в корзину",
+    "serverError": "Произошла ошибка сервера",
+    "deleteFailed": "Не удалось удалить позицию",
+    "orderPlaced": "Ваш заказ принят.",
+    "orderFailed": "Не удалось оформить заказ"
+  },
+  "categories": {
+    "allItems": "Все блюда",
+    "starters": "Закуски",
+    "mainCourses": "Основные блюда",
+    "desserts": "Десерты",
+    "drinks": "Напитки"
+  },
+  "sort": {
+    "popular": "Сортировка: Популярное",
+    "priceAsc": "Цена: по возрастанию",
+    "priceDesc": "Цена: по убыванию",
+    "name": "Название: А–Я"
+  },
+  "order": {
+    "title": "Ваш заказ",
+    "empty": "Ваша корзина пуста",
+    "total": "Итого",
+    "placeOrder": "Оформить заказ",
+    "kitchenNote": "Ваш заказ отправлен на кухню"
+  },
+  "closed": {
+    "title": "Стол закрыт",
+    "message": "Спасибо за визит."
+  },
+  "card": {
+    "close": "закрыть",
+    "badgePopular": "Популярное",
+    "badgeChef": "Выбор шефа",
+    "addExtras": "Добавить дополнения",
+    "optional": "Необязательно",
+    "totalAmount": "Итоговая сумма",
+    "addToOrder": "Добавить в заказ",
+    "update": "Обновить",
+    "added": "Успешно добавлено в корзину",
+    "updated": "Обновлено",
+    "serverError": "Произошла ошибка сервера"
+  },
+  "basket": {
+    "colImage": "Корзина",
+    "colPrice": "Цена",
+    "colCount": "Количество",
+    "currency": "драм",
+    "total": "Итого {total} драм",
+    "order": "Заказать",
+    "deleteAll": "Удалить всё",
+    "orderPlaced": "Ваш заказ принят.",
+    "orderFailed": "Не удалось оформить заказ",
+    "error": "Ошибка: {message}"
+  },
+  "table": {
+    "subtitle": "Выберите ваш стол",
+    "tableLabel": "Стол {number}"
+  },
+  "qr": {
+    "opening": "Открываем QR...",
+    "error": "Не удалось открыть QR, пожалуйста, отсканируйте QR ещё раз."
+  }
+}

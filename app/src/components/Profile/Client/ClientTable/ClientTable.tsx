@@ -1,10 +1,12 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/navigation';
 import { TbToolsKitchen2, TbArrowRight } from 'react-icons/tb';
 import css from './ClientTable.module.css';
 
 export default function ClientTable() {
+  const t = useTranslations('client');
   const router = useRouter();
 
   const handleNavigateToClient = (clientId: number) => {
@@ -19,7 +21,7 @@ export default function ClientTable() {
         </span>
         <div>
           <h1 className={css.title}>SmartServe</h1>
-          <p className={css.subtitle}>Ընտրեք ձեր սեղանը</p>
+          <p className={css.subtitle}>{t('table.subtitle')}</p>
         </div>
       </div>
 
@@ -33,7 +35,7 @@ export default function ClientTable() {
           >
             <span className={css.tileNum}>{clientId}</span>
             <span className={css.tileLabel}>
-              Table {clientId} <TbArrowRight />
+              {t('table.tableLabel', { number: clientId })} <TbArrowRight />
             </span>
           </button>
         ))}
