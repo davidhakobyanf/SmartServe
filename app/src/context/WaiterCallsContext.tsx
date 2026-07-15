@@ -43,13 +43,16 @@ export function WaiterCallsProvider({ children }: { children: ReactNode }) {
                 return [payload, ...withoutDuplicate];
             });
 
+            // Toast is transient: it auto-closes after 2s with a slide-right
+            // fade-out. The dashboard entry (in `calls`) stays until the admin
+            // resolves it manually, so intentionally no `onClose`/dismiss here.
             notification.info({
                 message:'Մատուցողի կանչ',
                 description: `Սեղան ${payload.table} - խնդրում են մատուցող`,
                 placement:'topRight',
-                duration: 0,
+                duration: 2,
                 key: payload.id,
-                onClose: () => dismissCall(payload.id),
+                className: 'waiter-toast',
             })
         });
 
@@ -57,7 +60,7 @@ export function WaiterCallsProvider({ children }: { children: ReactNode }) {
             socket.removeAllListeners();
             socket.disconnect();
         };
-    }, [dismissCall]);
+    }, []);
 
     return (
         <WaiterCallsContext.Provider value={{ calls, dismissCall, clearAll }}>

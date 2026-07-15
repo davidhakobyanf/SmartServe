@@ -90,6 +90,7 @@ export default function EditCardModal({
       }}
       width={350}
       footer={null}
+      forceRender
     >
       <Form form={form} onFinish={onFinish} layout="vertical">
         <Form.Item name="title" label={t('fields.title')} rules={[{ required: true }]}>

@@ -60,6 +60,7 @@ export default function AddModal({
       onCancel={() => setModalOpen(false)}
       width={350}
       footer={null}
+      forceRender
     >
       <Form form={form} onFinish={onFinish} layout="vertical">
         <Form.Item

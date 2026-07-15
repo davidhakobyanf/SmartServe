@@ -73,6 +73,26 @@ a {
   text-decoration: none;
 }
 
+/* Waiter-call toast: on close, slide out to the right and fade to transparent.
+   Scoped via the `waiter-toast` class so order notifications keep antd's default
+   leave motion. The motion (leave) classes live on the notice wrapper, so match
+   whether `waiter-toast` lands on the wrapper itself or its inner notice. */
+.ant-notification-notice-wrapper.ant-notification-fade-leave.ant-notification-fade-leave-active.waiter-toast,
+.ant-notification-notice-wrapper.ant-notification-fade-leave.ant-notification-fade-leave-active:has(.waiter-toast) {
+  animation-name: waiterToastLeave !important;
+}
+
+@keyframes waiterToastLeave {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(120%);
+  }
+}
+
 /* Shared thin scrollbar */
 .ss-scroll::-webkit-scrollbar {
   width: 8px;

@@ -125,6 +125,7 @@ export default function CardModal({
         width={modalWidth}
         footer={null}
         className={css.modal}
+        classNames={{ body: css.modalBody }}
       >
         {item ? (
           <div className={css.container}>

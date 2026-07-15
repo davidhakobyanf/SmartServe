@@ -91,24 +91,28 @@
 
 .modal {
     font-size: 30px;
-    overflow: auto !important;
-    max-height: 578px;
 }
 
-.modal::-webkit-scrollbar {
+/* Scroll the modal body internally instead of scrolling the whole page. */
+.modalBody {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+.modalBody::-webkit-scrollbar {
     width: 7px !important;
 }
 
-.modal::-webkit-scrollbar-track {
+.modalBody::-webkit-scrollbar-track {
     background: rgb(255, 255, 255);
 }
 
-.modal::-webkit-scrollbar-thumb {
+.modalBody::-webkit-scrollbar-thumb {
     background: rgba(0, 0, 0, 0.2);
     border-radius: 10px;
 }
 
-.modal::-webkit-scrollbar-thumb:hover {
+.modalBody::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 0, 0, 0.2);
 }
 
