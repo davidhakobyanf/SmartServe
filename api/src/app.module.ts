@@ -15,6 +15,9 @@ import { OrdersModule } from './orders/orders.module';
 import { WaiterModule } from './waiter/waiter.module';
 import { DiningSession } from './entities/dining-session.entity';
 import { SessionsModule } from './sessions/sessions.module';
+import { Role } from './entities/role.entity';
+
+
 
 @Module({
   imports: [
@@ -30,7 +33,7 @@ import { SessionsModule } from './sessions/sessions.module';
         username: config.get<string>('DB_USERNAME', 'smartserve'),
         password: config.get<string>('DB_PASSWORD', 'smartserve'),
         database: config.get<string>('DB_DATABASE', 'smartserve'),
-        entities: [User, SessionProfile, BasketStore, OrderStore, DiningSession],
+        entities: [User, Role, SessionProfile, BasketStore, OrderStore, DiningSession],
         synchronize: config.get<string>('DB_SYNC', 'false') === 'true',
       }),
     }),
