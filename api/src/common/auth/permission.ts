@@ -21,5 +21,5 @@ export enum Permission {
 
     ROLES_MANAGE = 'roles.manage',
 
-    VENUE_SETTINGS_MANAGE = 'venue_settings.manage',
+    VENUE_SETTINGS_MANAGE = 'venue.settings.manage',
 }

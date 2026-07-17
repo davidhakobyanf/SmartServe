@@ -27,7 +27,7 @@ export class Role {
     code!: string;
 
     @Column({
-        type:'json',
+        type:'jsonb',
         default:[],
     })
     permissions!: Permission[];
