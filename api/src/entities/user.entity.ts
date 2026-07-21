@@ -8,9 +8,9 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import type { MenuCard } from '../common/types/menu-card';
+import type { Permission } from '../common/auth/permission';
+import { UserStatus } from '../common/auth/user-status';
 import { Role } from './role.entity';
-import { UserStatus } from 'src/common/auth/user-status';
-import { Permission } from 'src/common/auth/permission';
 
 @Entity('users')
 export class User {

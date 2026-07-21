@@ -15,6 +15,7 @@ import { OrdersModule } from './orders/orders.module';
 import { WaiterModule } from './waiter/waiter.module';
 import { DiningSession } from './entities/dining-session.entity';
 import { SessionsModule } from './sessions/sessions.module';
+import { SetupModule } from './setup/setup.module';
 import { Role } from './entities/role.entity';
 
 
@@ -45,7 +46,7 @@ import { Role } from './entities/role.entity';
     BasketModule,
     OrdersModule,
     WaiterModule,
-    
+    SetupModule,
   ],
 })
 export class AppModule {}
