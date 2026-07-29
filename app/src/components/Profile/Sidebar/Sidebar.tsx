@@ -53,7 +53,7 @@ export default function Sidebar() {
     'RO';
 
   const logout = () => {
-    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('accessToken');
     router.push('/');
   };
 

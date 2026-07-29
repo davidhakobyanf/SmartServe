@@ -74,7 +74,7 @@ export default function Dashboard() {
   const { calls, dismissCall } = useWaiterCalls();
 
   const logoutHandler = () => {
-    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('accessToken');
     router.push('/');
   };
 

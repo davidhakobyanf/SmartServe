@@ -15,8 +15,8 @@ export default function ProfileLayout({
   const router = useRouter();
 
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-    if (!isLoggedIn) {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
       router.replace('/');
     }
   }, [router]);
