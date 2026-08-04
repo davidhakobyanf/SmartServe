@@ -75,5 +75,5 @@ export class JwtAuthGuard implements CanActivate {
 
 
 export interface AuthenticatedRequest extends Request {
-    user?: User;
+    user: User;
 }

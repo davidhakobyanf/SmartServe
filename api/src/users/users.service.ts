@@ -16,6 +16,7 @@ import { sanitizeMenuCards } from "../common/utils/menu-card-response.util";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
 import { UserStatus } from "src/common/auth/user-status";
+import { Permission } from "src/common/auth/permission";
 
 @Injectable()
 export class UsersService {
@@ -140,5 +141,18 @@ export class UsersService {
 
   async findByEmail(email: string): Promise<User | null> {
     return this.usersRepo.findOne({ where: { email } });
+  }
+
+  getEffectivePermissions(user: User): Permission[] {
+    const effectivePermissions = new Set<Permission>([
+      ...(user.role?.permissions ?? []),
+      ...(user.permissionAllow ?? []),
+    ]);
+
+    for (const deniedPermission of user.permissionDeny ?? []) {
+      effectivePermissions.delete(deniedPermission);
+    }
+
+    return [...effectivePermissions];
   }
 }

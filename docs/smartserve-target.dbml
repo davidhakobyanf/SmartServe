@@ -1,0 +1,174 @@
+Project SmartServe_Target_Database {
+  database_type: 'PostgreSQL'
+  Note: 'TARGET — целевая реляционная база SmartServe. Это план, часть таблиц ещё не реализована.'
+}
+
+Enum user_status {
+  pending
+  active
+  rejected
+  disabled
+}
+
+Enum table_status {
+  available
+  reserved
+  disabled
+}
+
+Enum dining_session_status {
+  open
+  closed
+}
+
+Enum order_status {
+  new
+  accepted
+  preparing
+  ready
+  completed
+  cancelled
+}
+
+Table roles {
+  id uuid [pk]
+  name varchar(100) [not null]
+  code varchar(50) [not null, unique]
+  permissions jsonb [not null, note: 'Не M:N, пока JSONB']
+  isSystem boolean [not null, default: false]
+  isActive boolean [not null, default: true]
+  createdAt timestamptz [not null]
+  updatedAt timestamptz [not null]
+}
+
+Table users {
+  id uuid [pk]
+  name varchar [not null]
+  surname varchar [not null]
+  email varchar [not null, unique]
+  password varchar [not null]
+  roleId uuid
+  status user_status [not null, default: 'pending']
+  permissionAllow jsonb [not null]
+  permissionDeny jsonb [not null]
+  approvedByUserId uuid
+  approvedAt timestamptz
+  rejectionReason text
+  lastLoginAt timestamptz
+  createdAt timestamptz [not null]
+  updatedAt timestamptz [not null]
+}
+
+Table venue_settings {
+  id int [pk, default: 1]
+  name varchar [not null]
+  venueType varchar
+  description text
+  phone varchar
+  email varchar
+  address text
+  currencyCode varchar(3) [not null]
+  defaultLocale varchar [not null]
+  timezone varchar [not null]
+  logo text
+  favicon text
+  theme jsonb [not null]
+  features jsonb [not null]
+  createdAt timestamptz [not null]
+  updatedAt timestamptz [not null]
+
+  Note: 'Singleton-настройки одной установки SmartServe'
+}
+
+Table tables {
+  id uuid [pk]
+  number int [not null, unique]
+  name varchar
+  capacity int
+  status table_status [not null, default: 'available']
+  reservationNote text
+  reservedUntil timestamptz
+  qrToken uuid [not null, unique]
+  sortOrder int [not null, default: 0]
+  createdAt timestamptz [not null]
+  updatedAt timestamptz [not null]
+}
+
+Table categories {
+  id uuid [pk]
+  name varchar [not null]
+  slug varchar [not null, unique]
+  description text
+  isActive boolean [not null, default: true]
+  sortOrder int [not null, default: 0]
+  createdAt timestamptz [not null]
+  updatedAt timestamptz [not null]
+}
+
+Table products {
+  id uuid [pk]
+  categoryId uuid [not null]
+  title varchar [not null]
+  description text
+  price numeric(12,2) [not null]
+  isActive boolean [not null, default: true]
+  sortOrder int [not null, default: 0]
+  image text
+  modifiers jsonb [not null, note: 'Пока JSONB, не M:N']
+  createdAt timestamptz [not null]
+  updatedAt timestamptz [not null]
+}
+
+Table dining_sessions {
+  id uuid [pk]
+  tableId uuid [not null]
+  status dining_session_status [not null, default: 'open']
+  openedAt timestamptz [not null]
+  closedAt timestamptz
+
+  indexes {
+    (tableId, status) [name: 'idx_one_open_session_per_table']
+  }
+}
+
+Table basket_items {
+  id uuid [pk]
+  sessionId uuid [not null]
+  productId uuid [not null]
+  titleSnapshot varchar [not null]
+  priceSnapshot numeric(12,2) [not null]
+  modifiers jsonb [not null]
+  quantity int [not null]
+}
+
+Table orders {
+  id uuid [pk]
+  tableId uuid [not null]
+  sessionId uuid [not null]
+  status order_status [not null, default: 'new']
+  total numeric(12,2) [not null]
+  createdAt timestamptz [not null]
+  updatedAt timestamptz [not null]
+}
+
+Table order_items {
+  id uuid [pk]
+  orderId uuid [not null]
+  productId uuid [note: 'Nullable — история сохраняется после удаления товара']
+  titleSnapshot varchar [not null]
+  priceSnapshot numeric(12,2) [not null]
+  modifiersSnapshot jsonb [not null]
+  quantity int [not null]
+  lineTotal numeric(12,2) [not null]
+}
+
+Ref roles_users: users.roleId > roles.id [delete: set null]
+Ref approver_users: users.approvedByUserId > users.id [delete: set null]
+Ref category_products: products.categoryId > categories.id
+Ref table_sessions: dining_sessions.tableId > tables.id
+Ref session_basket_items: basket_items.sessionId > dining_sessions.id
+Ref product_basket_items: basket_items.productId > products.id
+Ref table_orders: orders.tableId > tables.id
+Ref session_orders: orders.sessionId > dining_sessions.id
+Ref order_order_items: order_items.orderId > orders.id
+Ref product_order_items: order_items.productId > products.id [delete: set null]

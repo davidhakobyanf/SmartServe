@@ -7,6 +7,7 @@ import { SessionProfile } from '../entities/session-profile.entity';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { PermissionsGuard } from 'src/common/guards/permissions.guard';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
     }),
   ],
   controllers: [UsersController],
-  providers: [UsersService, JwtAuthGuard],
-  exports: [UsersService,JwtAuthGuard],
+  providers: [UsersService, JwtAuthGuard, PermissionsGuard],
+  exports: [UsersService,JwtAuthGuard,PermissionsGuard],
 })
 export class UsersModule {}

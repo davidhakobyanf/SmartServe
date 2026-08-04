@@ -1,0 +1,827 @@
+{
+  "modelObjects": [
+    {
+      "id": "domain-restaurant",
+      "name": "Ресторанный бизнес",
+      "type": "domain",
+      "status": "live",
+      "description": "Бизнес-домен одной установки SmartServe. Один deployment обслуживает одно кафе, ресторан, бар или другое заведение."
+    },
+    {
+      "id": "actor-owner",
+      "name": "Владелец заведения",
+      "type": "actor",
+      "status": "live",
+      "description": "Первый системный пользователь owner. Настраивает заведение, сотрудников, роли, меню, столы и заказы."
+    },
+    {
+      "id": "actor-staff",
+      "name": "Сотрудник",
+      "type": "actor",
+      "status": "live",
+      "description": "Администратор, менеджер или официант. Доступ определяется активной ролью и эффективными permissions."
+    },
+    {
+      "id": "actor-guest",
+      "name": "Гость за столом",
+      "type": "actor",
+      "status": "live",
+      "description": "Сканирует QR стола, просматривает меню, формирует корзину, отправляет заказ и вызывает официанта."
+    },
+    {
+      "id": "system-smartserve",
+      "name": "SmartServe",
+      "type": "system",
+      "parentId": "domain-restaurant",
+      "status": "live",
+      "description": "White-label система заказа для одной установки и одного заведения. Содержит admin/client frontend, NestJS API и PostgreSQL."
+    },
+    {
+      "id": "app-admin-web",
+      "name": "Admin Web",
+      "type": "app",
+      "parentId": "system-smartserve",
+      "status": "live",
+      "description": "Next.js 15 + React 19 админская часть: /profile. Управление меню, заказами, вызовами официанта и будущими настройками заведения."
+    },
+    {
+      "id": "app-client-web",
+      "name": "Client Web",
+      "type": "app",
+      "parentId": "system-smartserve",
+      "status": "live",
+      "description": "Next.js клиентская часть для гостя: меню стола, корзина, заказ, вызов официанта."
+    },
+    {
+      "id": "app-api",
+      "name": "NestJS API",
+      "type": "app",
+      "parentId": "system-smartserve",
+      "status": "live",
+      "description": "NestJS 10 API на порту 8000. TypeORM, DTO validation, JWT foundation, EventEmitter и Socket.IO gateways."
+    },
+    {
+      "id": "store-postgres",
+      "name": "PostgreSQL",
+      "type": "store",
+      "parentId": "system-smartserve",
+      "status": "live",
+      "description": "Основное хранилище. Сейчас часть данных находится в JSONB singleton-таблицах; цель — нормализованная реляционная модель и migrations."
+    },
+
+    {
+      "id": "admin-auth-ui",
+      "name": "Login / Registration UI",
+      "type": "component",
+      "parentId": "app-admin-web",
+      "status": "live",
+      "description": "Формы входа и регистрации. Регистрация создаёт pending-заявку; login сохраняет accessToken и показывает ошибки pending/rejected/disabled."
+    },
+    {
+      "id": "admin-auth-state",
+      "name": "Frontend Auth State",
+      "type": "component",
+      "parentId": "app-admin-web",
+      "status": "live",
+      "description": "Переходное состояние авторизации frontend. Access token уже используется, но полный route/permission flow через /api/auth/me ещё доводится."
+    },
+    {
+      "id": "admin-feature-ui",
+      "name": "Admin Feature Pages",
+      "type": "component",
+      "parentId": "app-admin-web",
+      "status": "live",
+      "description": "Текущие страницы dashboard, menu, orders, waiter и account. Tables/settings частично являются заглушками."
+    },
+    {
+      "id": "admin-realtime-contexts",
+      "name": "Orders & Waiter Contexts",
+      "type": "component",
+      "parentId": "app-admin-web",
+      "status": "live",
+      "description": "OrdersContext и WaiterCallsContext открывают Socket.IO соединения и входят в admin room. Сейчас сервер ещё не проверяет JWT этого соединения."
+    },
+    {
+      "id": "admin-theme-ui",
+      "name": "Dynamic White-label Theme",
+      "type": "component",
+      "parentId": "app-admin-web",
+      "status": "future",
+      "description": "Будущий редактор логотипа, цветов, design tokens, валюты, локалей, timezone и feature flags с preview."
+    },
+
+    {
+      "id": "client-table-route",
+      "name": "Table Number Route",
+      "type": "component",
+      "parentId": "app-client-web",
+      "status": "deprecated",
+      "description": "Текущий маршрут /client/[clientId] доверяет номеру стола из URL. Будет заменён непредсказуемым tables.qrToken."
+    },
+    {
+      "id": "client-menu-ui",
+      "name": "Client Menu UI",
+      "type": "component",
+      "parentId": "app-client-web",
+      "status": "live",
+      "description": "Показывает карточки меню и изображения. Сейчас меню приходит из users.cards, будущая версия читает categories + products."
+    },
+    {
+      "id": "client-basket-ui",
+      "name": "Basket & Order UI",
+      "type": "component",
+      "parentId": "app-client-web",
+      "status": "live",
+      "description": "Управляет корзиной и отправкой заказа для текущего номера стола. Будет привязан к защищённой dining session."
+    },
+    {
+      "id": "client-waiter-ui",
+      "name": "Waiter Call Client",
+      "type": "component",
+      "parentId": "app-client-web",
+      "status": "live",
+      "description": "Отправляет waiter:called через namespace waiter. Сейчас stateless; цель — проверять session token."
+    },
+    {
+      "id": "client-qr-session-flow",
+      "name": "QR Token Session Flow",
+      "type": "component",
+      "parentId": "app-client-web",
+      "status": "future",
+      "description": "Будущий маршрут /t/:qrToken: открывает или возвращает dining session и получает session token для клиента."
+    },
+
+    {
+      "id": "api-setup",
+      "name": "SetupModule",
+      "type": "component",
+      "parentId": "app-api",
+      "status": "live",
+      "description": "POST /api/setup создаёт первого owner и системную роль. Endpoint закрывается после первичной инициализации."
+    },
+    {
+      "id": "api-auth-users",
+      "name": "Auth + Users Foundation",
+      "type": "component",
+      "parentId": "app-api",
+      "status": "live",
+      "description": "Регистрация pending-заявки, login с проверкой статуса/роли, JWT и GET /api/auth/me. UsersService считает эффективные permissions."
+    },
+    {
+      "id": "api-jwt-guard",
+      "name": "JwtAuthGuard",
+      "type": "component",
+      "parentId": "app-api",
+      "status": "live",
+      "description": "Проверяет Bearer JWT, загружает User + Role, запрещает не-active пользователя и неактивную роль, затем записывает request.user."
+    },
+    {
+      "id": "api-permission-guard",
+      "name": "PermissionGuard",
+      "type": "component",
+      "parentId": "app-api",
+      "status": "future",
+      "description": "Будущий guard для @RequirePermissions. Формула: (role.permissions + permissionAllow) - permissionDeny."
+    },
+    {
+      "id": "api-profile-menu",
+      "name": "Profile + Menu Modules",
+      "type": "component",
+      "parentId": "app-api",
+      "status": "deprecated",
+      "description": "Текущие profile/menu endpoints получают глобального active user и читают/изменяют users.cards. После миграции заменяются Settings и Catalog."
+    },
+    {
+      "id": "api-sessions-current",
+      "name": "SessionsModule (tableNumber)",
+      "type": "component",
+      "parentId": "app-api",
+      "status": "deprecated",
+      "description": "Текущая dining session связана только с tableNumber. Цель — FK tableId и открытие по qrToken."
+    },
+    {
+      "id": "api-basket-current",
+      "name": "BasketModule (JSONB)",
+      "type": "component",
+      "parentId": "app-api",
+      "status": "deprecated",
+      "description": "Текущая корзина хранит все столы в basket_store.tables JSONB singleton. Будет заменена basket_items по sessionId."
+    },
+    {
+      "id": "api-orders-current",
+      "name": "OrdersModule (JSONB)",
+      "type": "component",
+      "parentId": "app-api",
+      "status": "deprecated",
+      "description": "Текущие заказы находятся в order_store.orders JSONB singleton. Будут заменены orders и order_items со snapshots."
+    },
+    {
+      "id": "api-waiter",
+      "name": "WaiterModule",
+      "type": "component",
+      "parentId": "app-api",
+      "status": "live",
+      "description": "Stateless Socket.IO вызов официанта. Сейчас admin/client роль доверяется данным клиента; позже требуется JWT/session token."
+    },
+    {
+      "id": "api-event-bus",
+      "name": "Domain Event Bus",
+      "type": "component",
+      "parentId": "app-api",
+      "status": "live",
+      "description": "@nestjs/event-emitter отделяет изменения данных от WebSocket broadcast: menu, orders и session events."
+    },
+    {
+      "id": "api-socket-gateways",
+      "name": "Socket.IO Gateways",
+      "type": "component",
+      "parentId": "app-api",
+      "status": "live",
+      "description": "Namespaces menu, orders, waiter и sessions. Broadcast menu:updated, orders:updated, waiter:called и session:closed."
+    },
+    {
+      "id": "api-settings-future",
+      "name": "Venue Settings Module",
+      "type": "component",
+      "parentId": "app-api",
+      "status": "future",
+      "description": "CRUD singleton-конфигурации заведения, публичная часть темы и settings:updated. Singleton допустим только для конфигурации deployment."
+    },
+    {
+      "id": "api-tables-future",
+      "name": "Tables & QR Module",
+      "type": "component",
+      "parentId": "app-api",
+      "status": "future",
+      "description": "CRUD/bulk столов, reserve/disable, QR rotation, открытие/закрытие dining session и tables:updated."
+    },
+    {
+      "id": "api-catalog-future",
+      "name": "Categories & Products Module",
+      "type": "component",
+      "parentId": "app-api",
+      "status": "future",
+      "description": "Динамические категории и товары. Product обязательно ссылается на существующую category; безопасное удаление и reorder."
+    },
+    {
+      "id": "api-staff-future",
+      "name": "Staff & Roles Module",
+      "type": "component",
+      "parentId": "app-api",
+      "status": "future",
+      "description": "Списки заявок, approve/reject, CRUD сотрудников и ролей, allow/deny permissions и защита последнего owner."
+    },
+    {
+      "id": "api-commerce-future",
+      "name": "Relational Basket & Orders",
+      "type": "component",
+      "parentId": "app-api",
+      "status": "future",
+      "description": "Корзина по dining session; заказы со статусами и неизменяемыми snapshots товаров в order_items."
+    },
+    {
+      "id": "api-secure-realtime",
+      "name": "Authenticated Realtime",
+      "type": "component",
+      "parentId": "app-api",
+      "status": "future",
+      "description": "JWT + permissions для admin room и session token для session:<sessionId>. Убирает доверие к role/table из client payload."
+    },
+    {
+      "id": "api-migrations",
+      "name": "TypeORM Migrations",
+      "type": "component",
+      "parentId": "app-api",
+      "status": "future",
+      "description": "Baseline и последующие migration-команды вместо зависимости от DB_SYNC. Legacy данные удаляются только после проверки миграции."
+    },
+
+    {
+      "id": "db-users",
+      "name": "users",
+      "caption": "LIVE + legacy cards",
+      "type": "component",
+      "parentId": "store-postgres",
+      "status": "live",
+      "description": "Поля: id UUID PK, name, surname, email UNIQUE, password, roleId FK nullable, status, permissionAllow JSONB, permissionDeny JSONB, approvedByUserId, approvedAt, rejectionReason, lastLoginAt, cards JSONB, createdAt, updatedAt. Поле cards удаляется после миграции меню."
+    },
+    {
+      "id": "db-roles",
+      "name": "roles",
+      "caption": "LIVE",
+      "type": "component",
+      "parentId": "store-postgres",
+      "status": "live",
+      "description": "Поля: id UUID PK, name, code UNIQUE, permissions JSONB, isSystem, isActive, createdAt, updatedAt. Связь 1:N с users."
+    },
+    {
+      "id": "db-session-profile",
+      "name": "session_profile",
+      "caption": "LEGACY singleton",
+      "type": "component",
+      "parentId": "store-postgres",
+      "status": "deprecated",
+      "description": "Поля: id=1 PK, userId UUID. Хранит последнего вошедшего пользователя для всей установки. Должна быть удалена после перевода всех операций на request.user."
+    },
+    {
+      "id": "db-basket-store",
+      "name": "basket_store",
+      "caption": "LEGACY JSONB singleton",
+      "type": "component",
+      "parentId": "store-postgres",
+      "status": "deprecated",
+      "description": "Поля: id=1 PK, tables JSONB Record<tableNumber, MenuCard[]>. Все корзины находятся в одной строке; заменяется basket_items."
+    },
+    {
+      "id": "db-order-store",
+      "name": "order_store",
+      "caption": "LEGACY JSONB singleton",
+      "type": "component",
+      "parentId": "store-postgres",
+      "status": "deprecated",
+      "description": "Поля: id=1 PK, orders JSONB OrderRecord[]. Все заказы находятся в одной строке; заменяется orders + order_items."
+    },
+    {
+      "id": "db-dining-current",
+      "name": "dining-sessions (current)",
+      "caption": "LEGACY tableNumber",
+      "type": "component",
+      "parentId": "store-postgres",
+      "status": "deprecated",
+      "description": "Поля: id UUID PK, tableNumber INT indexed, status open|closed, createdAt, closedAt. Нет FK на реальный стол."
+    },
+    {
+      "id": "db-venue-settings",
+      "name": "venue_settings",
+      "caption": "FUTURE singleton config",
+      "type": "component",
+      "parentId": "store-postgres",
+      "status": "future",
+      "description": "Поля: id=1, name, venueType, description, phone, email, address, currencyCode, defaultLocale, timezone, logo, favicon, theme JSONB, features JSONB, createdAt, updatedAt."
+    },
+    {
+      "id": "db-tables",
+      "name": "tables",
+      "caption": "FUTURE",
+      "type": "component",
+      "parentId": "store-postgres",
+      "status": "future",
+      "description": "Поля: id UUID PK, number UNIQUE, name, capacity, status available|reserved|disabled, reservationNote, reservedUntil, qrToken UNIQUE, sortOrder, createdAt, updatedAt. occupied вычисляется по открытой session."
+    },
+    {
+      "id": "db-categories",
+      "name": "categories",
+      "caption": "FUTURE",
+      "type": "component",
+      "parentId": "store-postgres",
+      "status": "future",
+      "description": "Поля: id UUID PK, name, slug, description, isActive, sortOrder, createdAt, updatedAt. Связь 1:N с products; удаление категории с товарами требует переноса."
+    },
+    {
+      "id": "db-products",
+      "name": "products",
+      "caption": "FUTURE",
+      "type": "component",
+      "parentId": "store-postgres",
+      "status": "future",
+      "description": "Поля: id UUID PK, categoryId FK NOT NULL, title, description, price, isActive, sortOrder, image, modifiers JSONB, createdAt, updatedAt."
+    },
+    {
+      "id": "db-dining-target",
+      "name": "dining_sessions (target)",
+      "caption": "FUTURE relational",
+      "type": "component",
+      "parentId": "store-postgres",
+      "status": "future",
+      "description": "Поля: id UUID PK, tableId FK, status open|closed, openedAt, closedAt. Открывается по tables.qrToken. Один стол имеет историю sessions и максимум одну открытую session."
+    },
+    {
+      "id": "db-basket-items",
+      "name": "basket_items",
+      "caption": "FUTURE",
+      "type": "component",
+      "parentId": "store-postgres",
+      "status": "future",
+      "description": "Поля: id UUID PK, sessionId FK, productId FK, titleSnapshot, priceSnapshot, modifiers JSONB, quantity. Корзины разных сессий изолированы."
+    },
+    {
+      "id": "db-orders",
+      "name": "orders",
+      "caption": "FUTURE",
+      "type": "component",
+      "parentId": "store-postgres",
+      "status": "future",
+      "description": "Поля: id UUID PK, tableId FK, sessionId FK, status new|accepted|preparing|ready|completed|cancelled, total, createdAt, updatedAt."
+    },
+    {
+      "id": "db-order-items",
+      "name": "order_items",
+      "caption": "FUTURE snapshots",
+      "type": "component",
+      "parentId": "store-postgres",
+      "status": "future",
+      "description": "Поля: id UUID PK, orderId FK, productId nullable, titleSnapshot, priceSnapshot, modifiersSnapshot JSONB, quantity, lineTotal. Изменение menu не меняет созданный заказ."
+    }
+  ],
+  "modelConnections": [
+    {
+      "id": "c-owner-admin",
+      "name": "Управляет заведением",
+      "direction": "outgoing",
+      "originId": "actor-owner",
+      "targetId": "app-admin-web",
+      "description": "Работает в защищённой admin-зоне."
+    },
+    {
+      "id": "c-staff-admin",
+      "name": "Работает по permissions",
+      "direction": "outgoing",
+      "originId": "actor-staff",
+      "targetId": "app-admin-web",
+      "description": "Видит только разрешённые страницы и действия."
+    },
+    {
+      "id": "c-guest-client",
+      "name": "Сканирует QR и делает заказ",
+      "direction": "outgoing",
+      "originId": "actor-guest",
+      "targetId": "app-client-web"
+    },
+    {
+      "id": "c-admin-rest-api",
+      "name": "REST + Bearer JWT",
+      "direction": "outgoing",
+      "originId": "app-admin-web",
+      "targetId": "app-api",
+      "description": "Axios использует NEXT_PUBLIC_API_URL."
+    },
+    {
+      "id": "c-client-rest-api",
+      "name": "Public REST + session token",
+      "direction": "outgoing",
+      "originId": "app-client-web",
+      "targetId": "app-api",
+      "description": "Сейчас номер стола, цель — QR/session token."
+    },
+    {
+      "id": "c-api-postgres",
+      "name": "TypeORM",
+      "direction": "outgoing",
+      "originId": "app-api",
+      "targetId": "store-postgres"
+    },
+    {
+      "id": "c-admin-auth-api",
+      "name": "register, login, auth/me",
+      "direction": "outgoing",
+      "originId": "admin-auth-ui",
+      "targetId": "api-auth-users"
+    },
+    {
+      "id": "c-auth-state-guard",
+      "name": "Authorization: Bearer token",
+      "direction": "outgoing",
+      "originId": "admin-auth-state",
+      "targetId": "api-jwt-guard"
+    },
+    {
+      "id": "c-admin-features-api",
+      "name": "Admin API actions",
+      "direction": "outgoing",
+      "originId": "admin-feature-ui",
+      "targetId": "api-profile-menu"
+    },
+    {
+      "id": "c-admin-contexts-gateways",
+      "name": "Socket.IO admin room",
+      "direction": "bidirectional",
+      "originId": "admin-realtime-contexts",
+      "targetId": "api-socket-gateways"
+    },
+    {
+      "id": "c-theme-settings",
+      "name": "Theme and feature flags",
+      "direction": "bidirectional",
+      "originId": "admin-theme-ui",
+      "targetId": "api-settings-future"
+    },
+    {
+      "id": "c-table-route-session",
+      "name": "tableNumber",
+      "direction": "outgoing",
+      "originId": "client-table-route",
+      "targetId": "api-sessions-current"
+    },
+    {
+      "id": "c-client-menu-current",
+      "name": "Получает sanitized menu",
+      "direction": "outgoing",
+      "originId": "client-menu-ui",
+      "targetId": "api-profile-menu"
+    },
+    {
+      "id": "c-client-menu-future",
+      "name": "Активные categories + products",
+      "direction": "outgoing",
+      "originId": "client-menu-ui",
+      "targetId": "api-catalog-future"
+    },
+    {
+      "id": "c-client-basket-current",
+      "name": "Basket / Order HTTP",
+      "direction": "outgoing",
+      "originId": "client-basket-ui",
+      "targetId": "api-basket-current"
+    },
+    {
+      "id": "c-client-basket-future",
+      "name": "Session-scoped cart/order",
+      "direction": "outgoing",
+      "originId": "client-basket-ui",
+      "targetId": "api-commerce-future"
+    },
+    {
+      "id": "c-client-waiter",
+      "name": "waiter:called",
+      "direction": "outgoing",
+      "originId": "client-waiter-ui",
+      "targetId": "api-waiter"
+    },
+    {
+      "id": "c-client-qr-tables",
+      "name": "qrToken -> dining session",
+      "direction": "outgoing",
+      "originId": "client-qr-session-flow",
+      "targetId": "api-tables-future"
+    },
+    {
+      "id": "c-setup-users",
+      "name": "Создаёт первого owner",
+      "direction": "outgoing",
+      "originId": "api-setup",
+      "targetId": "db-users"
+    },
+    {
+      "id": "c-setup-roles",
+      "name": "Создаёт owner role",
+      "direction": "outgoing",
+      "originId": "api-setup",
+      "targetId": "db-roles"
+    },
+    {
+      "id": "c-auth-users-db",
+      "name": "Читает/изменяет User",
+      "direction": "bidirectional",
+      "originId": "api-auth-users",
+      "targetId": "db-users"
+    },
+    {
+      "id": "c-auth-roles-db",
+      "name": "Загружает активную Role",
+      "direction": "outgoing",
+      "originId": "api-auth-users",
+      "targetId": "db-roles"
+    },
+    {
+      "id": "c-user-role-fk",
+      "name": "roles 1:N users (users.roleId)",
+      "direction": "outgoing",
+      "originId": "db-users",
+      "targetId": "db-roles"
+    },
+    {
+      "id": "c-jwt-users",
+      "name": "findById(payload.sub)",
+      "direction": "outgoing",
+      "originId": "api-jwt-guard",
+      "targetId": "db-users"
+    },
+    {
+      "id": "c-jwt-permission",
+      "name": "request.user",
+      "direction": "outgoing",
+      "originId": "api-jwt-guard",
+      "targetId": "api-permission-guard"
+    },
+    {
+      "id": "c-profile-active-user",
+      "name": "getActiveUser legacy",
+      "direction": "outgoing",
+      "originId": "api-profile-menu",
+      "targetId": "db-session-profile"
+    },
+    {
+      "id": "c-profile-cards",
+      "name": "users.cards JSONB",
+      "direction": "bidirectional",
+      "originId": "api-profile-menu",
+      "targetId": "db-users"
+    },
+    {
+      "id": "c-session-current-db",
+      "name": "tableNumber sessions",
+      "direction": "bidirectional",
+      "originId": "api-sessions-current",
+      "targetId": "db-dining-current"
+    },
+    {
+      "id": "c-basket-current-db",
+      "name": "tables JSONB",
+      "direction": "bidirectional",
+      "originId": "api-basket-current",
+      "targetId": "db-basket-store"
+    },
+    {
+      "id": "c-orders-current-db",
+      "name": "orders JSONB",
+      "direction": "bidirectional",
+      "originId": "api-orders-current",
+      "targetId": "db-order-store"
+    },
+    {
+      "id": "c-services-events",
+      "name": "Emits domain events",
+      "direction": "outgoing",
+      "originId": "api-orders-current",
+      "targetId": "api-event-bus"
+    },
+    {
+      "id": "c-event-gateways",
+      "name": "@OnEvent -> broadcast",
+      "direction": "outgoing",
+      "originId": "api-event-bus",
+      "targetId": "api-socket-gateways"
+    },
+    {
+      "id": "c-waiter-gateway",
+      "name": "Socket.IO waiter namespace",
+      "direction": "outgoing",
+      "originId": "api-waiter",
+      "targetId": "api-socket-gateways"
+    },
+    {
+      "id": "c-settings-db",
+      "name": "Читает/изменяет config",
+      "direction": "bidirectional",
+      "originId": "api-settings-future",
+      "targetId": "db-venue-settings"
+    },
+    {
+      "id": "c-tables-db",
+      "name": "CRUD tables",
+      "direction": "bidirectional",
+      "originId": "api-tables-future",
+      "targetId": "db-tables"
+    },
+    {
+      "id": "c-tables-sessions-db",
+      "name": "Open/close dining session",
+      "direction": "bidirectional",
+      "originId": "api-tables-future",
+      "targetId": "db-dining-target"
+    },
+    {
+      "id": "c-table-session-fk",
+      "name": "tables 1:N dining_sessions (tableId)",
+      "direction": "outgoing",
+      "originId": "db-dining-target",
+      "targetId": "db-tables"
+    },
+    {
+      "id": "c-catalog-categories",
+      "name": "CRUD categories",
+      "direction": "bidirectional",
+      "originId": "api-catalog-future",
+      "targetId": "db-categories"
+    },
+    {
+      "id": "c-catalog-products",
+      "name": "CRUD products",
+      "direction": "bidirectional",
+      "originId": "api-catalog-future",
+      "targetId": "db-products"
+    },
+    {
+      "id": "c-product-category-fk",
+      "name": "categories 1:N products (categoryId)",
+      "direction": "outgoing",
+      "originId": "db-products",
+      "targetId": "db-categories"
+    },
+    {
+      "id": "c-staff-users",
+      "name": "Approve/reject/manage users",
+      "direction": "bidirectional",
+      "originId": "api-staff-future",
+      "targetId": "db-users"
+    },
+    {
+      "id": "c-staff-roles",
+      "name": "Manage roles/permissions",
+      "direction": "bidirectional",
+      "originId": "api-staff-future",
+      "targetId": "db-roles"
+    },
+    {
+      "id": "c-commerce-basket",
+      "name": "Session cart items",
+      "direction": "bidirectional",
+      "originId": "api-commerce-future",
+      "targetId": "db-basket-items"
+    },
+    {
+      "id": "c-commerce-orders",
+      "name": "Order lifecycle",
+      "direction": "bidirectional",
+      "originId": "api-commerce-future",
+      "targetId": "db-orders"
+    },
+    {
+      "id": "c-commerce-order-items",
+      "name": "Product snapshots",
+      "direction": "bidirectional",
+      "originId": "api-commerce-future",
+      "targetId": "db-order-items"
+    },
+    {
+      "id": "c-basket-session-fk",
+      "name": "dining_sessions 1:N basket_items (sessionId)",
+      "direction": "outgoing",
+      "originId": "db-basket-items",
+      "targetId": "db-dining-target"
+    },
+    {
+      "id": "c-basket-product-fk",
+      "name": "products 1:N basket_items (productId)",
+      "direction": "outgoing",
+      "originId": "db-basket-items",
+      "targetId": "db-products"
+    },
+    {
+      "id": "c-orders-table-fk",
+      "name": "tables 1:N orders (tableId)",
+      "direction": "outgoing",
+      "originId": "db-orders",
+      "targetId": "db-tables"
+    },
+    {
+      "id": "c-orders-session-fk",
+      "name": "dining_sessions 1:N orders (sessionId)",
+      "direction": "outgoing",
+      "originId": "db-orders",
+      "targetId": "db-dining-target"
+    },
+    {
+      "id": "c-order-items-order-fk",
+      "name": "orders 1:N order_items (orderId)",
+      "direction": "outgoing",
+      "originId": "db-order-items",
+      "targetId": "db-orders"
+    },
+    {
+      "id": "c-order-items-product-fk",
+      "name": "products 1:N order_items (productId nullable)",
+      "direction": "outgoing",
+      "originId": "db-order-items",
+      "targetId": "db-products",
+      "description": "Optional product reference; snapshots keep order history valid after a product is removed."
+    },
+    {
+      "id": "c-user-approver-self-fk",
+      "name": "users 1:N users (approvedByUserId nullable)",
+      "direction": "outgoing",
+      "originId": "db-users",
+      "targetId": "db-users",
+      "description": "Target self-reference: one manager can approve many employees. The current Entity has only a UUID column and does not yet declare this FK."
+    },
+    {
+      "id": "c-deployment-venue-settings",
+      "name": "deployment 1:1 venue_settings singleton",
+      "direction": "outgoing",
+      "originId": "system-smartserve",
+      "targetId": "db-venue-settings",
+      "description": "Conceptual one-to-one: one SmartServe deployment has exactly one venue settings row with id=1."
+    },
+    {
+      "id": "c-secure-rt-gateways",
+      "name": "Authenticates socket rooms",
+      "direction": "outgoing",
+      "originId": "api-secure-realtime",
+      "targetId": "api-socket-gateways"
+    },
+    {
+      "id": "c-secure-rt-jwt",
+      "name": "Admin JWT and permissions",
+      "direction": "outgoing",
+      "originId": "api-secure-realtime",
+      "targetId": "api-jwt-guard"
+    },
+    {
+      "id": "c-migrations-postgres",
+      "name": "Evolves database schema",
+      "direction": "outgoing",
+      "originId": "api-migrations",
+      "targetId": "store-postgres"
+    }
+  ]
+}

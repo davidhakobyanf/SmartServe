@@ -1,0 +1,82 @@
+Project SmartServe_Current_Database {
+  database_type: 'PostgreSQL'
+  Note: 'CURRENT — таблицы, которые уже существуют в NestJS/TypeORM. JSONB-поля не являются реляционными связями.'
+}
+
+Enum user_status {
+  pending
+  active
+  rejected
+  disabled
+}
+
+Table roles {
+  id uuid [pk]
+  name varchar(100) [not null]
+  code varchar(50) [not null, unique]
+  permissions jsonb [not null, note: 'Массив Permission; это не M:N']
+  isSystem boolean [not null, default: false]
+  isActive boolean [not null, default: true]
+  createdAt timestamptz [not null]
+  updatedAt timestamptz [not null]
+
+  Note: 'LIVE — роли сотрудников'
+}
+
+Table users {
+  id uuid [pk]
+  name varchar [not null]
+  surname varchar [not null]
+  email varchar [not null, unique]
+  password varchar [not null]
+  roleId uuid
+  status user_status [not null, default: 'pending']
+  permissionAllow jsonb [not null, note: 'Не M:N']
+  permissionDeny jsonb [not null, note: 'Не M:N']
+  approvedByUserId uuid [note: 'Пока обычная UUID-колонка без FK']
+  approvedAt timestamptz
+  rejectionReason text
+  lastLoginAt timestamptz
+  cards jsonb [not null, note: 'Legacy-меню внутри users; не relation']
+  createdAt timestamptz [not null]
+  updatedAt timestamptz [not null]
+
+  Note: 'LIVE — пользователи и сотрудники'
+}
+
+Table session_profile {
+  id int [pk, default: 1]
+  userId uuid [note: 'Нет FK и TypeORM relation']
+
+  Note: 'LEGACY singleton — последний вошедший пользователь'
+}
+
+Table basket_store {
+  id int [pk, default: 1]
+  tables jsonb [not null, note: 'Record<tableNumber, MenuCard[]>; не M:N']
+
+  Note: 'LEGACY singleton — все корзины в одной JSONB-колонке'
+}
+
+Table order_store {
+  id int [pk, default: 1]
+  orders jsonb [not null, note: 'OrderRecord[]; не relation']
+
+  Note: 'LEGACY singleton — все заказы в одной JSONB-колонке'
+}
+
+Table "dining-sessions" {
+  id uuid [pk]
+  tableNumber int [not null]
+  status varchar [not null, default: 'open', note: 'open | closed']
+  createdAt timestamptz [not null]
+  closedAt timestamptz
+
+  indexes {
+    tableNumber
+  }
+
+  Note: 'CURRENT — tableNumber пока не является FK'
+}
+
+Ref roles_users: users.roleId > roles.id [delete: set null]
