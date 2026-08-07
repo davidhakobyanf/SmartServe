@@ -27,6 +27,6 @@ import { Role } from 'src/entities/role.entity';
   ],
   controllers: [UsersController, UsersManagementController],
   providers: [UsersService, JwtAuthGuard, PermissionsGuard],
-  exports: [UsersService,JwtAuthGuard,PermissionsGuard],
+  exports: [UsersService,JwtAuthGuard,PermissionsGuard,JwtModule],
 })
 export class UsersModule {}
