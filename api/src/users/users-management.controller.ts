@@ -7,6 +7,7 @@ import { Permission } from "src/common/auth/permission";
 import { ApproveUserDto } from "./dto/approve-user.dto";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";
 import { User } from "src/entities/user.entity";
+import { RejectUserDto } from "./dto/reject-user.dto";
 
 @Controller("api/users")
 @UseGuards(JwtAuthGuard, PermissionsGuard)
@@ -46,6 +47,21 @@ export class UsersManagementController {
       roleId: user.roleId,
       approvedByUserId: user.approvedByUserId,
       approvedAt: user.approvedAt,
+    };
+  }
+
+  @Patch(":id/reject")
+  @RequirePermissions(Permission.USERS_APPROVE)
+  async reject(
+    @Param("id") id: string,
+    @Body() dto: RejectUserDto,
+  ) {
+    const user = await this.usersService.reject(id, dto.reason);
+    return {
+      id: user.id,
+      email: user.email,
+      status: user.status,
+      rejectionReason: user.rejectionReason,
     };
   }
 }

@@ -180,6 +180,23 @@ export class UsersService {
 
     return this.usersRepo.save(user);
   }
+
+  async reject(userId: string,reason: string): Promise<User> {
+    const user = await this.usersRepo.findOne({ where: {id: userId }});
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+    if (user.status !== UserStatus.PENDING) {
+      throw new BadRequestException("Only pending users can be rejected");
+    }
+    user.status = UserStatus.REJECTED;
+    user.rejectionReason = reason;
+    user.approvedByUserId = null;
+    user.approvedAt = null;
+
+    return this.usersRepo.save(user);
+  }
+
   getEffectivePermissions(user: User): Permission[] {
     const effectivePermissions = new Set<Permission>([
       ...(user.role?.permissions ?? []),
