@@ -3,6 +3,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -17,6 +18,7 @@ import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
 import { UserStatus } from "src/common/auth/user-status";
 import { Permission } from "src/common/auth/permission";
+import { Role } from "src/entities/role.entity";
 
 @Injectable()
 export class UsersService {
@@ -26,6 +28,8 @@ export class UsersService {
     @InjectRepository(SessionProfile)
     private readonly sessionRepo: Repository<SessionProfile>,
     private readonly jwtService: JwtService,
+    @InjectRepository(Role)
+    private readonly rolesRepo: Repository<Role>,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -143,6 +147,39 @@ export class UsersService {
     return this.usersRepo.findOne({ where: { email } });
   }
 
+  async findAll(): Promise<User[]> {
+    return this.usersRepo.find({
+      relations: { role: true },
+      order: { createdAt: "DESC" },
+    });
+  }
+
+  async approve(
+    userId: string,
+    roleId: string,
+    approverId: string,
+  ): Promise<User> {
+    const user = await this.usersRepo.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+    if (user.status !== UserStatus.PENDING) {
+      throw new BadRequestException("Only pending users can be approved");
+    }
+
+    const role = await this.rolesRepo.findOne({ where: { id: roleId } });
+    if (!role) {
+      throw new NotFoundException("Role not found");
+    }
+
+    user.status = UserStatus.ACTIVE;
+    user.roleId = roleId;
+    user.approvedByUserId = approverId;
+    user.approvedAt = new Date();
+    user.rejectionReason = null;
+
+    return this.usersRepo.save(user);
+  }
   getEffectivePermissions(user: User): Permission[] {
     const effectivePermissions = new Set<Permission>([
       ...(user.role?.permissions ?? []),

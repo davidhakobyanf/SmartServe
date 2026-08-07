@@ -8,10 +8,12 @@ import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { PermissionsGuard } from 'src/common/guards/permissions.guard';
+import { UsersManagementController } from './users-management.controller';
+import { Role } from 'src/entities/role.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, SessionProfile]),
+    TypeOrmModule.forFeature([User, SessionProfile, Role]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -23,7 +25,7 @@ import { PermissionsGuard } from 'src/common/guards/permissions.guard';
       }),
     }),
   ],
-  controllers: [UsersController],
+  controllers: [UsersController, UsersManagementController],
   providers: [UsersService, JwtAuthGuard, PermissionsGuard],
   exports: [UsersService,JwtAuthGuard,PermissionsGuard],
 })
