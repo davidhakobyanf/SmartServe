@@ -68,7 +68,22 @@ export class RolesController {
       updatedAt: role.updatedAt,
     };
   }
+  @Patch(":id/enable")
+  @RequirePermissions(Permission.ROLES_MANAGE)
+  async enable(@Param("id") id: string) {
+    const role = await this.rolesService.enable(id);
 
+    return {
+      id: role.id,
+      name: role.name,
+      code: role.code,
+      permissions: role.permissions,
+      isSystem: role.isSystem,
+      isActive: role.isActive,
+      createdAt: role.createdAt,
+      updatedAt: role.updatedAt,
+    };
+  }
   @Patch(":id/disable")
   @RequirePermissions(Permission.ROLES_MANAGE)
   async disable(@Param("id") id: string) {

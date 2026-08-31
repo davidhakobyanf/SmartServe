@@ -68,6 +68,22 @@ export class RolesService {
     }
     return this.rolesRepo.save(role);
   }
+  async enable(roleId: string): Promise<Role> {
+    const role = await this.rolesRepo.findOne({
+      where: { id: roleId },
+    });
+    if (!role) {
+      throw new NotFoundException("Role not found");
+    }
+    if (role.isSystem) {
+      throw new BadRequestException("System roles cannot be modified");
+    }
+    if (role.isActive) {
+      throw new BadRequestException("Only inactive roles can be enabled");
+    }
+    role.isActive = true;
+    return this.rolesRepo.save(role);
+  }
   async disable(roleId: string): Promise<Role> {
     const role = await this.rolesRepo.findOne({
       where: { id: roleId },
