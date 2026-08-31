@@ -14,6 +14,8 @@ import { RequirePermissions } from "src/common/auth/permissions.decorator";
 import { Permission } from "src/common/auth/permission";
 import { CreateRoleDto } from "./dto/create-role.dto";
 import { UpdateRoleDto } from "./dto/update-role.dto";
+import { CurrentUser } from "src/common/decorators/current-user.decorator";
+import { User } from "src/entities/user.entity";
 
 @Controller("api/roles")
 @UseGuards(JwtAuthGuard, PermissionsGuard)
@@ -86,8 +88,8 @@ export class RolesController {
   }
   @Patch(":id/disable")
   @RequirePermissions(Permission.ROLES_MANAGE)
-  async disable(@Param("id") id: string) {
-    const role = await this.rolesService.disable(id);
+  async disable(@Param("id") id: string, @CurrentUser() actor: User) {
+    const role = await this.rolesService.disable(id, actor.role!.id);
 
     return {
       id: role.id,

@@ -84,10 +84,13 @@ export class RolesService {
     role.isActive = true;
     return this.rolesRepo.save(role);
   }
-  async disable(roleId: string): Promise<Role> {
+  async disable(roleId: string, actorRoleId: string): Promise<Role> {
     const role = await this.rolesRepo.findOne({
       where: { id: roleId },
     });
+    if (roleId === actorRoleId) {
+      throw new BadRequestException("You cannot disable your own role");
+    }
     if (!role) {
       throw new NotFoundException("Role not found");
     }

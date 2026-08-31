@@ -171,9 +171,11 @@ export class UsersService {
     if (!role) {
       throw new NotFoundException("Role not found");
     }
-
+    if (!role.isActive) {
+      throw new BadRequestException("An inactive role cannot be assigned");
+    }
     user.status = UserStatus.ACTIVE;
-    user.roleId = roleId;
+    user.roleId = role.id;
     user.approvedByUserId = approverId;
     user.approvedAt = new Date();
     user.rejectionReason = null;
