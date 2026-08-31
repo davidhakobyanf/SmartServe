@@ -2,11 +2,13 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Role } from "src/entities/role.entity";
 import { Repository } from "typeorm";
 import { CreateRoleDto } from "./dto/create-role.dto";
+import { UpdateRoleDto } from "./dto/update-role.dto";
 
 @Injectable()
 export class RolesService {
@@ -39,7 +41,50 @@ export class RolesService {
 
     return this.rolesRepo.save(role);
   }
-  
+  async update(roleId: string, dto: UpdateRoleDto): Promise<Role> {
+    const role = await this.rolesRepo.findOne({
+      where: { id: roleId },
+    });
+    if (!role) {
+      throw new NotFoundException("Role not found");
+    }
+    if (role.isSystem) {
+      throw new BadRequestException("System roles cannot be modified");
+    }
+    if (dto.name === undefined && dto.permissions === undefined) {
+      throw new BadRequestException("At least one field must be provided");
+    }
+    if (dto.name !== undefined) {
+      const name = dto.name.trim();
+
+      if (!name) {
+        throw new BadRequestException("Role name cannot be empty");
+      }
+
+      role.name = name;
+    }
+    if (dto.permissions !== undefined) {
+      role.permissions = [...dto.permissions];
+    }
+    return this.rolesRepo.save(role);
+  }
+  async disable(roleId: string): Promise<Role> {
+    const role = await this.rolesRepo.findOne({
+      where: { id: roleId },
+    });
+    if (!role) {
+      throw new NotFoundException("Role not found");
+    }
+    if (role.isSystem) {
+      throw new BadRequestException("System roles cannot be disabled");
+    }
+    if (!role.isActive) {
+      throw new BadRequestException("Only active roles can be disabled");
+    }
+    role.isActive = false;
+
+    return this.rolesRepo.save(role);
+  }
   async findAll(): Promise<Role[]> {
     return this.rolesRepo.find({
       order: {
