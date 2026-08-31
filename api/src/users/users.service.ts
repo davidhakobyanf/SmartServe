@@ -181,8 +181,8 @@ export class UsersService {
     return this.usersRepo.save(user);
   }
 
-  async reject(userId: string,reason: string): Promise<User> {
-    const user = await this.usersRepo.findOne({ where: {id: userId }});
+  async reject(userId: string, reason: string): Promise<User> {
+    const user = await this.usersRepo.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException("User not found");
     }
@@ -193,6 +193,72 @@ export class UsersService {
     user.rejectionReason = reason;
     user.approvedByUserId = null;
     user.approvedAt = null;
+
+    return this.usersRepo.save(user);
+  }
+
+  async disable(userId: string, actorId: string): Promise<User> {
+    if (userId === actorId) {
+      throw new BadRequestException("You cannot disable your own account");
+    }
+
+    const user = await this.usersRepo.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    if (user.status !== UserStatus.ACTIVE) {
+      throw new BadRequestException("Only active users can be disabled");
+    }
+
+    const ownerRole = await this.rolesRepo.findOne({
+      where: { code: "owner" },
+    });
+
+    if (ownerRole && user.roleId === ownerRole.id) {
+      const activeOwnersCount = await this.usersRepo.count({
+        where: {
+          roleId: ownerRole.id,
+          status: UserStatus.ACTIVE,
+        },
+      });
+
+      if (activeOwnersCount <= 1) {
+        throw new BadRequestException(
+          "The last active owner cannot be disabled",
+        );
+      }
+    }
+
+    user.status = UserStatus.DISABLED;
+
+    return this.usersRepo.save(user);
+  }
+
+  async enable(userId: string): Promise<User> {
+    const user = await this.usersRepo.findOne({
+      where: { id: userId },
+      relations: {role: true }
+    });
+
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    if (user.status !== UserStatus.DISABLED) {
+      throw new BadRequestException("Only disabled users can be enabled");
+    }
+
+    if (!user.role || !user.role.isActive) {
+      throw new BadRequestException(
+        "An active role must be assigned before enabling the user",
+      );
+    }
+
+    user.status = UserStatus.ACTIVE;
 
     return this.usersRepo.save(user);
   }

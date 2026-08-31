@@ -52,16 +52,35 @@ export class UsersManagementController {
 
   @Patch(":id/reject")
   @RequirePermissions(Permission.USERS_APPROVE)
-  async reject(
-    @Param("id") id: string,
-    @Body() dto: RejectUserDto,
-  ) {
+  async reject(@Param("id") id: string, @Body() dto: RejectUserDto) {
     const user = await this.usersService.reject(id, dto.reason);
     return {
       id: user.id,
       email: user.email,
       status: user.status,
       rejectionReason: user.rejectionReason,
+    };
+  }
+
+  @Patch(":id/disable")
+  @RequirePermissions(Permission.USERS_MANAGE)
+  async disable(@Param("id") id: string, @CurrentUser() actor: User) {
+    const user = await this.usersService.disable(id, actor.id);
+    return {
+      id: user.id,
+      email: user.email,
+      status: user.status,
+    };
+  }
+
+  @Patch(":id/enable")
+  @RequirePermissions(Permission.USERS_MANAGE)
+  async enable(@Param("id") id: string) {
+    const user = await this.usersService.enable(id);
+    return {
+      id: user.id,
+      email: user.email,
+      status: user.status,
     };
   }
 }
