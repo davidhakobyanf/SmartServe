@@ -9,6 +9,7 @@ import { CurrentUser } from "src/common/decorators/current-user.decorator";
 import { User } from "src/entities/user.entity";
 import { RejectUserDto } from "./dto/reject-user.dto";
 import { ChangeUserRoleDto } from "./dto/change-user-role.dto";
+import { UpdateUserPermissionsDto } from "./dto/update-user-permissions.dto";
 @Controller("api/users")
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 export class UsersManagementController {
@@ -104,6 +105,29 @@ export class UsersManagementController {
             code: user.role.code,
           }
         : null,
+    };
+  }
+
+  @Patch(":id/permissions")
+  @RequirePermissions(Permission.USERS_MANAGE)
+  async updatePermissions(
+    @Param("id") id: string,
+    @Body() dto: UpdateUserPermissionsDto,
+    @CurrentUser() actor: User,
+  ) {
+    const user = await this.usersService.updatePermissions(
+      id,
+      dto.permissionAllow,
+      dto.permissionDeny,
+      actor.id,
+    );
+    return {
+      id: user.id,
+      email: user.email,
+      status: user.status,
+      permissionAllow: user.permissionAllow,
+      permissionDeny: user.permissionDeny,
+      effectivePermissions: this.usersService.getEffectivePermissions(user),
     };
   }
 }

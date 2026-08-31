@@ -327,6 +327,57 @@ export class UsersService {
     return this.usersRepo.save(user);
   }
 
+  async updatePermissions(
+    userId: string,
+    permissionAllow: Permission[],
+    permissionDeny: Permission[],
+    actorId: string,
+  ): Promise<User> {
+    if (userId === actorId) {
+      throw new BadRequestException("You cannot change your own permissions");
+    }
+
+    const user = await this.usersRepo.findOne({
+      where: { id: userId },
+      relations: { role: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    if (
+      user.status !== UserStatus.ACTIVE &&
+      user.status !== UserStatus.DISABLED
+    ) {
+      throw new BadRequestException(
+        "Only active or disabled users can have their permissions changed",
+      );
+    }
+
+    if (user.role?.code === "owner") {
+      throw new BadRequestException("Owner permissions cannot be overridden");
+    }
+
+    const deniedPermissions = new Set(permissionDeny);
+
+    const conflictingPermissions = permissionAllow.filter((permission) =>
+      deniedPermissions.has(permission),
+    );
+
+    if (conflictingPermissions.length > 0) {
+      throw new BadRequestException({
+        message: "A permission cannot be both allowed and denied",
+        conflictingPermissions,
+      });
+    }
+
+    user.permissionAllow = [...permissionAllow];
+    user.permissionDeny = [...permissionDeny];
+
+    return this.usersRepo.save(user);
+  }
+
   getEffectivePermissions(user: User): Permission[] {
     const effectivePermissions = new Set<Permission>([
       ...(user.role?.permissions ?? []),
