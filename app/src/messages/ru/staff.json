@@ -1,0 +1,19 @@
+{
+  "title": "Сотрудники и роли",
+  "subtitle": "Обрабатывайте заявки, управляйте доступом и настраивайте роли ресторана.",
+  "tabs": { "users": "Сотрудники", "roles": "Роли" },
+  "stats": { "total": "Всего сотрудников", "pending": "Ожидают решения", "active": "Активные", "roles": "Роли" },
+  "search": { "users": "Поиск сотрудников...", "roles": "Поиск ролей..." },
+  "columns": { "employee": "Сотрудник", "status": "Статус", "role": "Роль", "registered": "Регистрация", "actions": "Действия", "code": "Код", "permissions": "Разрешения" },
+  "statuses": { "pending": "Ожидает", "active": "Активен", "rejected": "Отклонён", "disabled": "Отключён" },
+  "actions": { "refresh": "Обновить", "createRole": "Новая роль", "approve": "Одобрить", "reject": "Отклонить", "role": "Сменить роль", "permissions": "Разрешения", "disable": "Отключить", "enable": "Включить", "edit": "Изменить" },
+  "common": { "confirm": "Подтвердить", "cancel": "Отмена", "save": "Сохранить", "create": "Создать" },
+  "confirm": { "disableUser": "Отключить доступ этому сотруднику?", "disableRole": "Отключить эту роль для всех назначенных сотрудников?" },
+  "messages": { "loadError": "Не удалось загрузить сотрудников", "actionError": "Не удалось выполнить действие", "approved": "Заявка одобрена", "roleChanged": "Роль сотрудника изменена", "rejected": "Заявка отклонена", "permissionsUpdated": "Разрешения обновлены", "roleUpdated": "Роль обновлена", "roleCreated": "Роль создана", "userDisabled": "Сотрудник отключён", "userEnabled": "Сотрудник включён", "roleDisabled": "Роль отключена", "roleEnabled": "Роль включена" },
+  "empty": { "users": "Сотрудники не найдены", "roles": "Роли не найдены" },
+  "modals": { "approveTitle": "Одобрить заявку", "changeRoleTitle": "Изменить роль сотрудника", "roleLabel": "Роль", "rolePlaceholder": "Выберите роль", "rejectTitle": "Отклонить заявку", "reasonLabel": "Причина", "reasonPlaceholder": "Укажите причину отклонения заявки", "permissionsTitle": "Индивидуальные разрешения", "permissionsHint": "Allow добавляет разрешения к роли. Deny удаляет разрешения, полученные от роли.", "allowLabel": "Дополнительные разрешения", "denyLabel": "Запрещённые разрешения", "permissionsPlaceholder": "Выберите разрешения", "createRoleTitle": "Создать роль", "editRoleTitle": "Изменить роль", "nameLabel": "Название", "namePlaceholder": "Менеджер ресторана", "codeLabel": "Системный код", "codePlaceholder": "restaurant_manager", "rolePermissionsLabel": "Разрешения роли" },
+  "validation": { "role": "Выберите роль", "reason": "Введите не менее 3 символов", "name": "Введите не менее 2 символов", "code": "Введите системный код", "codePattern": "Используйте строчные буквы, цифры и подчёркивания" },
+  "noRole": "Без роли",
+  "system": "Системная",
+  "permissionCount": "{count, plural, =0 {Нет разрешений} one {# разрешение} few {# разрешения} many {# разрешений} other {# разрешения}}"
+}

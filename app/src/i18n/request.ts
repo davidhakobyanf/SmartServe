@@ -19,6 +19,7 @@ const namespaces = [
   'waiter',
   'menuModal',
   'client',
+  'staff',
 ] as const;
 
 export default getRequestConfig(async ({ requestLocale }) => {

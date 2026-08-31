@@ -15,11 +15,21 @@ export function setSessionToken(token: string | null): void {
 }
 
 instance.interceptors.request.use((config) => {
+  if (typeof window !== 'undefined') {
+    const accessToken = localStorage.getItem('accessToken');
+
+    if (accessToken) {
+      config.headers.set('Authorization', `Bearer ${accessToken}`);
+    }
+  }
+
   if (sessionToken) {
     config.headers.set('x-session-token', sessionToken);
   }
   return config;
 });
+
+export const apiClient = instance;
 
 
 type BasketPayload = MenuCard & { table: string | number; count: number };

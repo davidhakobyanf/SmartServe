@@ -27,6 +27,11 @@ export class UsersManagementController {
       email: user.email,
       status: user.status,
       createdAt: user.createdAt,
+      approvedAt: user.approvedAt,
+      rejectionReason: user.rejectionReason,
+      lastLoginAt: user.lastLoginAt,
+      permissionAllow: user.permissionAllow,
+      permissionDeny: user.permissionDeny,
       role: user.role
         ? { id: user.role.id, name: user.role.name, code: user.role.code }
         : null,

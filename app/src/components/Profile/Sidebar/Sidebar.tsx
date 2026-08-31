@@ -12,6 +12,7 @@ import {
   TbSettings,
   TbLogout,
   TbChefHat,
+  TbUsers,
 } from 'react-icons/tb';
 import type { IconType } from 'react-icons';
 import { useProfileData } from '@/context/ProfileDataContext';
@@ -33,6 +34,7 @@ const NAV: NavItem[] = [
   { href: '/profile/orders', labelKey: 'orders', icon: TbShoppingBag, badge: 'orders' },
   { href: '/profile/tables', labelKey: 'tables', icon: TbTable },
   { href: '/profile/waiter', labelKey: 'waiter', icon: TbBell, badge: 'waiter' },
+  { href: '/profile/staff', labelKey: 'staff', icon: TbUsers },
   { href: '/profile/account', labelKey: 'profile', icon: TbUser },
   { href: '/profile/settings', labelKey: 'settings', icon: TbSettings },
 ];

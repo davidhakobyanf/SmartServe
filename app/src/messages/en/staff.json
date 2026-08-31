@@ -1,0 +1,19 @@
+{
+  "title": "Staff & roles",
+  "subtitle": "Review applications, manage access and configure restaurant roles.",
+  "tabs": { "users": "Employees", "roles": "Roles" },
+  "stats": { "total": "Total employees", "pending": "Pending", "active": "Active", "roles": "Roles" },
+  "search": { "users": "Search employees...", "roles": "Search roles..." },
+  "columns": { "employee": "Employee", "status": "Status", "role": "Role", "registered": "Registered", "actions": "Actions", "code": "Code", "permissions": "Permissions" },
+  "statuses": { "pending": "Pending", "active": "Active", "rejected": "Rejected", "disabled": "Disabled" },
+  "actions": { "refresh": "Refresh", "createRole": "New role", "approve": "Approve", "reject": "Reject", "role": "Change role", "permissions": "Permissions", "disable": "Disable", "enable": "Enable", "edit": "Edit" },
+  "common": { "confirm": "Confirm", "cancel": "Cancel", "save": "Save", "create": "Create" },
+  "confirm": { "disableUser": "Disable access for this employee?", "disableRole": "Disable this role for all assigned employees?" },
+  "messages": { "loadError": "Could not load staff data", "actionError": "The action could not be completed", "approved": "Application approved", "roleChanged": "Employee role updated", "rejected": "Application rejected", "permissionsUpdated": "Permissions updated", "roleUpdated": "Role updated", "roleCreated": "Role created", "userDisabled": "Employee disabled", "userEnabled": "Employee enabled", "roleDisabled": "Role disabled", "roleEnabled": "Role enabled" },
+  "empty": { "users": "No employees found", "roles": "No roles found" },
+  "modals": { "approveTitle": "Approve application", "changeRoleTitle": "Change employee role", "roleLabel": "Role", "rolePlaceholder": "Select a role", "rejectTitle": "Reject application", "reasonLabel": "Reason", "reasonPlaceholder": "Explain why the application is rejected", "permissionsTitle": "Individual permissions", "permissionsHint": "Allow adds permissions on top of the role. Deny removes permissions granted by the role.", "allowLabel": "Additional permissions", "denyLabel": "Denied permissions", "permissionsPlaceholder": "Select permissions", "createRoleTitle": "Create role", "editRoleTitle": "Edit role", "nameLabel": "Name", "namePlaceholder": "Restaurant manager", "codeLabel": "System code", "codePlaceholder": "restaurant_manager", "rolePermissionsLabel": "Role permissions" },
+  "validation": { "role": "Select a role", "reason": "Enter at least 3 characters", "name": "Enter at least 2 characters", "code": "Enter a system code", "codePattern": "Use lowercase letters, numbers and underscores" },
+  "noRole": "No role",
+  "system": "System",
+  "permissionCount": "{count, plural, =0 {No permissions} one {# permission} other {# permissions}}"
+}

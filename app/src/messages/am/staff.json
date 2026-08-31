@@ -1,0 +1,19 @@
+{
+  "title": "Աշխատակիցներ և դերեր",
+  "subtitle": "Դիտարկեք հայտերը, կառավարեք հասանելիությունը և կարգավորեք ռեստորանի դերերը։",
+  "tabs": { "users": "Աշխատակիցներ", "roles": "Դերեր" },
+  "stats": { "total": "Բոլոր աշխատակիցները", "pending": "Սպասող", "active": "Ակտիվ", "roles": "Դերեր" },
+  "search": { "users": "Որոնել աշխատակից...", "roles": "Որոնել դեր..." },
+  "columns": { "employee": "Աշխատակից", "status": "Կարգավիճակ", "role": "Դեր", "registered": "Գրանցվել է", "actions": "Գործողություններ", "code": "Կոդ", "permissions": "Թույլտվություններ" },
+  "statuses": { "pending": "Սպասում է", "active": "Ակտիվ", "rejected": "Մերժված", "disabled": "Անջատված" },
+  "actions": { "refresh": "Թարմացնել", "createRole": "Նոր դեր", "approve": "Հաստատել", "reject": "Մերժել", "role": "Փոխել դերը", "permissions": "Թույլտվություններ", "disable": "Անջատել", "enable": "Միացնել", "edit": "Խմբագրել" },
+  "common": { "confirm": "Հաստատել", "cancel": "Չեղարկել", "save": "Պահպանել", "create": "Ստեղծել" },
+  "confirm": { "disableUser": "Անջատե՞լ այս աշխատակցի հասանելիությունը։", "disableRole": "Անջատե՞լ այս դերը բոլոր նշանակված աշխատակիցների համար։" },
+  "messages": { "loadError": "Չհաջողվեց բեռնել աշխատակիցների տվյալները", "actionError": "Չհաջողվեց կատարել գործողությունը", "approved": "Հայտը հաստատված է", "roleChanged": "Աշխատակցի դերը փոխված է", "rejected": "Հայտը մերժված է", "permissionsUpdated": "Թույլտվությունները թարմացված են", "roleUpdated": "Դերը թարմացված է", "roleCreated": "Դերը ստեղծված է", "userDisabled": "Աշխատակիցն անջատված է", "userEnabled": "Աշխատակիցը միացված է", "roleDisabled": "Դերն անջատված է", "roleEnabled": "Դերը միացված է" },
+  "empty": { "users": "Աշխատակիցներ չեն գտնվել", "roles": "Դերեր չեն գտնվել" },
+  "modals": { "approveTitle": "Հաստատել հայտը", "changeRoleTitle": "Փոխել աշխատակցի դերը", "roleLabel": "Դեր", "rolePlaceholder": "Ընտրեք դեր", "rejectTitle": "Մերժել հայտը", "reasonLabel": "Պատճառ", "reasonPlaceholder": "Նշեք հայտի մերժման պատճառը", "permissionsTitle": "Անհատական թույլտվություններ", "permissionsHint": "Allow-ը դերին ավելացնում է թույլտվություններ։ Deny-ը հեռացնում է դերից ստացված թույլտվությունները։", "allowLabel": "Լրացուցիչ թույլտվություններ", "denyLabel": "Արգելված թույլտվություններ", "permissionsPlaceholder": "Ընտրեք թույլտվություններ", "createRoleTitle": "Ստեղծել դեր", "editRoleTitle": "Խմբագրել դերը", "nameLabel": "Անվանում", "namePlaceholder": "Ռեստորանի մենեջեր", "codeLabel": "Համակարգային կոդ", "codePlaceholder": "restaurant_manager", "rolePermissionsLabel": "Դերի թույլտվություններ" },
+  "validation": { "role": "Ընտրեք դեր", "reason": "Մուտքագրեք առնվազն 3 նիշ", "name": "Մուտքագրեք առնվազն 2 նիշ", "code": "Մուտքագրեք համակարգային կոդ", "codePattern": "Օգտագործեք փոքրատառեր, թվեր և ընդգծումներ" },
+  "noRole": "Առանց դերի",
+  "system": "Համակարգային",
+  "permissionCount": "{count, plural, =0 {Թույլտվություն չկա} one {# թույլտվություն} other {# թույլտվություն}}"
+}
