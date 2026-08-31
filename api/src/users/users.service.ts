@@ -241,7 +241,7 @@ export class UsersService {
   async enable(userId: string): Promise<User> {
     const user = await this.usersRepo.findOne({
       where: { id: userId },
-      relations: {role: true }
+      relations: { role: true },
     });
 
     if (!user) {
@@ -259,6 +259,70 @@ export class UsersService {
     }
 
     user.status = UserStatus.ACTIVE;
+
+    return this.usersRepo.save(user);
+  }
+
+  async changeRole(
+    userId: string,
+    roleId: string,
+    actorId: string,
+  ): Promise<User> {
+    if (userId === actorId) {
+      throw new BadRequestException("You cannot change your own role");
+    }
+    const user = await this.usersRepo.findOne({
+      where: { id: userId },
+      relations: { role: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    if (
+      user.status !== UserStatus.ACTIVE &&
+      user.status !== UserStatus.DISABLED
+    ) {
+      throw new BadRequestException(
+        "Only active or disabled users can have their role changed",
+      );
+    }
+
+    const newRole = await this.rolesRepo.findOne({
+      where: { id: roleId },
+    });
+
+    if (!newRole) {
+      throw new NotFoundException("Role not found");
+    }
+    if (!newRole.isActive) {
+      throw new BadRequestException("An inactive role cannot be assigned");
+    }
+    if (user.roleId === newRole.id) {
+      throw new BadRequestException("The user already has this role");
+    }
+
+    if (
+      user.status === UserStatus.ACTIVE &&
+      user.role?.code === "owner" &&
+      newRole.code !== "owner"
+    ) {
+      const activeOwnersCount = await this.usersRepo.count({
+        where: {
+          roleId: user.role.id,
+          status: UserStatus.ACTIVE,
+        },
+      });
+      if (activeOwnersCount <= 1) {
+        throw new BadRequestException(
+          "The last active owner cannot lose the owner role",
+        );
+      }
+    }
+
+    user.roleId = newRole.id;
+    user.role = newRole;
 
     return this.usersRepo.save(user);
   }

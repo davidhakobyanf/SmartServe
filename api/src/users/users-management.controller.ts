@@ -8,7 +8,7 @@ import { ApproveUserDto } from "./dto/approve-user.dto";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";
 import { User } from "src/entities/user.entity";
 import { RejectUserDto } from "./dto/reject-user.dto";
-
+import { ChangeUserRoleDto } from "./dto/change-user-role.dto";
 @Controller("api/users")
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 export class UsersManagementController {
@@ -81,6 +81,29 @@ export class UsersManagementController {
       id: user.id,
       email: user.email,
       status: user.status,
+    };
+  }
+
+  @Patch(":id/role")
+  @RequirePermissions(Permission.USERS_MANAGE)
+  async changeRole(
+    @Param("id") id: string,
+    @Body() dto: ChangeUserRoleDto,
+    @CurrentUser() actor: User,
+  ) {
+    const user = await this.usersService.changeRole(id, dto.roleId, actor.id);
+    return {
+      id: user.id,
+      email: user.email,
+      status: user.status,
+      roleId: user.roleId,
+      role: user.role
+        ? {
+            id: user.role.id,
+            name: user.role.name,
+            code: user.role.code,
+          }
+        : null,
     };
   }
 }
