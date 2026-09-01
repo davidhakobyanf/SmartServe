@@ -7,6 +7,7 @@ import {
   Patch,
   UseGuards,
   Req,
+  ParseUUIDPipe,
 } from "@nestjs/common";
 import { SessionsService } from "./sessions.service";
 import { OpenSessionDto } from "./dto/open-session.dto";
@@ -44,7 +45,7 @@ export class SessionsController {
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @RequirePermissions(Permission.TABLES_MANAGE)
   @Patch(":id/close")
-  close(@Param("id") id: string) {
+  close(@Param("id", new ParseUUIDPipe()) id: string) {
     return this.sessionService.close(id);
   }
 }
