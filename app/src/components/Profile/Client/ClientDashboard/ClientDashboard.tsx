@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { message, Input, Select, ConfigProvider } from 'antd';
+import { App, Input, Select, ConfigProvider } from 'antd';
 import {
   TbUser,
   TbBell,
@@ -33,6 +33,7 @@ import ClientCardModal from '../ClientCardModal/ClientCardModal';
 import { loadMenuImages } from '@/lib/menuImages';
 import { normalizeMenuCard } from '@/lib/normalizeMenuCard';
 import type { MenuCard, MenuImage } from '@/types';
+import type { DiningSession } from '@/types/tables';
 import { useWaiterClient } from '@/hooks/useWaiterClient';
 import { useSessionLock } from '@/hooks/useSessionLock';
 import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
@@ -63,9 +64,13 @@ const fmt = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
 export default function ClientDashboard() {
   const t = useTranslations('client');
+  const { message } = App.useApp();
   const params = useParams();
-  const clientId = params?.clientId as string;
-  const { closed } = useSessionLock(clientId ?? null);
+  const sessionId = params?.clientId as string;
+  const { closed } = useSessionLock(sessionId ?? null);
+  const [session, setSession] = useState<DiningSession | null>(null);
+  const [sessionUnavailable, setSessionUnavailable] = useState(false);
+  const [sessionLoading, setSessionLoading] = useState(true);
 
   const SORT_OPTIONS = useMemo(
     () => [
@@ -78,11 +83,24 @@ export default function ClientDashboard() {
   );
 
   useEffect(() => {
-    setSessionToken(clientId ?? null);
+    setSessionToken(sessionId ?? null);
+    setSession(null);
+    setSessionUnavailable(false);
+    setSessionLoading(true);
+    if (sessionId) {
+      clientAPI
+        .getCurrentSession(sessionId)
+        .then(({ data }) => setSession(data))
+        .catch(() => setSessionUnavailable(true))
+        .finally(() => setSessionLoading(false));
+    } else {
+      setSessionUnavailable(true);
+      setSessionLoading(false);
+    }
     return () => setSessionToken(null);
-  }, [clientId]);
+  }, [sessionId]);
 
-  const { callWaiter } = useWaiterClient(clientId);
+  const { callWaiter } = useWaiterClient(sessionId);
   const { profileDataList } = useProfileData();
 
   const [images, setImages] = useState<MenuImage[]>([]);
@@ -114,7 +132,7 @@ export default function ClientDashboard() {
   useEffect(() => {
     void fetchBasket();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clientId]);
+  }, [sessionId]);
 
   // refresh basket whenever the detail modal closes (it may have added an item)
   useEffect(() => {
@@ -126,7 +144,7 @@ export default function ClientDashboard() {
     const result = await callWaiter();
     if (result.ok) message.success(t('dashboard.waiterCalled'));
     else message.error(t('dashboard.waiterFailed'));
-  }, [callWaiter, t]);
+  }, [callWaiter, message, t]);
 
   const cards = useMemo(() => {
     let list = [...(profileDataList.card ?? [])];
@@ -190,7 +208,6 @@ export default function ClientDashboard() {
       await clientAPI.createBasket({
         ...item,
         sauces: [],
-        table: clientId,
         count: 1,
       });
       await fetchBasket();
@@ -215,7 +232,7 @@ export default function ClientDashboard() {
 
   const removeItem = async (item: MenuCard) => {
     try {
-      await clientAPI.deleteBasket(item.id, clientId, item.sauces ?? []);
+      await clientAPI.deleteBasket(item.id, item.sauces ?? []);
       await fetchBasket();
     } catch {
       message.error(t('dashboard.deleteFailed'));
@@ -240,7 +257,7 @@ export default function ClientDashboard() {
     }));
     const allPrice = items.reduce((t, it) => t + it.price, 0);
     try {
-      await clientAPI.createOrder({ items, allPrice, table: clientId });
+      await clientAPI.createOrder({ items, allPrice });
       await clientAPI.clearMine();
       setBasket([]);
       setCartOpen(false);
@@ -250,7 +267,11 @@ export default function ClientDashboard() {
     }
   });
 
-  if (closed) {
+  if (sessionLoading) {
+    return <div className={css.closed}>{t('qr.opening')}</div>;
+  }
+
+  if (closed || sessionUnavailable || session?.status === 'closed') {
     setSessionToken(null);
     return (
       <div className={css.closed}>
@@ -272,7 +293,7 @@ export default function ClientDashboard() {
         <header className={css.topbar}>
           <div className={css.tableChip}>
             <TbUser />
-            <span>{t('dashboard.tableChip', { table: clientId })}</span>
+            <span>{t('dashboard.tableChip', { table: session?.table.number ?? '…' })}</span>
           </div>
           <LanguageSwitcher size="small" />
           <button
@@ -553,7 +574,6 @@ export default function ClientDashboard() {
       </div>
 
       <ClientCardModal
-        clientId={clientId}
         cardModalOpen={cardModalOpen}
         setCardModalOpen={setCardModalOpen}
         index={selectedIndex}

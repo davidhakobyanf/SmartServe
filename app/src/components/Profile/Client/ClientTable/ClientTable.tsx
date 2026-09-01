@@ -1,17 +1,11 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useRouter } from '@/i18n/navigation';
-import { TbToolsKitchen2, TbArrowRight } from 'react-icons/tb';
+import { TbToolsKitchen2, TbQrcode } from 'react-icons/tb';
 import css from './ClientTable.module.css';
 
 export default function ClientTable() {
   const t = useTranslations('client');
-  const router = useRouter();
-
-  const handleNavigateToClient = (clientId: number) => {
-    router.push(`/client/${clientId}`);
-  };
 
   return (
     <div className={css.page}>
@@ -25,20 +19,10 @@ export default function ClientTable() {
         </div>
       </div>
 
-      <div className={css.grid}>
-        {[1, 2, 3, 4, 5, 6, 7, 8].map((clientId) => (
-          <button
-            key={clientId}
-            type="button"
-            className={css.tile}
-            onClick={() => handleNavigateToClient(clientId)}
-          >
-            <span className={css.tileNum}>{clientId}</span>
-            <span className={css.tileLabel}>
-              {t('table.tableLabel', { number: clientId })} <TbArrowRight />
-            </span>
-          </button>
-        ))}
+      <div className={css.scanCard}>
+        <span className={css.scanIcon}><TbQrcode /></span>
+        <h2>{t('table.scanTitle')}</h2>
+        <p>{t('table.scanMessage')}</p>
       </div>
     </div>
   );

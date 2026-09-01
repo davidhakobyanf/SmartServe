@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Modal, Spin, Table, Image, message } from 'antd';
+import { App, Modal, Spin, Table, Image } from 'antd';
 import { useFetching } from '@/hoc/fetchingHook';
 import clientAPI from '@/api/api';
 import Quantity from '@/hoc/Quantity/Quantity';
@@ -27,6 +27,7 @@ export default function ClientBasketModal({
   images,
 }: ClientBasketModalProps) {
   const t = useTranslations('client');
+  const { message } = App.useApp();
   const [basketData, setBasketData] = useState<MenuCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [inputWidth, setInputWidth] = useState('100px');
@@ -44,19 +45,19 @@ export default function ClientBasketModal({
   });
 
   const [deleteBasket, deleteBasketLoading] = useFetching(
-    async (id: string, table: string) => {
+    async (id: string) => {
       try {
-        await clientAPI.deleteBasket(id, table);
+        await clientAPI.deleteBasket(id);
       } catch (error) {
         console.error('Error deleting basket item:', error);
       }
     },
   );
 
-  const [deleteAllBasket, deleteAllBasketLoading] = useFetching(async (table: string) => {
+  const [deleteAllBasket, deleteAllBasketLoading] = useFetching(async () => {
     try {
       await clientAPI.clearMine();
-        } catch (error) {
+    } catch (error) {
       console.error('Error clearing basket:', error);
     }
   });
@@ -64,10 +65,9 @@ export default function ClientBasketModal({
   const [fetchAddOrder] = useFetching(async (card: {
     items: MenuCard[];
     allPrice: number;
-    table: string;
   }) => {
     try {
-      await clientAPI.createOrder(card);
+      await clientAPI.createOrder({ items: card.items, allPrice: card.allPrice });
       message.success(t('basket.orderPlaced'));
       await clientAPI.clearMine();
       setBasketData([]);
@@ -128,7 +128,7 @@ export default function ClientBasketModal({
       count: item.count ?? 1,
     }));
     const allPrice = items.reduce((t, item) => t + item.price, 0);
-    void fetchAddOrder({ items, allPrice, table: clientId });
+    void fetchAddOrder({ items, allPrice });
   };
 
   const columns = [
@@ -168,7 +168,7 @@ export default function ClientBasketModal({
             quantity={record.count ?? 1}
             setQuantity={(q) => handleQuantityChange(q, record)}
           />
-          <IconButton onClick={() => void deleteBasket(record.id, clientId)}>
+          <IconButton onClick={() => void deleteBasket(record.id)}>
             <DeleteOutlined style={{ color: 'red' }} />
           </IconButton>
         </div>
@@ -200,7 +200,7 @@ export default function ClientBasketModal({
           <div className={css.all_price}>
             <b>{t('basket.total', { total: totalPrice })}</b>
             <IconButton onClick={handleOrder}>{t('basket.order')}</IconButton>
-            <IconButton onClick={() => void deleteAllBasket(clientId)}>
+            <IconButton onClick={() => void deleteAllBasket()}>
               {t('basket.deleteAll')}
             </IconButton>
           </div>

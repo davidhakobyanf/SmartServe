@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { useTranslations } from 'next-intl';
 import {
+  App,
   Button,
   Empty,
   Form,
@@ -13,7 +14,6 @@ import {
   Select,
   Spin,
   Tag,
-  message,
 } from 'antd';
 import {
   TbEdit,
@@ -76,6 +76,7 @@ function formatDate(value: string | null): string {
 
 export default function StaffManagement() {
   const t = useTranslations('staff');
+  const { message } = App.useApp();
   const [view, setView] = useState<View>('users');
   const [users, setUsers] = useState<StaffUser[]>([]);
   const [roles, setRoles] = useState<StaffRole[]>([]);
@@ -109,7 +110,7 @@ export default function StaffManagement() {
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [message, t]);
 
   useEffect(() => {
     void loadData();

@@ -6,19 +6,19 @@ import { createSocket } from '@/lib/ws/socket';
 
 const NAMESPACE = '/waiter';
 const EVT = { CALL: 'waiter:call' } as const;
-export function useWaiterClient(tableId: string) {
+export function useWaiterClient(sessionId: string) {
    const socketRef = useRef<Socket | null>(null);
 
 
    useEffect(() => {
-    const socket = createSocket(NAMESPACE);
+    const socket = createSocket(NAMESPACE, { sessionToken: sessionId });
     socketRef.current = socket;
     return () => {
       socket.removeAllListeners();
       socket.disconnect();
       socketRef.current = null;
     };
-  }, []);
+  }, [sessionId]);
 
   const callWaiter = useCallback(() => {
     return new Promise<{ ok: boolean }>((resolve) => {
@@ -28,11 +28,11 @@ export function useWaiterClient(tableId: string) {
         return;
       }
 
-      socket.emit(EVT.CALL, { table: tableId }, (response: {ok:boolean}) => {
+      socket.emit(EVT.CALL, {}, (response: {ok:boolean}) => {
         resolve(response ?? { ok: false });
       });
     });
-  }, [tableId]);
+  }, []);
 
   return { callWaiter };
 }

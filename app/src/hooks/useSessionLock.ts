@@ -10,7 +10,7 @@ export function useSessionLock(token: string) {
     
     useEffect(() => {
         if (!token) return;
-        const socket: Socket = createSocket(NAMESPACE);
+        const socket: Socket = createSocket(NAMESPACE, { sessionToken: token });
 
         const join = () => socket.emit(EVT.JOIN, { token });
         if (socket.connected) join();

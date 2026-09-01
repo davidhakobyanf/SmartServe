@@ -104,7 +104,7 @@ export default function AddModal({
             min={0}
             style={{ width: '100%' }}
             placeholder={t('fields.pricePlaceholder')}
-            addonAfter={t('dram')}
+            suffix={t('dram')}
           />
         </Form.Item>
         <Form.Item>

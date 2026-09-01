@@ -1,7 +1,7 @@
 'use client';
 
 import css from './Registration.module.css';
-import { Button, Form, Input, message } from 'antd';
+import { App, Button, Form, Input } from 'antd';
 import { EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
 import { useTranslations } from 'next-intl';
 import type { FormInstance } from 'antd';
@@ -15,6 +15,7 @@ interface RegistrationProps {
 
 export default function Registration({ form, setCheck }: RegistrationProps) {
   const t = useTranslations('auth');
+  const { message } = App.useApp();
   const success = () => message.success(t('register.toast.success'));
   const showError = () => message.error(t('register.toast.error'));
 

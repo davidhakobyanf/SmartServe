@@ -22,28 +22,28 @@ export class BasketController {
   @UseGuards(OpenSessionGuard)
   @Get('mine')
   getMine(@Req() req: RequestWithSession) {
-    const table = String(req.diningSession!.tableNumber);
+    const table = String(req.diningSession!.table.number);
     return this.basketService.getTableBasket(table);
   }
 
   @UseGuards(OpenSessionGuard)
   @Delete('mine')
   clearMine(@Req() req: RequestWithSession) {
-    const table = String(req.diningSession!.tableNumber);
+    const table = String(req.diningSession!.table.number);
     return this.basketService.clearTable(table);
   }
   
   @UseGuards(OpenSessionGuard)
   @Patch()
   addToBasket(@Req() req: RequestWithSession, @Body() dto: AddBasketItemDto) {
-    const table = String(req.diningSession!.tableNumber);
+    const table = String(req.diningSession!.table.number);
     return this.basketService.addItem({ ...dto, table });
   }
 
   @UseGuards(OpenSessionGuard)
   @Delete()
   deleteItem(@Req() req: RequestWithSession, @Body() dto: DeleteBasketItemDto) {
-    const table = String(req.diningSession!.tableNumber);
+    const table = String(req.diningSession!.table.number);
     return this.basketService.deleteItem(table, dto.id, dto.sauces);
   }
 

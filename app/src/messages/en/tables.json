@@ -1,4 +1,14 @@
 {
   "pageTitle": "Tables",
-  "pageSubtitle": "Manage tables and generate client links"
+  "pageSubtitle": "Manage tables, active sessions and permanent QR codes",
+  "stats": { "total": "Total tables", "open": "Occupied", "available": "Available", "inactive": "Inactive" },
+  "columns": { "table": "Table", "status": "Status", "session": "Active session", "qr": "QR code", "actions": "Actions" },
+  "status": { "available": "Available", "occupied": "Open", "inactive": "Inactive" },
+  "actions": { "refresh": "Refresh", "add": "Add table", "addFirst": "Create first table", "edit": "Edit", "showQr": "Show QR", "close": "Close table", "copy": "Copy link", "download": "Download QR" },
+  "form": { "createTitle": "New table", "editTitle": "Edit table", "number": "Table number", "numberRequired": "Enter a table number", "name": "Name or area", "namePlaceholder": "For example: Terrace", "active": "Table is active", "save": "Save", "cancel": "Cancel" },
+  "qr": { "title": "Table {number} QR code", "hint": "This QR is permanent. On scan, the server returns the current open table session or creates a new one." },
+  "closeConfirm": { "title": "Close service for this table?", "description": "Every guest page connected to the current session will be locked.", "confirm": "Close", "cancel": "Cancel" },
+  "messages": { "loadError": "Could not load tables", "created": "Table created", "updated": "Table updated", "saveError": "Could not save table", "closed": "Table session closed", "closeError": "Could not close the session", "copied": "Link copied" },
+  "tableNumber": "Table {number}",
+  "empty": "No tables have been created yet"
 }

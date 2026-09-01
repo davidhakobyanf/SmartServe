@@ -41,6 +41,45 @@
   gap: 18px;
 }
 
+.scanCard {
+  width: min(100%, 460px);
+  min-height: 280px;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+}
+
+.scanIcon {
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  background: var(--primary-100);
+  color: var(--primary);
+  font-size: 38px;
+}
+
+.scanCard h2 {
+  color: var(--text);
+  font-size: 21px;
+}
+
+.scanCard p {
+  max-width: 340px;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
 .tile {
   display: flex;
   flex-direction: column;

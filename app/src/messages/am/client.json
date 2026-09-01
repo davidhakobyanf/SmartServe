@@ -70,7 +70,9 @@
   },
   "table": {
     "subtitle": "Ընտրեք ձեր սեղանը",
-    "tableLabel": "Սեղան {number}"
+    "tableLabel": "Սեղան {number}",
+    "scanTitle": "Սքանավորեք սեղանի QR կոդը",
+    "scanMessage": "Հյուրի էջը բացվում է միայն ձեր սեղանին տեղադրված մշտական QR կոդով։"
   },
   "qr": {
     "opening": "Բացվում է QR...",

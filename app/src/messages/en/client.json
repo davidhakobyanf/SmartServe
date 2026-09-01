@@ -70,7 +70,9 @@
   },
   "table": {
     "subtitle": "Choose your table",
-    "tableLabel": "Table {number}"
+    "tableLabel": "Table {number}",
+    "scanTitle": "Scan your table QR code",
+    "scanMessage": "The guest page can only be opened through the permanent QR code placed on your table."
   },
   "qr": {
     "opening": "Opening QR...",

@@ -12,12 +12,12 @@ export default function TableEntryPage() {
     const [error, setError] = useState(false);
 
     useEffect(() => {
-        const table = Number(params?.table);
-        if (!table) {
+        const tableToken = String(params?.table ?? '').trim();
+        if (!tableToken) {
             setError(true);
             return;
         }
-        DataApi.openSession(table)
+        DataApi.openSession(tableToken)
             .then((res) => router.replace(`/client/${res.data.id}`))
             .catch(() => setError(true));
     }, [params, router]);

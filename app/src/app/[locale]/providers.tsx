@@ -2,7 +2,7 @@
 
 import '@ant-design/v5-patch-for-react-19';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
-import { ConfigProvider } from 'antd';
+import { App as AntdApp, ConfigProvider } from 'antd';
 import type { Locale as AntdLocale } from 'antd/es/locale';
 import enUS from 'antd/locale/en_US';
 import ruRU from 'antd/locale/ru_RU';
@@ -60,9 +60,11 @@ export default function Providers({
   return (
     <AntdRegistry>
       <ConfigProvider theme={theme} locale={antdLocales[locale]}>
-        <DataProvider>
-          <ProfileDataProvider>{children}</ProfileDataProvider>
-        </DataProvider>
+        <AntdApp>
+          <DataProvider>
+            <ProfileDataProvider>{children}</ProfileDataProvider>
+          </DataProvider>
+        </AntdApp>
       </ConfigProvider>
     </AntdRegistry>
   );

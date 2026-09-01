@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Modal, message } from 'antd';
+import { App, Modal } from 'antd';
 import { TbX, TbMinus, TbPlus, TbCheck, TbStar, TbFlame } from 'react-icons/tb';
 import css from './ClientCardModal.module.css';
 import { useFetching } from '@/hoc/fetchingHook';
@@ -14,7 +14,6 @@ const SAUCE_PRICE = 350;
 const fmt = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
 interface ClientCardModalProps {
-  clientId: string;
   setCardModalOpen: (open: boolean) => void;
   cardModalOpen: boolean;
   index: number | null;
@@ -25,7 +24,6 @@ interface ClientCardModalProps {
 }
 
 export default function ClientCardModal({
-  clientId,
   setCardModalOpen,
   cardModalOpen,
   index,
@@ -35,6 +33,7 @@ export default function ClientCardModal({
   editItem = null,
 }: ClientCardModalProps) {
   const t = useTranslations('client');
+  const { message } = App.useApp();
   const [quantity, setQuantity] = useState(1);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
 
@@ -43,7 +42,6 @@ export default function ClientCardModal({
       try {
         await clientAPI.createBasket({
           ...modifiedItem,
-          table: clientId,
           count: quantity,
         });
       } catch (err) {
@@ -93,12 +91,11 @@ export default function ClientCardModal({
     const modifiedItem: MenuCard = {
       ...item,
       sauces: Object.keys(selected).filter((key) => selected[key]),
-      table: clientId,
       count: quantity,
     };
     // Edit mode: drop the original line first, then re-add the updated one.
     if (editItem) {
-      await clientAPI.deleteBasket(editItem.id, clientId, editItem.sauces ?? []);
+      await clientAPI.deleteBasket(editItem.id, editItem.sauces ?? []);
     }
     await fetchAddCard(modifiedItem);
     if (!addCardLoading) {

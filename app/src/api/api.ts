@@ -1,6 +1,7 @@
 import axios, { type AxiosResponse } from 'axios';
 import { API_URL } from '@/lib/apiUrl';
 import type { MenuCard, Profile } from '@/types';
+import type { DiningSession } from '@/types/tables';
 
 const instance = axios.create({
   baseURL: API_URL,
@@ -32,11 +33,10 @@ instance.interceptors.request.use((config) => {
 export const apiClient = instance;
 
 
-type BasketPayload = MenuCard & { table: string | number; count: number };
+type BasketPayload = MenuCard & { count: number };
 type OrderPayload = {
   items: unknown[];
   allPrice: number;
-  table: string | number;
 };
 
 class DataApi {
@@ -138,7 +138,6 @@ class DataApi {
 
   static async deleteBasket(
     id: string,
-    table: string | number,
     sauces?: string[],
   ): Promise<AxiosResponse<unknown>> {
     return instance.request({
@@ -148,7 +147,7 @@ class DataApi {
         Authorization: 'Bearer',
         'Content-Type': 'application/json',
       },
-      data: { id, table, sauces },
+      data: { id, sauces },
     });
   }
 
@@ -173,16 +172,16 @@ class DataApi {
     });
   }
 
-  static async openSession(
-    table: number,
-  ): Promise<AxiosResponse<{ id: string; tableNumber:number; status:string}>> {
-    return instance.post('/api/sessions/open', {table});
+  static async openSession(tableToken: string): Promise<AxiosResponse<DiningSession>> {
+    return instance.post<DiningSession>('/api/sessions/open', { tableToken });
   }
 
-  static async getSession(
-    table: string,
-  ): Promise<AxiosResponse<{id: string; tableNumber: number; status:string}>> {
-    return instance.get(``)
+  static async getCurrentSession(
+    sessionId: string,
+  ): Promise<AxiosResponse<DiningSession>> {
+    return instance.get<DiningSession>('/api/sessions/current', {
+      headers: { 'x-session-token': sessionId },
+    });
   }
 }
 

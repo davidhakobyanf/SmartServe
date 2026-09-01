@@ -1,23 +1,46 @@
-import { Entity, PrimaryGeneratedColumn, Index, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Index,
+  Column,
+  CreateDateColumn,
+  JoinColumn,
+  ManyToOne,
+} from "typeorm";
+import { DiningTable } from "./dining-table.entity";
 
+export type DiningSessionStatus = "open" | "closed";
 
-export type DiningSessionStatus = 'open' | 'closed';
-
-@Entity('dining-sessions')
+@Entity("dining_sessions")
+@Index("uq_open_session_per_table", ["tableId"], {
+  unique: true,
+  where: `"status" = 'open'`,
+})
 export class DiningSession {
-    @PrimaryGeneratedColumn('uuid')
-    id!: string;
+  @PrimaryGeneratedColumn("uuid")
+  id!: string;
 
-    @Index()
-    @Column({ type: 'int' })
-    tableNumber!:number;
+  @Index()
+  @Column({
+    type: "uuid",
+  })
+  tableId!: string;
 
-    @Column({ type: 'varchar', default: 'open'})
-    status!: DiningSessionStatus;
+  @ManyToOne(() => DiningTable, (table) => table.sessions, {
+    nullable: false,
+    onDelete: "RESTRICT",
+  })
+  @JoinColumn({
+    name: "tableId",
+  })
+  table!: DiningTable;
 
-    @CreateDateColumn()
-    createdAt!: Date;
+  @Column({ type: "varchar", default: "open" })
+  status!: DiningSessionStatus;
 
-    @Column({  type: 'timestamptz' , nullable:true})
-    closedAt!: Date | null;
+  @CreateDateColumn()
+  createdAt!: Date;
+
+  @Column({ type: "timestamptz", nullable: true })
+  closedAt!: Date | null;
 }

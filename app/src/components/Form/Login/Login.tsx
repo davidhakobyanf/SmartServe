@@ -1,7 +1,7 @@
 "use client";
 
 import css from "./Login.module.css";
-import { Button, Form, Input, Checkbox, message } from "antd";
+import { App, Button, Form, Input, Checkbox } from "antd";
 import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
@@ -19,6 +19,7 @@ interface LoginProps {
 export default function Login({ form, setCheck }: LoginProps) {
   const t = useTranslations("auth");
   const router = useRouter();
+  const { message } = App.useApp();
 
   const handleLogin = async (values: LoginFormValues) => {
     try {

@@ -1,7 +1,6 @@
-import { IsInt, Min } from "class-validator";
+import { IsUUID } from "class-validator";
 
 export class OpenSessionDto {
-    @IsInt()
-    @Min(1)
-    table!:number;
+  @IsUUID()
+  tableToken!: string;
 }

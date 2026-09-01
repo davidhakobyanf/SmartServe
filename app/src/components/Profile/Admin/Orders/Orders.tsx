@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Input, Popconfirm, message } from 'antd';
+import { App, Input, Popconfirm } from 'antd';
 import {
   TbShoppingBag,
   TbToolsKitchen2,
@@ -38,6 +38,7 @@ const orderId = (o: OrderRecord, i: number) =>
 
 export default function Orders() {
   const t = useTranslations('orders');
+  const { message } = App.useApp();
   const { orders, refreshOrders, markSeen } = useOrders();
   const [search, setSearch] = useState('');
 
