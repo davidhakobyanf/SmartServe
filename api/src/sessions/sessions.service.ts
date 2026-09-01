@@ -2,15 +2,16 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  ServiceUnavailableException,
 } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DiningSession } from "src/entities/dining-session.entity";
-import { Repository } from "typeorm";
+import { Repository, QueryFailedError } from "typeorm";
 import { SessionClosedPayload } from "./session.gateway";
 import { DOMAIN_EVENTS } from "./session.gateway";
 import { DiningTable } from "src/entities/dining-table.entity";
-
+import { randomUUID } from "crypto";
 @Injectable()
 export class SessionsService {
   constructor(
@@ -21,8 +22,25 @@ export class SessionsService {
 
     private readonly events: EventEmitter2,
   ) {}
-   
-  
+
+  private async generateUniqueSessionId(): Promise<string> {
+    let id = randomUUID();
+
+    while (await this.sessionRepo.exists({ where: { id } })) {
+      id = randomUUID();
+    }
+
+    return id;
+  }
+
+  private isUniqueViolation(error: unknown): boolean {
+    if (!(error instanceof QueryFailedError)) {
+      return false;
+    }
+
+    const databaseError = error.driverError as { code?: string };
+    return databaseError.code === "23505";
+  }
 
   async openForTable(tableToken: string): Promise<DiningSession> {
     const table = await this.tablesRepo.findOne({
@@ -49,15 +67,41 @@ export class SessionsService {
     if (existingSession) {
       return existingSession;
     }
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const sessionId = await this.generateUniqueSessionId();
 
-    const session = this.sessionRepo.create({
-      tableId: table.id,
-      table,
-      status: "open",
-      closedAt: null,
-    });
+      const session = this.sessionRepo.create({
+        id: sessionId,
+        tableId: table.id,
+        table,
+        status: "open",
+        closedAt: null,
+      });
 
-    return this.sessionRepo.save(session);
+      try {
+        return await this.sessionRepo.save(session);
+      } catch (error) {
+        const existingSession = await this.sessionRepo.findOne({
+          where: {
+            tableId: table.id,
+            status: "open",
+          },
+          relations: {
+            table: true,
+          },
+        });
+
+        if (existingSession) {
+          return existingSession;
+        }
+
+        if (!this.isUniqueViolation(error)) {
+          throw error;
+        }
+      }
+    }
+
+    throw new ServiceUnavailableException("Could not create dining session");
   }
 
   async getByToken(id: string): Promise<DiningSession> {
