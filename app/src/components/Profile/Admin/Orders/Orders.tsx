@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { App, Input, Popconfirm } from 'antd';
+import { App, Input, Select } from 'antd';
 import {
   TbShoppingBag,
   TbToolsKitchen2,
@@ -10,12 +10,12 @@ import {
   TbCurrencyDram,
   TbSearch,
   TbRefresh,
-  TbTrash,
 } from 'react-icons/tb';
 import { useOrders } from '@/context/OrdersContext';
 import clientAPI from '@/api/api';
 import type { OrderRecord } from '@/types/orders';
 import css from './Orders.module.css';
+import { useProfileData } from '@/context/ProfileDataContext';
 
 function timeAgo(
   t: ReturnType<typeof useTranslations>,
@@ -40,6 +40,9 @@ export default function Orders() {
   const t = useTranslations('orders');
   const { message } = App.useApp();
   const { orders, refreshOrders, markSeen } = useOrders();
+  const { permissions } = useProfileData();
+  const canViewRevenue = permissions.includes('revenue.view');
+  const canManageOrders = permissions.includes('orders.manage');
   const [search, setSearch] = useState('');
 
   // Fetch the latest orders and clear the "new orders" badge on open.
@@ -64,17 +67,22 @@ export default function Orders() {
       0,
     );
     const tables = new Set(orders.map((o) => String(o.table))).size;
-    const revenue = orders.reduce((s, o) => s + (o.allPrice ?? 0), 0);
+    const revenue = orders
+      .filter((order) => order.status === 'completed')
+      .reduce((sum, order) => sum + (order.allPrice ?? 0), 0);
     return { total: orders.length, items, tables, revenue };
   }, [orders]);
 
-  const clearAll = async () => {
+  const changeStatus = async (
+    id: string,
+    status: 'placed' | 'completed' | 'cancelled',
+  ) => {
     try {
-      await clientAPI.deleteAllOrders();
+      await clientAPI.updateOrderStatus(id, status);
       await refreshOrders();
-      message.success(t('clearedSuccess'));
+      message.success('Статус заказа обновлён');
     } catch {
-      message.error(t('clearedError'));
+      message.error('Не удалось обновить статус');
     }
   };
 
@@ -82,12 +90,12 @@ export default function Orders() {
     { label: t('tiles.totalOrders'), value: stats.total, icon: TbShoppingBag, tone: 'primary' },
     { label: t('tiles.totalItems'), value: stats.items, icon: TbToolsKitchen2, tone: 'amber' },
     { label: t('tiles.tablesServed'), value: stats.tables, icon: TbTable, tone: 'green' },
-    {
+    ...(canViewRevenue ? [{
       label: t('tiles.revenue'),
       value: `${stats.revenue.toLocaleString()} ֏`,
       icon: TbCurrencyDram,
       tone: 'violet',
-    },
+    } as const] : []),
   ] as const;
 
   return (
@@ -105,18 +113,6 @@ export default function Orders() {
           >
             <TbRefresh /> {t('refresh')}
           </button>
-          {orders.length > 0 && (
-            <Popconfirm
-              title={t('clearConfirm')}
-              okText={t('confirmYes')}
-              cancelText={t('confirmNo')}
-              onConfirm={() => void clearAll()}
-            >
-              <button type="button" className={css.btnDanger}>
-                <TbTrash /> {t('clearAll')}
-              </button>
-            </Popconfirm>
-          )}
         </div>
       </header>
 
@@ -156,13 +152,15 @@ export default function Orders() {
                 <th>{t('columns.items')}</th>
                 <th>{t('columns.time')}</th>
                 <th>{t('columns.status')}</th>
-                <th className={css.right}>{t('columns.total')}</th>
+                {canViewRevenue && (
+                  <th className={css.right}>{t('columns.total')}</th>
+                )}
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className={css.emptyRow}>
+                  <td colSpan={canViewRevenue ? 6 : 5} className={css.emptyRow}>
                     {t('empty')}
                   </td>
                 </tr>
@@ -176,11 +174,28 @@ export default function Orders() {
                     </td>
                     <td className={css.muted}>{timeAgo(t, o.createdAt)}</td>
                     <td>
-                      <span className={css.badge}>{t('statusPlaced')}</span>
+                      {canManageOrders ? (
+                        <Select
+                          size="small"
+                          value={o.status ?? 'placed'}
+                          onChange={(status) =>
+                            void changeStatus(o._id, status)
+                          }
+                          options={[
+                            { value: 'placed', label: 'Принят' },
+                            { value: 'completed', label: 'Завершён' },
+                            { value: 'cancelled', label: 'Отменён' },
+                          ]}
+                        />
+                      ) : (
+                        o.status ?? 'placed'
+                      )}
                     </td>
-                    <td className={`${css.right} ${css.total}`}>
-                      {o.allPrice} {t('dramShort')}
-                    </td>
+                    {canViewRevenue && (
+                      <td className={`${css.right} ${css.total}`}>
+                        {o.allPrice} {t('dramShort')}
+                      </td>
+                    )}
                   </tr>
                 ))
               )}

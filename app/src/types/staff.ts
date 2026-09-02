@@ -5,6 +5,7 @@ export const PERMISSIONS = [
   'products.manage',
   'orders.view',
   'orders.manage',
+  'revenue.view',
   'tables.view',
   'tables.manage',
   'tables.qr.manage',
@@ -18,6 +19,16 @@ export const PERMISSIONS = [
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
+
+export interface AuthenticatedStaff {
+  id: string;
+  name: string;
+  surname: string;
+  email: string;
+  status: StaffUserStatus;
+  permissions: Permission[];
+  role: StaffRoleSummary;
+}
 export type StaffUserStatus = 'pending' | 'active' | 'rejected' | 'disabled';
 
 export interface StaffRoleSummary {

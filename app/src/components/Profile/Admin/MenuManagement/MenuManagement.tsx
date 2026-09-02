@@ -10,20 +10,24 @@ import { useProfileData } from '@/context/ProfileDataContext';
 import { useData } from '@/context/DataContext';
 import { loadMenuImages } from '@/lib/menuImages';
 import type { MenuCard, MenuImage } from '@/types';
+import type { CategoryRecord } from '@/types/restaurant';
 import AddModal from '../Modal/AddModal';
 import CardModal from '../Modal/CardModal/CardModal';
+import CategoryManagementModal from './CategoryManagementModal';
 import css from './MenuManagement.module.css';
-
-const CATEGORIES = ['all', 'starters', 'mainCourses', 'desserts', 'drinks'];
 
 export default function MenuManagement() {
   const t = useTranslations('menu');
-  const { profileDataList, fetchProfile } = useProfileData();
+  const { profileDataList, fetchProfile, permissions } = useProfileData();
+  const canManageCategories = permissions.includes('categories.manage');
+  const canManageProducts = permissions.includes('products.manage');
   const { setCardActive, cardActive } = useData();
   const [images, setImages] = useState<MenuImage[]>([]);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('newest');
   const [category, setCategory] = useState('all');
+  const [categories, setCategories] = useState<CategoryRecord[]>([]);
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [cardOpen, setCardOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuCard | null>(null);
@@ -38,6 +42,15 @@ export default function MenuManagement() {
     await clientAPI.createCard(formData);
     await fetchProfile({ force: true });
   });
+
+  const loadCategories = async () => {
+    const { data } = await clientAPI.getCategories();
+    setCategories(data ?? []);
+  };
+
+  useEffect(() => {
+    void loadCategories();
+  }, []);
 
   useEffect(() => {
     if (profileDataList.card.length > 0) {
@@ -54,6 +67,9 @@ export default function MenuManagement() {
 
   const cards = useMemo(() => {
     let list = [...(profileDataList.card ?? [])];
+    if (category !== 'all') {
+      list = list.filter((card) => card.categoryId === category);
+    }
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter((c) => c.title.toLowerCase().includes(q));
@@ -70,7 +86,7 @@ export default function MenuManagement() {
         break;
     }
     return list;
-  }, [profileDataList.card, search, sort]);
+  }, [profileDataList.card, category, search, sort]);
 
   const openCard = (item: MenuCard, index: number) => {
     setSelectedItem(item);
@@ -97,28 +113,36 @@ export default function MenuManagement() {
           <p className={css.subtitle}>{t('subtitle')}</p>
         </div>
         <div className={css.headerActions}>
-          <button type="button" className={css.btnGhost}>
-            <TbCategory /> {t('categoriesButton')}
-          </button>
-          <button
-            type="button"
-            className={css.btnPrimary}
-            onClick={() => setAddOpen(true)}
-          >
-            <TbPlus /> {t('addNewItem')}
-          </button>
+          {canManageCategories && (
+            <button
+              type="button"
+              className={css.btnGhost}
+              onClick={() => setCategoriesOpen(true)}
+            >
+              <TbCategory /> {t('categoriesButton')}
+            </button>
+          )}
+          {canManageProducts && (
+            <button
+              type="button"
+              className={css.btnPrimary}
+              onClick={() => setAddOpen(true)}
+            >
+              <TbPlus /> {t('addNewItem')}
+            </button>
+          )}
         </div>
       </header>
 
       <div className={css.tabs}>
-        {CATEGORIES.map((cat) => (
+        {[{ id: 'all', name: t('categories.all') }, ...categories].map((cat) => (
           <button
-            key={cat}
+            key={cat.id}
             type="button"
-            className={`${css.tab} ${category === cat ? css.tabActive : ''}`}
-            onClick={() => setCategory(cat)}
+            className={`${css.tab} ${category === cat.id ? css.tabActive : ''}`}
+            onClick={() => setCategory(cat.id)}
           >
-            {t(`categories.${cat}`)}
+            {cat.name}
           </button>
         ))}
       </div>
@@ -154,7 +178,7 @@ export default function MenuManagement() {
               <article key={item.id} className={css.card}>
                 <div
                   className={css.imgWrap}
-                  onClick={() => openCard(item, index)}
+                  onClick={() => canManageProducts && openCard(item, index)}
                 >
                   {src ? (
                     <img
@@ -171,11 +195,11 @@ export default function MenuManagement() {
                   <div className={css.topRow}>
                     <h3
                       className={css.cardTitle}
-                      onClick={() => openCard(item, index)}
+                      onClick={() => canManageProducts && openCard(item, index)}
                     >
                       {item.title}
                     </h3>
-                    <Dropdown
+                    {canManageProducts && <Dropdown
                       trigger={['click']}
                       menu={{
                         items: [
@@ -197,7 +221,7 @@ export default function MenuManagement() {
                       <button type="button" className={css.dots}>
                         <TbDotsVertical />
                       </button>
-                    </Dropdown>
+                    </Dropdown>}
                   </div>
                   <div className={css.price}>{t('price', { price: item.price })}</div>
                   <p className={css.desc}>{item.description}</p>
@@ -206,7 +230,8 @@ export default function MenuManagement() {
                     className={`${css.tag} ${
                       item.active ? css.tagOn : css.tagOff
                     }`}
-                    onClick={() => toggleActive(item)}
+                    onClick={() => canManageProducts && toggleActive(item)}
+                    disabled={!canManageProducts}
                   >
                     {item.active ? t('available') : t('unavailable')}
                   </button>
@@ -217,19 +242,30 @@ export default function MenuManagement() {
         </div>
       )}
 
-      <AddModal
-        modalOpen={addOpen}
-        setModalOpen={setAddOpen}
-        fetchAddCard={fetchAddCard}
-      />
-      <CardModal
-        cardModalOpen={cardOpen}
-        setCardModalOpen={setCardOpen}
-        index={selectedIndex}
-        item={selectedItem}
-        images={images}
-        fetchProfile={fetchProfile}
-      />
+      {canManageProducts && (
+        <>
+          <AddModal
+            modalOpen={addOpen}
+            setModalOpen={setAddOpen}
+            fetchAddCard={fetchAddCard}
+          />
+          <CardModal
+            cardModalOpen={cardOpen}
+            setCardModalOpen={setCardOpen}
+            index={selectedIndex}
+            item={selectedItem}
+            images={images}
+            fetchProfile={fetchProfile}
+          />
+        </>
+      )}
+      {canManageCategories && (
+        <CategoryManagementModal
+          open={categoriesOpen}
+          onClose={() => setCategoriesOpen(false)}
+          onChanged={() => void loadCategories()}
+        />
+      )}
     </div>
   );
 }

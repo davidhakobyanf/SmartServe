@@ -8,36 +8,58 @@ import {
   useCallback,
   type ReactNode,
 } from 'react';
+import { usePathname } from 'next/navigation';
 import clientAPI from '@/api/api';
 import type { Profile } from '@/types';
-import { createSocket } from '@/lib/ws/socket';
-
-const MENU_NAMESPACE = '/menu';
-const MENU_EVT = { UPDATED: 'menu:updated' } as const;
+import type { Permission } from '@/types/staff';
+import { productToMenuCard } from '@/lib/normalizeMenuCard';
 
 const emptyProfile: Profile = { name: '', surname: '', card: [] };
 
 let profileRequest: Promise<void> | null = null;
 let cachedProfile: Profile | null = null;
+let cachedForAuthenticatedUser = false;
+let cachedPermissions: Permission[] = [];
 
 interface ProfileDataContextValue {
   profileDataList: Profile;
   setProfileDataList: React.Dispatch<React.SetStateAction<Profile>>;
   fetchProfile: (options?: { force?: boolean }) => Promise<void>;
   isLoading: boolean;
+  permissions: Permission[];
 }
 
 const ProfileDataContext = createContext<ProfileDataContextValue | null>(null);
 
 export function ProfileDataProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const [profileDataList, setProfileDataList] = useState<Profile>(emptyProfile);
   const [isLoading, setIsLoading] = useState(true);
+  const [permissions, setPermissions] = useState<Permission[]>([]);
 
   const fetchProfile = useCallback(async (options?: { force?: boolean }) => {
     const force = options?.force ?? false;
+    const hasAccessToken =
+      typeof window !== 'undefined' &&
+      Boolean(localStorage.getItem('accessToken'));
 
-    if (!force && cachedProfile) {
+    if (
+      !force &&
+      cachedProfile &&
+      cachedForAuthenticatedUser === hasAccessToken
+    ) {
       setProfileDataList(cachedProfile);
+      setPermissions(cachedPermissions);
+      setIsLoading(false);
+      return;
+    }
+
+    if (!hasAccessToken) {
+      cachedProfile = emptyProfile;
+      cachedPermissions = [];
+      cachedForAuthenticatedUser = false;
+      setProfileDataList(emptyProfile);
+      setPermissions([]);
       setIsLoading(false);
       return;
     }
@@ -50,13 +72,26 @@ export function ProfileDataProvider({ children }: { children: ReactNode }) {
     profileRequest = (async () => {
       try {
         setIsLoading(true);
-        const { data: res } = await clientAPI.getProfile();
+        const { data: currentUser } = await clientAPI.getMe();
+        const [{ data: res }, productsResponse] = await Promise.all([
+          clientAPI.getProfile(),
+          currentUser.permissions.includes('menu.view')
+            ? clientAPI.getProducts()
+            : Promise.resolve({ data: [] }),
+        ]);
         if (res) {
-          cachedProfile = res;
-          setProfileDataList(res);
+          const cards = productsResponse.data.map(productToMenuCard);
+          const profile = { ...res, card: cards };
+          cachedProfile = profile;
+          cachedPermissions = currentUser.permissions ?? [];
+          cachedForAuthenticatedUser = true;
+          setProfileDataList(profile);
+          setPermissions(cachedPermissions);
         }
       } catch (error) {
         console.error('Error fetching profile:', error);
+        cachedPermissions = [];
+        setPermissions([]);
       } finally {
         setIsLoading(false);
         profileRequest = null;
@@ -67,37 +102,18 @@ export function ProfileDataProvider({ children }: { children: ReactNode }) {
   }, []); 
 
   useEffect(() => {
-    const socket = createSocket(MENU_NAMESPACE);
-
-    socket.on('connect', () => {
-      void fetchProfile({ force: true });
-    });
-
-    socket.on(MENU_EVT.UPDATED, (payload: unknown) => {
-      const profile = payload as Profile;
-      if(!profile?.card) return;
-      cachedProfile = profile;
-      setProfileDataList(profile);
-      setIsLoading(false);
-     });
-
-     socket.on('disconnect', () => {
-
-     });
-
-     return () => {
-      socket.removeAllListeners();
-      socket.disconnect();
-     }
-    },[fetchProfile]);
-
-  useEffect(() => {
     void fetchProfile();
-  }, [fetchProfile]);
+  }, [fetchProfile, pathname]);
 
   return (
     <ProfileDataContext.Provider
-      value={{ profileDataList, setProfileDataList, fetchProfile, isLoading }}
+      value={{
+        profileDataList,
+        setProfileDataList,
+        fetchProfile,
+        isLoading,
+        permissions,
+      }}
     >
       {children}
     </ProfileDataContext.Provider>

@@ -6,4 +6,5 @@ export interface OrderRecord {
   allPrice: number;
   table: string | number;
   createdAt?: string;
+  status?: 'placed' | 'completed' | 'cancelled';
 }

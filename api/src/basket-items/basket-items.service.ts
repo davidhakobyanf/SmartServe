@@ -9,7 +9,7 @@ import { Product } from "src/entities/product.entity";
 import { Repository } from "typeorm";
 import { AddBasketItemDto } from "./dto/add-basket-item.dto";
 import { UpdateBasketItemDto } from "./dto/update-basket-item.dto";
-import { OnEvent } from "@nestjs/event-emitter";
+import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
 import {
   SESSION_DOMAIN_EVENTS,
   SessionClosedPayload,
@@ -23,7 +23,16 @@ export class BasketItemsService {
 
     @InjectRepository(Product)
     private readonly productsRepo: Repository<Product>,
+
+    private readonly events: EventEmitter2,
   ) {}
+
+  private async notifyBasketChanged(sessionId: string): Promise<void> {
+    this.events.emit(SESSION_DOMAIN_EVENTS.BASKET_CHANGED, {
+      sessionId,
+      items: await this.findAll(sessionId),
+    });
+  }
 
   private normalizeSauces(sauces: string[] = []): string[] {
     return [
@@ -96,7 +105,9 @@ export class BasketItemsService {
       }
 
       existingItem.quantity = newQuantity;
-      return this.basketItemsRepo.save(existingItem);
+      const savedItem = await this.basketItemsRepo.save(existingItem);
+      await this.notifyBasketChanged(sessionId);
+      return savedItem;
     }
 
     const item = this.basketItemsRepo.create({
@@ -107,7 +118,9 @@ export class BasketItemsService {
       sauces,
       unitPrice: product.price,
     });
-    return this.basketItemsRepo.save(item);
+    const savedItem = await this.basketItemsRepo.save(item);
+    await this.notifyBasketChanged(sessionId);
+    return savedItem;
   }
 
   async update(
@@ -139,7 +152,9 @@ export class BasketItemsService {
       this.validateSauces(item.product, sauces);
       item.sauces = sauces;
     }
-    return this.basketItemsRepo.save(item);
+    const savedItem = await this.basketItemsRepo.save(item);
+    await this.notifyBasketChanged(sessionId);
+    return savedItem;
   }
 
   async remove(sessionId: string, itemId: string): Promise<{ success: true }> {
@@ -152,10 +167,12 @@ export class BasketItemsService {
       throw new NotFoundException("Basket item not found");
     }
 
+    await this.notifyBasketChanged(sessionId);
     return { success: true };
   }
   async clear(sessionId: string): Promise<{ success: true }> {
     await this.basketItemsRepo.delete({ sessionId });
+    await this.notifyBasketChanged(sessionId);
     return { success: true };
   }
 

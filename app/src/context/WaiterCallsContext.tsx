@@ -3,7 +3,8 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import type { WaiterCall } from "@/types/waiter";
 import { createSocket } from "@/lib/ws/socket";
-import { notification } from "antd";
+import { App } from "antd";
+import { useProfileData } from "@/context/ProfileDataContext";
 
 
 
@@ -18,6 +19,9 @@ interface WaiterCallsContextValue {
 const WaiterCallsContext = createContext<WaiterCallsContextValue | null>(null);
 
 export function WaiterCallsProvider({ children }: { children: ReactNode }) {
+    const { notification } = App.useApp();
+    const { permissions, isLoading } = useProfileData();
+    const canViewCalls = permissions.includes('waiter_calls.view');
     const [calls, setCalls] = useState<WaiterCall[]>([]);
 
     const dismissCall = useCallback((id: string) => {
@@ -29,10 +33,15 @@ export function WaiterCallsProvider({ children }: { children: ReactNode }) {
     },[]);
 
     useEffect(() => {
+        if (isLoading || !canViewCalls) {
+            setCalls([]);
+            return;
+        }
+
         const socket = createSocket(NAMESPACE); 
 
         socket.on('connect', () => {
-            socket.emit(EVT.JOIN, { role: 'admin' });
+            socket.emit(EVT.JOIN);
         });
 
         socket.on(EVT.CALLED, (payload: WaiterCall) => {
@@ -60,7 +69,7 @@ export function WaiterCallsProvider({ children }: { children: ReactNode }) {
             socket.removeAllListeners();
             socket.disconnect();
         };
-    }, []);
+    }, [canViewCalls, isLoading, notification]);
 
     return (
         <WaiterCallsContext.Provider value={{ calls, dismissCall, clearAll }}>

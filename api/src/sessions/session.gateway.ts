@@ -9,6 +9,7 @@ import { SessionsService } from "./sessions.service";
 import { isUUID } from "class-validator";
 import {
   SESSION_DOMAIN_EVENTS,
+  SessionBasketPayload,
   SessionClosedPayload,
 } from "./session.events";
 
@@ -16,6 +17,7 @@ export const WS_NAMESPACE = "sessions";
 export const WS_EVENTS = {
   JOIN: "join",
   CLOSED: "closed",
+  BASKET_UPDATED: "basket:updated",
 } as const;
 
 type JoinPayload = { token: string };
@@ -56,5 +58,12 @@ export class SessionsGateway {
     this.server
       .to(`session:${payload.sessionId}`)
       .emit(WS_EVENTS.CLOSED, payload);
+  }
+
+  @OnEvent(SESSION_DOMAIN_EVENTS.BASKET_CHANGED)
+  onBasketChanged(payload: SessionBasketPayload) {
+    this.server
+      .to(`session:${payload.sessionId}`)
+      .emit(WS_EVENTS.BASKET_UPDATED, payload.items);
   }
 }

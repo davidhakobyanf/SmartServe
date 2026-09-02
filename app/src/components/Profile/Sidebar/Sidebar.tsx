@@ -20,30 +20,32 @@ import { useWaiterCalls } from '@/context/WaiterCallsContext';
 import { useOrders } from '@/context/OrdersContext';
 import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
 import css from './Sidebar.module.css';
+import type { Permission } from '@/types/staff';
 
 type NavItem = {
   href: string;
   labelKey: string;
   icon: IconType;
   badge?: 'orders' | 'waiter';
+  permissions?: Permission[];
 };
 
 const NAV: NavItem[] = [
-  { href: '/profile/dashboard', labelKey: 'dashboard', icon: TbLayoutDashboard },
-  { href: '/profile/menu', labelKey: 'menu', icon: TbToolsKitchen2 },
-  { href: '/profile/orders', labelKey: 'orders', icon: TbShoppingBag, badge: 'orders' },
-  { href: '/profile/tables', labelKey: 'tables', icon: TbTable },
-  { href: '/profile/waiter', labelKey: 'waiter', icon: TbBell, badge: 'waiter' },
-  { href: '/profile/staff', labelKey: 'staff', icon: TbUsers },
+  { href: '/profile/dashboard', labelKey: 'dashboard', icon: TbLayoutDashboard, permissions: ['dashboard.view'] },
+  { href: '/profile/menu', labelKey: 'menu', icon: TbToolsKitchen2, permissions: ['menu.view'] },
+  { href: '/profile/orders', labelKey: 'orders', icon: TbShoppingBag, badge: 'orders', permissions: ['orders.view'] },
+  { href: '/profile/tables', labelKey: 'tables', icon: TbTable, permissions: ['tables.view'] },
+  { href: '/profile/waiter', labelKey: 'waiter', icon: TbBell, badge: 'waiter', permissions: ['waiter_calls.view'] },
+  { href: '/profile/staff', labelKey: 'staff', icon: TbUsers, permissions: ['users.view', 'roles.manage'] },
   { href: '/profile/account', labelKey: 'profile', icon: TbUser },
-  { href: '/profile/settings', labelKey: 'settings', icon: TbSettings },
+  { href: '/profile/settings', labelKey: 'settings', icon: TbSettings, permissions: ['venue.settings.manage'] },
 ];
 
 export default function Sidebar() {
   const t = useTranslations('nav');
   const pathname = usePathname();
   const router = useRouter();
-  const { profileDataList } = useProfileData();
+  const { profileDataList, permissions } = useProfileData();
   const { calls } = useWaiterCalls();
   const { newCount } = useOrders();
 
@@ -69,7 +71,11 @@ export default function Sidebar() {
       </div>
 
       <nav className={css.nav}>
-        {NAV.map(({ href, labelKey, icon: Icon, badge }) => {
+        {NAV.filter(
+          (item) =>
+            !item.permissions ||
+            item.permissions.some((permission) => permissions.includes(permission)),
+        ).map(({ href, labelKey, icon: Icon, badge }) => {
           const active = pathname === href || pathname?.startsWith(href + '/');
           const badgeCount =
             badge === 'waiter'

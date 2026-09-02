@@ -1,21 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { sanitizeMenuCards } from '../common/utils/menu-card-response.util';
-import { UsersService } from '../users/users.service';
+import { Injectable } from '@nestjs/common';
+import { User } from 'src/entities/user.entity';
 
 @Injectable()
 export class ProfileService {
-  constructor(private readonly usersService: UsersService) {}
-
-  async getProfile() {
-    const user = await this.usersService.getActiveUser();
-    if (!user) {
-      throw new NotFoundException({ error: 'No profiles found' });
-    }
-
+  getProfile(user: User) {
     return {
       name: user.name,
       surname: user.surname,
-      card: sanitizeMenuCards(user.cards ?? []),
+      email: user.email,
+      card: [],
     };
   }
 }

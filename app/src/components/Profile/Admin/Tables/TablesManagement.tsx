@@ -29,6 +29,7 @@ import {
 import tablesApi from '@/api/tablesApi';
 import type { RestaurantTable, TablePayload } from '@/types/tables';
 import css from './TablesManagement.module.css';
+import { useProfileData } from '@/context/ProfileDataContext';
 
 interface TableFormValues {
   number: number;
@@ -39,6 +40,9 @@ interface TableFormValues {
 export default function TablesManagement() {
   const t = useTranslations('tables');
   const { message } = App.useApp();
+  const { permissions } = useProfileData();
+  const canManageTables = permissions.includes('tables.manage');
+  const canManageQr = permissions.includes('tables.qr.manage');
   const [form] = Form.useForm<TableFormValues>();
   const [tables, setTables] = useState<RestaurantTable[]>([]);
   const [loading, setLoading] = useState(true);
@@ -131,7 +135,7 @@ export default function TablesManagement() {
   };
 
   const qrUrl = (table: RestaurantTable) =>
-    `${origin}/t/${encodeURIComponent(table.publicToken)}`;
+    `${origin}/t/${encodeURIComponent(table.publicToken ?? '')}`;
 
   const copyQrUrl = async (table: RestaurantTable) => {
     await navigator.clipboard.writeText(qrUrl(table));
@@ -161,9 +165,11 @@ export default function TablesManagement() {
           <Button icon={<TbRefresh />} onClick={() => void loadTables()}>
             {t('actions.refresh')}
           </Button>
-          <Button type="primary" icon={<TbPlus />} onClick={openCreate}>
-            {t('actions.add')}
-          </Button>
+          {canManageTables && (
+            <Button type="primary" icon={<TbPlus />} onClick={openCreate}>
+              {t('actions.add')}
+            </Button>
+          )}
         </div>
       </header>
 
@@ -192,9 +198,11 @@ export default function TablesManagement() {
         ) : tables.length === 0 ? (
           <div className={css.empty}>
             <Empty description={t('empty')} />
-            <Button type="primary" icon={<TbPlus />} onClick={openCreate}>
-              {t('actions.addFirst')}
-            </Button>
+            {canManageTables && (
+              <Button type="primary" icon={<TbPlus />} onClick={openCreate}>
+                {t('actions.addFirst')}
+              </Button>
+            )}
           </div>
         ) : (
           <div className={css.tableWrap}>
@@ -234,16 +242,22 @@ export default function TablesManagement() {
                       )}
                     </td>
                     <td>
-                      <Button icon={<TbQrcode />} onClick={() => setQrTable(table)}>
-                        {t('actions.showQr')}
-                      </Button>
+                      {canManageQr && table.publicToken ? (
+                        <Button icon={<TbQrcode />} onClick={() => setQrTable(table)}>
+                          {t('actions.showQr')}
+                        </Button>
+                      ) : (
+                        <span className={css.muted}>—</span>
+                      )}
                     </td>
                     <td>
                       <div className={css.rowActions}>
-                        <Button icon={<TbEdit />} onClick={() => openEdit(table)}>
-                          {t('actions.edit')}
-                        </Button>
-                        {table.activeSession && (
+                        {canManageTables && (
+                          <Button icon={<TbEdit />} onClick={() => openEdit(table)}>
+                            {t('actions.edit')}
+                          </Button>
+                        )}
+                        {canManageTables && table.activeSession && (
                           <Popconfirm
                             title={t('closeConfirm.title')}
                             description={t('closeConfirm.description')}

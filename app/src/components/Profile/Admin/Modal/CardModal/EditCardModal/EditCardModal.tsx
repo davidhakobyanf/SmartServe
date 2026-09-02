@@ -11,6 +11,7 @@ import clientAPI from '@/api/api';
 import { fileToImagePayload } from '@/lib/fileToImagePayload';
 import { resolveMenuImageSrc } from '@/lib/menuImages';
 import type { MenuCard } from '@/types';
+import type { CategoryRecord } from '@/types/restaurant';
 
 interface EditCardModalProps {
   item: MenuCard | null;
@@ -30,6 +31,11 @@ export default function EditCardModal({
   const t = useTranslations('menuModal');
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [categories, setCategories] = useState<CategoryRecord[]>([]);
+
+  useEffect(() => {
+    void clientAPI.getCategories().then(({ data }) => setCategories(data ?? []));
+  }, []);
 
   const [editCard] = useFetching(async (card: Partial<MenuCard>) => {
     try {
@@ -49,6 +55,7 @@ export default function EditCardModal({
       description: item.description,
       price: item.price,
       sauces: item.sauces,
+      categoryId: item.categoryId,
     });
     setFileList([
       {
@@ -93,6 +100,14 @@ export default function EditCardModal({
       forceRender
     >
       <Form form={form} onFinish={onFinish} layout="vertical">
+        <Form.Item name="categoryId" label="Категория" rules={[{ required: true }]}>
+          <Select
+            options={categories.map((category) => ({
+              value: category.id,
+              label: category.name,
+            }))}
+          />
+        </Form.Item>
         <Form.Item name="title" label={t('fields.title')} rules={[{ required: true }]}>
           <Input placeholder={t('fields.titlePlaceholder')} />
         </Form.Item>

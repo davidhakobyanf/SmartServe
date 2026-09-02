@@ -2,6 +2,14 @@ import axios, { type AxiosResponse } from 'axios';
 import { API_URL } from '@/lib/apiUrl';
 import type { MenuCard, Profile } from '@/types';
 import type { DiningSession } from '@/types/tables';
+import type {
+  BasketItemRecord,
+  CategoryRecord,
+  OrderStatus,
+  ProductRecord,
+  RelationalOrder,
+} from '@/types/restaurant';
+import type { AuthenticatedStaff } from '@/types/staff';
 
 const instance = axios.create({
   baseURL: API_URL,
@@ -40,22 +48,96 @@ type OrderPayload = {
 };
 
 class DataApi {
-  static async getProfile(): Promise<AxiosResponse<Profile>> {
-    return instance.get<Profile>('/api/profile', {
-      headers: {
-        Authorization: 'Bearer ',
-        'Content-Type': 'application/json',
-      },
-    });
+  static async getCategories(): Promise<AxiosResponse<CategoryRecord[]>> {
+    return instance.get('/api/categories');
   }
 
-  static async getOrders(): Promise<AxiosResponse<unknown>> {
-    return instance.get('/api/orders', {
-      headers: {
-        Authorization: 'Bearer ',
-        'Content-Type': 'application/json',
-      },
-    });
+  static async createCategory(payload: {
+    name: string;
+    sortOrder?: number;
+    isActive?: boolean;
+  }): Promise<AxiosResponse<CategoryRecord>> {
+    return instance.post('/api/categories', payload);
+  }
+
+  static async updateCategory(
+    id: string,
+    payload: Partial<Pick<CategoryRecord, 'name' | 'sortOrder' | 'isActive'>>,
+  ): Promise<AxiosResponse<CategoryRecord>> {
+    return instance.patch(`/api/categories/${id}`, payload);
+  }
+
+  static async getProducts(): Promise<AxiosResponse<ProductRecord[]>> {
+    return instance.get('/api/products');
+  }
+
+  static async getPublicMenu(): Promise<AxiosResponse<ProductRecord[]>> {
+    return instance.get('/api/menu');
+  }
+
+  static async createProduct(payload: Record<string, unknown>): Promise<AxiosResponse<ProductRecord>> {
+    return instance.post('/api/products', payload);
+  }
+
+  static async updateProduct(
+    id: string,
+    payload: Record<string, unknown>,
+  ): Promise<AxiosResponse<ProductRecord>> {
+    return instance.patch(`/api/products/${id}`, payload);
+  }
+
+  static async getBasketItems(): Promise<AxiosResponse<BasketItemRecord[]>> {
+    return instance.get('/api/basket-items');
+  }
+
+  static async addBasketItem(payload: {
+    productId: string;
+    quantity?: number;
+    sauces?: string[];
+  }): Promise<AxiosResponse<BasketItemRecord>> {
+    return instance.post('/api/basket-items', payload);
+  }
+
+  static async updateBasketItem(
+    id: string,
+    payload: { quantity?: number; sauces?: string[] },
+  ): Promise<AxiosResponse<BasketItemRecord>> {
+    return instance.patch(`/api/basket-items/${id}`, payload);
+  }
+
+  static async removeBasketItem(id: string): Promise<AxiosResponse<{ success: true }>> {
+    return instance.delete(`/api/basket-items/${id}`);
+  }
+
+  static async clearBasketItems(): Promise<AxiosResponse<{ success: true }>> {
+    return instance.delete('/api/basket-items');
+  }
+
+  static async getSessionOrders(): Promise<AxiosResponse<RelationalOrder[]>> {
+    return instance.get('/api/orders/mine');
+  }
+
+  static async placeOrder(): Promise<AxiosResponse<RelationalOrder>> {
+    return instance.post('/api/orders');
+  }
+
+  static async updateOrderStatus(
+    id: string,
+    status: OrderStatus,
+  ): Promise<AxiosResponse<RelationalOrder>> {
+    return instance.patch(`/api/orders/${id}/status`, { status });
+  }
+
+  static async getProfile(): Promise<AxiosResponse<Profile>> {
+    return instance.get<Profile>('/api/profile');
+  }
+
+  static async getMe(): Promise<AxiosResponse<AuthenticatedStaff>> {
+    return instance.get<AuthenticatedStaff>('/api/auth/me');
+  }
+
+  static async getOrders(): Promise<AxiosResponse<RelationalOrder[]>> {
+    return instance.get<RelationalOrder[]>('/api/orders');
   }
 
   static async getBasket(): Promise<AxiosResponse<unknown>> {
@@ -73,12 +155,15 @@ class DataApi {
     return instance.delete('/api/basket/mine');
   }
 
-  static async createCard(card: Partial<MenuCard>): Promise<AxiosResponse<Profile>> {
-    return instance.patch<Profile>('/api/user/login', card, {
-      headers: {
-        Authorization: 'Bearer',
-        'Content-Type': 'application/json',
-      },
+  static async createCard(card: Partial<MenuCard>): Promise<AxiosResponse<ProductRecord>> {
+    return instance.post<ProductRecord>('/api/products', {
+      categoryId: card.categoryId,
+      title: card.title,
+      description: card.description,
+      price: card.price,
+      sauces: card.sauces ?? [],
+      isActive: card.active ?? true,
+      image: card.image,
     });
   }
 
@@ -112,28 +197,17 @@ class DataApi {
     });
   }
 
-  static async deleteAllOrders(): Promise<AxiosResponse<unknown>> {
-    return instance.request({
-      url: '/api/orders/all',
-      method: 'delete',
-      headers: {
-        Authorization: 'Bearer',
-        'Content-Type': 'application/json',
-      },
-      data: {},
-    });
+  static async deleteAllOrders(): Promise<void> {
+    const { data } = await this.getOrders();
+    await Promise.all(
+      data
+        .filter((order) => order.status === 'placed')
+        .map((order) => this.updateOrderStatus(order.id, 'cancelled')),
+    );
   }
 
-  static async deleteOrder(id: string): Promise<AxiosResponse<unknown>> {
-    return instance.request({
-      url: '/api/orders',
-      method: 'delete',
-      headers: {
-        Authorization: 'Bearer',
-        'Content-Type': 'application/json',
-      },
-      data: { id },
-    });
+  static async deleteOrder(id: string): Promise<AxiosResponse<RelationalOrder>> {
+    return this.updateOrderStatus(id, 'cancelled');
   }
 
   static async deleteBasket(
@@ -151,24 +225,20 @@ class DataApi {
     });
   }
 
-  static async deleteCard(id: string): Promise<AxiosResponse<unknown>> {
-    return instance.request({
-      url: '/api/user/login',
-      method: 'delete',
-      headers: {
-        Authorization: 'Bearer',
-        'Content-Type': 'application/json',
-      },
-      data: { id },
-    });
+  static async deleteCard(id: string): Promise<AxiosResponse<ProductRecord>> {
+    return instance.patch(`/api/products/${id}`, { isActive: false });
   }
 
-  static async editCard(card: Partial<MenuCard>): Promise<AxiosResponse<unknown>> {
-    return instance.put('/api/user/login', card, {
-      headers: {
-        Authorization: 'Bearer',
-        'Content-Type': 'application/json',
-      },
+  static async editCard(card: Partial<MenuCard>): Promise<AxiosResponse<ProductRecord>> {
+    if (!card.id) throw new Error('Product id is required');
+    return instance.patch(`/api/products/${card.id}`, {
+      ...(card.categoryId !== undefined ? { categoryId: card.categoryId } : {}),
+      ...(card.title !== undefined ? { title: card.title } : {}),
+      ...(card.description !== undefined ? { description: card.description } : {}),
+      ...(card.price !== undefined ? { price: card.price } : {}),
+      ...(card.sauces !== undefined ? { sauces: card.sauces } : {}),
+      ...(card.active !== undefined ? { isActive: card.active } : {}),
+      ...(card.image !== undefined ? { image: card.image } : {}),
     });
   }
 

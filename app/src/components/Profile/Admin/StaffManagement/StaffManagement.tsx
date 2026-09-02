@@ -34,6 +34,7 @@ import {
   type StaffUser,
 } from '@/types/staff';
 import css from './StaffManagement.module.css';
+import { useProfileData } from '@/context/ProfileDataContext';
 
 type View = 'users' | 'roles';
 type RoleAction = 'approve' | 'change';
@@ -77,6 +78,11 @@ function formatDate(value: string | null): string {
 export default function StaffManagement() {
   const t = useTranslations('staff');
   const { message } = App.useApp();
+  const { permissions } = useProfileData();
+  const canViewUsers = permissions.includes('users.view');
+  const canApproveUsers = permissions.includes('users.approve');
+  const canManageUsers = permissions.includes('users.manage');
+  const canManageRoles = permissions.includes('roles.manage');
   const [view, setView] = useState<View>('users');
   const [users, setUsers] = useState<StaffUser[]>([]);
   const [roles, setRoles] = useState<StaffRole[]>([]);
@@ -100,8 +106,8 @@ export default function StaffManagement() {
     setLoading(true);
     try {
       const [nextUsers, nextRoles] = await Promise.all([
-        staffApi.getUsers(),
-        staffApi.getRoles(),
+        canViewUsers ? staffApi.getUsers() : Promise.resolve([]),
+        canManageRoles ? staffApi.getRoles() : Promise.resolve([]),
       ]);
       setUsers(nextUsers);
       setRoles(nextRoles);
@@ -110,11 +116,15 @@ export default function StaffManagement() {
     } finally {
       setLoading(false);
     }
-  }, [message, t]);
+  }, [canManageRoles, canViewUsers, message, t]);
 
   useEffect(() => {
     void loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    if (!canViewUsers && canManageRoles) setView('roles');
+  }, [canManageRoles, canViewUsers]);
 
   const activeRoles = useMemo(
     () => roles.filter((role) => role.isActive),
@@ -285,7 +295,7 @@ export default function StaffManagement() {
           <p className={css.subtitle}>{t('subtitle')}</p>
         </div>
         <div className={css.headerActions}>
-          {view === 'roles' && (
+          {view === 'roles' && canManageRoles && (
             <Button type="primary" icon={<TbPlus />} onClick={openCreateRole}>
               {t('actions.createRole')}
             </Button>
@@ -318,20 +328,20 @@ export default function StaffManagement() {
       <section className={css.card}>
         <div className={css.cardHeader}>
           <div className={css.tabs}>
-            <button
+            {canViewUsers && <button
               type="button"
               className={view === 'users' ? css.tabActive : css.tab}
               onClick={() => { setView('users'); setSearch(''); }}
             >
               {t('tabs.users')}
-            </button>
-            <button
+            </button>}
+            {canManageRoles && <button
               type="button"
               className={view === 'roles' ? css.tabActive : css.tab}
               onClick={() => { setView('roles'); setSearch(''); }}
             >
               {t('tabs.roles')}
-            </button>
+            </button>}
           </div>
           <Input
             allowClear
@@ -371,7 +381,7 @@ export default function StaffManagement() {
                         <td className={css.muted}>{formatDate(user.createdAt)}</td>
                         <td>
                           <div className={css.actions}>
-                            {user.status === 'pending' && (
+                            {canApproveUsers && user.status === 'pending' && (
                               <>
                                 <Button size="small" type="primary" onClick={() => openRoleSelection(user, 'approve')}>
                                   {t('actions.approve')}
@@ -381,7 +391,7 @@ export default function StaffManagement() {
                                 </Button>
                               </>
                             )}
-                            {(user.status === 'active' || user.status === 'disabled') && (
+                            {canManageUsers && (user.status === 'active' || user.status === 'disabled') && (
                               <>
                                 <Button size="small" icon={<TbEdit />} onClick={() => openRoleSelection(user, 'change')}>
                                   {t('actions.role')}
@@ -433,7 +443,7 @@ export default function StaffManagement() {
                       <td><Tag color={role.isActive ? 'green' : 'default'}>{role.isActive ? t('statuses.active') : t('statuses.disabled')}</Tag></td>
                       <td>
                         <div className={css.actions}>
-                          {!role.isSystem && (
+                          {canManageRoles && !role.isSystem && (
                             <>
                               <Button size="small" icon={<TbEdit />} onClick={() => openEditRole(role)}>{t('actions.edit')}</Button>
                               {role.isActive ? (

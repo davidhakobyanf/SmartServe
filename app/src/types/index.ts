@@ -6,6 +6,9 @@ export interface MenuCardImage {
 
 export interface MenuCard {
   id: string;
+  basketItemId?: string;
+  categoryId?: string;
+  categoryName?: string;
   title: string;
   description: string;
   price: number;
@@ -15,6 +18,15 @@ export interface MenuCard {
   table?: string | number;
   count?: number;
 }
+
+export type {
+  BasketItemRecord,
+  CategoryRecord,
+  OrderItemRecord,
+  OrderStatus,
+  ProductRecord,
+  RelationalOrder,
+} from './restaurant';
 
 export interface Profile {
   name: string;

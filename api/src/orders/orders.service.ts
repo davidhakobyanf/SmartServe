@@ -11,6 +11,7 @@ import { Order, OrderStatus } from "src/entities/order.entity";
 import { OrderItem } from "src/entities/order-item.entity";
 import { DataSource, Repository } from "typeorm";
 import { ORDER_DOMAIN_EVENTS } from "./order.events";
+import { SESSION_DOMAIN_EVENTS } from "src/sessions/session.events";
 
 const SAUCE_UNIT_PRICE = 350;
 
@@ -137,6 +138,10 @@ export class OrdersService {
       });
     });
 
+    this.events.emit(SESSION_DOMAIN_EVENTS.BASKET_CHANGED, {
+      sessionId,
+      items: [],
+    });
     await this.notifyOrdersChanged();
     return order;
   }

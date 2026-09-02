@@ -35,7 +35,7 @@ export default function AdminOrderModal({
     try {
       const { data: res } = await clientAPI.getOrders();
       const list = Array.isArray(res)
-        ? res.map((order) => normalizeOrderRecord(order as OrderRecord))
+        ? res.map((order) => normalizeOrderRecord(order))
         : [];
       setOrderData(list);
     } catch (error) {

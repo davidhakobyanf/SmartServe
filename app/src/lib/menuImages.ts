@@ -2,7 +2,7 @@ import { API_URL } from '@/lib/apiUrl';
 import type { MenuCard, MenuImage } from '@/types';
 
 export function menuImageApiUrl(cardId: string): string {
-  return `${API_URL}/api/menu-images/${cardId}`;
+  return `${API_URL}/api/product-images/${cardId}`;
 }
 
 export function resolveMenuImageSrc(card: MenuCard): string {

@@ -21,7 +21,7 @@ import { PermissionsGuard } from "src/common/guards/permissions.guard";
 import { User } from "src/entities/user.entity";
 import { UsersService } from "src/users/users.service";
 import { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
-import { hideOrdersFinancials, hideOrderFinancials } from "./order-response";
+import { ordersResponse, orderResponse } from "./order-response";
 import { OrdersService } from "./orders.service";
 
 @Controller("api/orders")
@@ -42,19 +42,25 @@ export class OrdersController {
   @Get()
   async findAll(@CurrentUser() user: User) {
     const orders = await this.ordersService.findAll();
-    return this.canViewRevenue(user) ? orders : hideOrdersFinancials(orders);
+    return ordersResponse(orders, this.canViewRevenue(user));
   }
 
   @UseGuards(OpenSessionGuard)
   @Get("mine")
-  findMine(@Req() req: RequestWithSession) {
-    return this.ordersService.findForSession(req.diningSession!.id);
+  async findMine(@Req() req: RequestWithSession) {
+    const orders = await this.ordersService.findForSession(
+      req.diningSession!.id,
+    );
+    return ordersResponse(orders, true);
   }
 
   @UseGuards(OpenSessionGuard)
   @Post()
-  create(@Req() req: RequestWithSession) {
-    return this.ordersService.createFromBasket(req.diningSession!.id);
+  async create(@Req() req: RequestWithSession) {
+    const order = await this.ordersService.createFromBasket(
+      req.diningSession!.id,
+    );
+    return orderResponse(order, true);
   }
 
   @UseGuards(JwtAuthGuard, PermissionsGuard)
@@ -66,6 +72,6 @@ export class OrdersController {
     @CurrentUser() user: User,
   ) {
     const order = await this.ordersService.updateStatus(id, dto.status);
-    return this.canViewRevenue(user) ? order : hideOrderFinancials(order);
+    return orderResponse(order, this.canViewRevenue(user));
   }
 }

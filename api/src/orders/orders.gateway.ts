@@ -6,7 +6,7 @@ import { Permission } from 'src/common/auth/permission';
 import { UserStatus } from 'src/common/auth/user-status';
 import { Order } from "src/entities/order.entity";
 import { UsersService } from 'src/users/users.service';
-import { hideOrdersFinancials } from './order-response';
+import { ordersResponse } from './order-response';
 import { ORDER_DOMAIN_EVENTS } from './order.events';
 
 
@@ -83,9 +83,9 @@ export class OrdersGateway {
     onOrdersChanged(orders: Order[]) {
         this.server
             .to(WS_ROOMS.ORDERS)
-            .emit(WS_EVENTS.ORDERS_UPDATED, hideOrdersFinancials(orders));
+            .emit(WS_EVENTS.ORDERS_UPDATED, ordersResponse(orders, false));
         this.server
             .to(WS_ROOMS.REVENUE)
-            .emit(WS_EVENTS.ORDERS_UPDATED, orders);
+            .emit(WS_EVENTS.ORDERS_UPDATED, ordersResponse(orders, true));
     }
 }

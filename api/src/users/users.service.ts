@@ -105,8 +105,6 @@ export class UsersService {
     user.lastLoginAt = new Date();
     await this.usersRepo.save(user);
 
-    await this.setActiveUser(user.id);
-
     return {
       accessToken,
       name: user.name,

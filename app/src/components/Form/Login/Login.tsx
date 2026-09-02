@@ -8,6 +8,7 @@ import { useRouter } from "@/i18n/navigation";
 import type { FormInstance } from "antd";
 import { API_URL } from "@/lib/apiUrl";
 import type { LoginFormValues } from "@/types";
+import clientAPI from "@/api/api";
 
 interface LoginProps {
   form: FormInstance;
@@ -32,9 +33,21 @@ export default function Login({ form, setCheck }: LoginProps) {
       const data = await response.json();
       if (response.ok) {
         localStorage.setItem("accessToken", data.accessToken);
-                
+
         message.success(t("login.toast.success"));
-        router.push("/profile/menu");
+        const { data: currentUser } = await clientAPI.getMe();
+        const destinations = [
+          ["menu.view", "/profile/menu"],
+          ["orders.view", "/profile/orders"],
+          ["tables.view", "/profile/tables"],
+          ["dashboard.view", "/profile/dashboard"],
+          ["waiter_calls.view", "/profile/waiter"],
+          ["users.view", "/profile/staff"],
+        ] as const;
+        const destination = destinations.find(([permission]) =>
+          currentUser.permissions.includes(permission),
+        )?.[1];
+        router.push(destination ?? "/profile/account");
       } else {
         if (data.status === "pending") {
           message.warning(t("login.toast.pending"));

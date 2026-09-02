@@ -15,7 +15,7 @@ export interface DiningSession {
 }
 
 export interface RestaurantTable extends SessionTable {
-  publicToken: string;
+  publicToken?: string;
   isActive: boolean;
   activeSession: DiningSession | null;
   createdAt: string;

@@ -40,10 +40,18 @@ export default function ClientCardModal({
   const [fetchAddCard, addCardLoading, addCardError] = useFetching(
     async (modifiedItem: MenuCard) => {
       try {
-        await clientAPI.createBasket({
-          ...modifiedItem,
-          count: quantity,
-        });
+        if (editItem?.basketItemId) {
+          await clientAPI.updateBasketItem(editItem.basketItemId, {
+            quantity,
+            sauces: modifiedItem.sauces,
+          });
+        } else {
+          await clientAPI.addBasketItem({
+            productId: modifiedItem.id,
+            quantity,
+            sauces: modifiedItem.sauces,
+          });
+        }
       } catch (err) {
         console.error('Error adding to basket:', err);
       }
@@ -81,7 +89,8 @@ export default function ClientCardModal({
         : undefined;
 
   const selectedCount = Object.values(selected).filter(Boolean).length;
-  const total = (item?.price ?? 0) * quantity + selectedCount * SAUCE_PRICE;
+  const total =
+    ((item?.price ?? 0) + selectedCount * SAUCE_PRICE) * quantity;
 
   const toggleSauce = (sauce: string) =>
     setSelected((prev) => ({ ...prev, [sauce]: !prev[sauce] }));
@@ -93,10 +102,6 @@ export default function ClientCardModal({
       sauces: Object.keys(selected).filter((key) => selected[key]),
       count: quantity,
     };
-    // Edit mode: drop the original line first, then re-add the updated one.
-    if (editItem) {
-      await clientAPI.deleteBasket(editItem.id, editItem.sauces ?? []);
-    }
     await fetchAddCard(modifiedItem);
     if (!addCardLoading) {
       if (addCardError) message.error(t('card.serverError'));

@@ -31,9 +31,13 @@ import { useFetching } from '@/hoc/fetchingHook';
 import clientAPI, { setSessionToken } from '@/api/api';
 import ClientCardModal from '../ClientCardModal/ClientCardModal';
 import { loadMenuImages } from '@/lib/menuImages';
-import { normalizeMenuCard } from '@/lib/normalizeMenuCard';
+import {
+  basketItemToMenuCard,
+  productToMenuCard,
+} from '@/lib/normalizeMenuCard';
 import type { MenuCard, MenuImage } from '@/types';
 import type { DiningSession } from '@/types/tables';
+import type { BasketItemRecord, ProductRecord } from '@/types/restaurant';
 import { useWaiterClient } from '@/hooks/useWaiterClient';
 import { useSessionLock } from '@/hooks/useSessionLock';
 import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
@@ -42,13 +46,7 @@ const SAUCE_PRICE = 350;
 
 const PAGE_SIZE = 8;
 
-const CATEGORIES = [
-  { key: 'All Items', tKey: 'allItems', icon: TbLayoutGrid },
-  { key: 'Starters', tKey: 'starters', icon: TbSoup },
-  { key: 'Main Courses', tKey: 'mainCourses', icon: TbMeat },
-  { key: 'Desserts', tKey: 'desserts', icon: TbCake },
-  { key: 'Drinks', tKey: 'drinks', icon: TbGlassFull },
-];
+const CATEGORY_ICONS = [TbSoup, TbMeat, TbCake, TbGlassFull];
 
 // Purely cosmetic ribbon that mirrors the reference design.
 const badgeFor = (index: number): 'popular' | 'chef' | null => {
@@ -58,7 +56,8 @@ const badgeFor = (index: number): 'popular' | 'chef' | null => {
 };
 
 const lineTotal = (item: MenuCard) =>
-  item.price * (item.count ?? 1) + SAUCE_PRICE * (item.sauces?.length ?? 0);
+  (item.price + SAUCE_PRICE * (item.sauces?.length ?? 0)) *
+  (item.count ?? 1);
 
 const fmt = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
@@ -67,10 +66,13 @@ export default function ClientDashboard() {
   const { message } = App.useApp();
   const params = useParams();
   const sessionId = params?.clientId as string;
-  const { closed } = useSessionLock(sessionId ?? null);
+  const { closed, basketItems: liveBasketItems } = useSessionLock(
+    sessionId ?? null,
+  );
   const [session, setSession] = useState<DiningSession | null>(null);
   const [sessionUnavailable, setSessionUnavailable] = useState(false);
   const [sessionLoading, setSessionLoading] = useState(true);
+  const [menuCards, setMenuCards] = useState<MenuCard[]>([]);
 
   const SORT_OPTIONS = useMemo(
     () => [
@@ -82,15 +84,38 @@ export default function ClientDashboard() {
     [t],
   );
 
+  const menuCategories = useMemo(() => {
+    const names = Array.from(
+      new Set(menuCards.map((card) => card.categoryName).filter(Boolean)),
+    ) as string[];
+    return [
+      { key: 'All Items', label: t('categories.allItems'), icon: TbLayoutGrid },
+      ...names.map((name, index) => ({
+        key: name,
+        label: name,
+        icon: CATEGORY_ICONS[index % CATEGORY_ICONS.length],
+      })),
+    ];
+  }, [menuCards, t]);
+
   useEffect(() => {
     setSessionToken(sessionId ?? null);
     setSession(null);
     setSessionUnavailable(false);
     setSessionLoading(true);
     if (sessionId) {
-      clientAPI
-        .getCurrentSession(sessionId)
-        .then(({ data }) => setSession(data))
+      Promise.all([
+        clientAPI.getCurrentSession(sessionId),
+        clientAPI.getPublicMenu(),
+      ])
+        .then(([sessionResponse, menuResponse]) => {
+          setSession(sessionResponse.data);
+          setMenuCards(
+            (menuResponse.data ?? []).map((product: ProductRecord) =>
+              productToMenuCard(product),
+            ),
+          );
+        })
         .catch(() => setSessionUnavailable(true))
         .finally(() => setSessionLoading(false));
     } else {
@@ -119,14 +144,22 @@ export default function ClientDashboard() {
   const [editingLine, setEditingLine] = useState<MenuCard | null>(null);
 
   useEffect(() => {
-    if (profileDataList.card.length > 0) {
-      setImages(loadMenuImages(profileDataList.card));
+    if (liveBasketItems) {
+      setBasket(liveBasketItems.map(basketItemToMenuCard));
     }
-  }, [profileDataList.card]);
+  }, [liveBasketItems]);
+
+  useEffect(() => {
+    setImages(loadMenuImages(menuCards));
+  }, [menuCards]);
 
   const [fetchBasket] = useFetching(async () => {
-    const { data: raw } = await clientAPI.getMine();
-    setBasket((raw ?? []).map((item) => normalizeMenuCard(item)));
+    const { data: raw } = await clientAPI.getBasketItems();
+    setBasket(
+      (raw ?? []).map((item: BasketItemRecord) =>
+        basketItemToMenuCard(item),
+      ),
+    );
   });
 
   useEffect(() => {
@@ -147,7 +180,10 @@ export default function ClientDashboard() {
   }, [callWaiter, message, t]);
 
   const cards = useMemo(() => {
-    let list = [...(profileDataList.card ?? [])];
+    let list = [...menuCards];
+    if (category !== 'All Items') {
+      list = list.filter((card) => card.categoryName === category);
+    }
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter((c) => c.title.toLowerCase().includes(q));
@@ -167,7 +203,7 @@ export default function ClientDashboard() {
     return [...list].sort(
       (a, b) => Number(b.active) - Number(a.active),
     );
-  }, [profileDataList.card, search, sort]);
+  }, [menuCards, category, search, sort]);
 
   // Reset pagination whenever the visible set changes.
   useEffect(() => {
@@ -181,7 +217,7 @@ export default function ClientDashboard() {
     item: MenuCard,
     badge: 'popular' | 'chef' | null = null,
   ) => {
-    const idx = profileDataList.card.findIndex((c) => c.id === item.id);
+    const idx = menuCards.findIndex((c) => c.id === item.id);
     setSelectedItem(item);
     setSelectedIndex(idx >= 0 ? idx : null);
     setSelectedBadge(badge);
@@ -191,7 +227,7 @@ export default function ClientDashboard() {
 
   // Open the popup to EDIT an existing cart line (pre-fills its sauces & qty).
   const openCartLine = (line: MenuCard) => {
-    const menuCard = profileDataList.card.find((c) => c.id === line.id) ?? line;
+    const menuCard = menuCards.find((c) => c.id === line.id) ?? line;
     openDetail(menuCard, null);
     setEditingLine(line);
   };
@@ -205,10 +241,10 @@ export default function ClientDashboard() {
       return;
     }
     try {
-      await clientAPI.createBasket({
-        ...item,
+      await clientAPI.addBasketItem({
+        productId: item.id,
         sauces: [],
-        count: 1,
+        quantity: 1,
       });
       await fetchBasket();
       message.success(t('dashboard.addedToBasket'));
@@ -221,18 +257,18 @@ export default function ClientDashboard() {
   const lineKey = (it: MenuCard) =>
     `${it.id}|${JSON.stringify(it.sauces ?? [])}`;
 
-  const changeCount = (line: MenuCard, next: number) => {
-    const key = lineKey(line);
-    setBasket((prev) =>
-      prev.map((it) =>
-        lineKey(it) === key ? { ...it, count: Math.max(1, next) } : it,
-      ),
-    );
+  const changeCount = async (line: MenuCard, next: number) => {
+    if (!line.basketItemId) return;
+    await clientAPI.updateBasketItem(line.basketItemId, {
+      quantity: Math.max(1, next),
+    });
+    await fetchBasket();
   };
 
   const removeItem = async (item: MenuCard) => {
     try {
-      await clientAPI.deleteBasket(item.id, item.sauces ?? []);
+      if (!item.basketItemId) return;
+      await clientAPI.removeBasketItem(item.basketItemId);
       await fetchBasket();
     } catch {
       message.error(t('dashboard.deleteFailed'));
@@ -245,20 +281,8 @@ export default function ClientDashboard() {
 
   const [placeOrder] = useFetching(async () => {
     if (basket.length === 0) return;
-    const items = basket.map((it) => ({
-      id: it.id,
-      title: it.title,
-      description: it.description,
-      price: lineTotal(it),
-      sauces: it.sauces ?? [],
-      active: it.active,
-      image: it.image,
-      count: it.count ?? 1,
-    }));
-    const allPrice = items.reduce((t, it) => t + it.price, 0);
     try {
-      await clientAPI.createOrder({ items, allPrice });
-      await clientAPI.clearMine();
+      await clientAPI.placeOrder();
       setBasket([]);
       setCartOpen(false);
       message.success(t('dashboard.orderPlaced'));
@@ -317,7 +341,7 @@ export default function ClientDashboard() {
         <div className={css.body}>
           <nav className={css.sidebar}>
             <ul className={css.navList}>
-              {CATEGORIES.map(({ key, tKey, icon: Icon }) => (
+              {menuCategories.map(({ key, label, icon: Icon }) => (
                 <li key={key}>
                   <button
                     type="button"
@@ -327,7 +351,7 @@ export default function ClientDashboard() {
                     onClick={() => setCategory(key)}
                   >
                     <Icon className={css.navIcon} />
-                    <span>{t(`categories.${tKey}`)}</span>
+                    <span>{label}</span>
                   </button>
                 </li>
               ))}
@@ -368,7 +392,7 @@ export default function ClientDashboard() {
             </div>
 
             <div className={css.tabs}>
-              {CATEGORIES.map(({ key, tKey }) => (
+              {menuCategories.map(({ key, label }) => (
                 <button
                   key={key}
                   type="button"
@@ -377,7 +401,7 @@ export default function ClientDashboard() {
                   }`}
                   onClick={() => setCategory(key)}
                 >
-                  {t(`categories.${tKey}`)}
+                  {label}
                 </button>
               ))}
             </div>
@@ -527,14 +551,14 @@ export default function ClientDashboard() {
                         <div className={css.stepper}>
                           <button
                             type="button"
-                            onClick={() => changeCount(it, (it.count ?? 1) - 1)}
+                            onClick={() => void changeCount(it, (it.count ?? 1) - 1)}
                           >
                             <TbMinus />
                           </button>
                           <span>{it.count ?? 1}</span>
                           <button
                             type="button"
-                            onClick={() => changeCount(it, (it.count ?? 1) + 1)}
+                            onClick={() => void changeCount(it, (it.count ?? 1) + 1)}
                           >
                             <TbPlus />
                           </button>
@@ -579,7 +603,7 @@ export default function ClientDashboard() {
         index={selectedIndex}
         item={
           selectedItem
-            ? profileDataList.card.find((c) => c.id === selectedItem.id) ?? null
+            ? menuCards.find((c) => c.id === selectedItem.id) ?? null
             : null
         }
         images={images}

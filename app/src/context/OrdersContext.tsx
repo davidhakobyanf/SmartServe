@@ -8,11 +8,12 @@ import {
   useEffect,
   useContext,
 } from 'react';
-import { notification } from 'antd';
+import { App } from 'antd';
 import type { OrderRecord } from '@/types/orders';
 import { normalizeOrderRecord } from '@/lib/normalizeMenuCard';
 import { createSocket } from '@/lib/ws/socket';
 import clientAPI from '@/api/api';
+import { useProfileData } from '@/context/ProfileDataContext';
 
 const NAMESPACE = '/orders';
 const EVT = { JOIN: 'join', UPDATED: 'orders:updated' } as const;
@@ -37,6 +38,10 @@ function normalizeList(raw: unknown): OrderRecord[] {
 }
 
 export function OrdersProvider({ children }: { children: React.ReactNode }) {
+  const { notification } = App.useApp();
+  const { permissions, isLoading: profileLoading } = useProfileData();
+  const canViewOrders = permissions.includes('orders.view');
+  const canViewRevenue = permissions.includes('revenue.view');
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [newCount, setNewCount] = useState(0);
@@ -54,7 +59,9 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
           notification.open({
             type: 'info',
             message: 'Նոր պատվեր',
-            description: `Սեղան ${o.table} — ${fmt(o.allPrice)} ֏`,
+            description: canViewRevenue
+              ? `Սեղան ${o.table} — ${fmt(o.allPrice)} ֏`
+              : `Սեղան ${o.table}`,
             placement: 'topRight',
             duration: 6,
             key: o._id,
@@ -65,11 +72,13 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
     seenIdsRef.current = new Set(list.map((o) => o._id));
     initializedRef.current = true;
     setOrders(list);
-  }, []);
+  }, [canViewRevenue, notification]);
 
   const markSeen = useCallback(() => setNewCount(0), []);
 
   const refreshOrders = useCallback(async () => {
+    if (!canViewOrders) return;
+
     if (ordersRequest) {
       await ordersRequest;
       return;
@@ -85,15 +94,21 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
     })();
 
     await ordersRequest;
-  }, [applyOrders]);
+  }, [applyOrders, canViewOrders]);
 
   useEffect(() => {
+    if (profileLoading || !canViewOrders) {
+      setOrders([]);
+      setIsConnected(false);
+      return;
+    }
+
     const socket = createSocket(NAMESPACE);
     socketRef.current = socket;
 
     socket.on('connect', () => {
       setIsConnected(true);
-      socket.emit(EVT.JOIN, { role: 'admin' });
+      socket.emit(EVT.JOIN);
       void refreshOrders();
     });
 
@@ -107,7 +122,7 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
       socket.removeAllListeners();
       socket.disconnect();
     };
-  }, [refreshOrders, applyOrders]);
+  }, [refreshOrders, applyOrders, canViewOrders, profileLoading]);
 
   return (
     <OrdersContext.Provider

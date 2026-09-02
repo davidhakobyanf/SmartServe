@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button, Input, InputNumber, Modal, Select, Form, Upload } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
@@ -8,6 +8,8 @@ import { UploadOutlined } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
 import { fileToImagePayload } from '@/lib/fileToImagePayload';
 import type { MenuCard } from '@/types';
+import type { CategoryRecord } from '@/types/restaurant';
+import clientAPI from '@/api/api';
 
 interface AddModalProps {
   modalOpen: boolean;
@@ -23,6 +25,15 @@ export default function AddModal({
   const t = useTranslations('menuModal');
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [categories, setCategories] = useState<CategoryRecord[]>([]);
+
+  useEffect(() => {
+    if (modalOpen) {
+      void clientAPI.getCategories().then(({ data }) =>
+        setCategories((data ?? []).filter((category) => category.isActive)),
+      );
+    }
+  }, [modalOpen]);
 
   const onChange = ({ fileList: newFileList }: { fileList: UploadFile[] }) => {
     setFileList(newFileList);
@@ -63,6 +74,19 @@ export default function AddModal({
       forceRender
     >
       <Form form={form} onFinish={onFinish} layout="vertical">
+        <Form.Item
+          name="categoryId"
+          label="Категория"
+          rules={[{ required: true, message: 'Выберите категорию' }]}
+        >
+          <Select
+            options={categories.map((category) => ({
+              value: category.id,
+              label: category.name,
+            }))}
+            placeholder="Выберите категорию"
+          />
+        </Form.Item>
         <Form.Item
           name="title"
           label={t('fields.title')}
