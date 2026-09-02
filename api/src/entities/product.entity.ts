@@ -4,10 +4,12 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
 import { Category } from "./category.entity";
+import { BasketItem } from "./basket-item.entity";
 
 @Entity("products")
 export class Product {
@@ -46,6 +48,9 @@ export class Product {
 
   @Column({ type: "boolean", default: true })
   isActive!: boolean;
+
+  @OneToMany(() => BasketItem, (item) => item.product)
+  basketItems!: BasketItem[];
 
   @CreateDateColumn({ type: "timestamptz" })
   createdAt!: Date;

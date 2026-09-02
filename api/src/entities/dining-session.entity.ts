@@ -6,8 +6,10 @@ import {
   CreateDateColumn,
   JoinColumn,
   ManyToOne,
+  OneToMany,
 } from "typeorm";
 import { DiningTable } from "./dining-table.entity";
+import { BasketItem } from "./basket-item.entity";
 
 export type DiningSessionStatus = "open" | "closed";
 
@@ -35,6 +37,9 @@ export class DiningSession {
   })
   table!: DiningTable;
 
+  @OneToMany(() => BasketItem, (item) => item.session)
+  basketItems!: BasketItem[];
+  
   @Column({ type: "varchar", default: "open" })
   status!: DiningSessionStatus;
 
