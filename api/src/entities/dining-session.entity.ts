@@ -10,6 +10,7 @@ import {
 } from "typeorm";
 import { DiningTable } from "./dining-table.entity";
 import { BasketItem } from "./basket-item.entity";
+import { Order } from "./order.entity";
 
 export type DiningSessionStatus = "open" | "closed";
 
@@ -39,7 +40,10 @@ export class DiningSession {
 
   @OneToMany(() => BasketItem, (item) => item.session)
   basketItems!: BasketItem[];
-  
+
+  @OneToMany(() => Order, (order) => order.session)
+  orders!: Order[];
+
   @Column({ type: "varchar", default: "open" })
   status!: DiningSessionStatus;
 

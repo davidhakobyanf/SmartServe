@@ -25,7 +25,9 @@ import { Product } from "./entities/product.entity";
 import { CategoriesModule } from "./categories/categories.module";
 import { ProductsModule } from "./products/products.module";
 import { BasketItem } from "./entities/basket-item.entity";
-import { BasketItemsModule } from './basket-items/basket-items.module';
+import { BasketItemsModule } from "./basket-items/basket-items.module";
+import { Order } from "./entities/order.entity";
+import { OrderItem } from "./entities/order-item.entity";
 
 @Module({
   imports: [
@@ -52,6 +54,8 @@ import { BasketItemsModule } from './basket-items/basket-items.module';
           Category,
           Product,
           BasketItem,
+          Order,
+          OrderItem,
         ],
         synchronize: config.get<string>("DB_SYNC", "false") === "true",
       }),

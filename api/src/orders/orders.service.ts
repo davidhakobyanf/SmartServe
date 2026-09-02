@@ -1,104 +1,167 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { v4 as uuidv4 } from 'uuid';
-import { OrderStore } from '../entities/order-store.entity';
-import type { OrderRecord } from '../common/types/menu-card';
-import { CreateOrderDto } from './dto/order.dto';
-import { OrderItemDto } from './dto/order-item.dto';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { InjectRepository } from "@nestjs/typeorm";
+import { BasketItem } from "src/entities/basket-item.entity";
+import { DiningSession } from "src/entities/dining-session.entity";
+import { Order, OrderStatus } from "src/entities/order.entity";
+import { OrderItem } from "src/entities/order-item.entity";
+import { DataSource, Repository } from "typeorm";
+import { DOMAIN_EVENTS } from "./orders.gateway";
 
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { DOMAIN_EVENTS } from './orders.gateway';
+const SAUCE_UNIT_PRICE = 350;
+
 @Injectable()
 export class OrdersService {
   constructor(
-    @InjectRepository(OrderStore)
-    private readonly orderRepo: Repository<OrderStore>,
+    @InjectRepository(Order)
+    private readonly ordersRepo: Repository<Order>,
+    private readonly dataSource: DataSource,
     private readonly events: EventEmitter2,
   ) {}
-  
 
-  private notifyOrdersChanged(orders: OrderRecord[]){
-    this.events.emit(DOMAIN_EVENTS.ORDERS_CHANGED, orders);
+  private roundMoney(value: number): number {
+    return Math.round(value * 100) / 100;
   }
 
-
-  private async getOrCreateStore(): Promise<OrderStore> {
-    let store = await this.orderRepo.findOne({ where: { id: 1 } });
-    if (!store) {
-      store = this.orderRepo.create({ id: 1, orders: [] });
-      await this.orderRepo.save(store);
-    }
-    return store;
+  private async notifyOrdersChanged(): Promise<void> {
+    this.events.emit(DOMAIN_EVENTS.ORDERS_CHANGED, await this.findAll());
   }
 
-  async getOrders(): Promise<OrderRecord[]> {
-    const store = await this.getOrCreateStore();
-    return store.orders ?? [];
+  findAll(): Promise<Order[]> {
+    return this.ordersRepo.find({
+      relations: {
+        table: true,
+        session: true,
+        items: {
+          product: true,
+        },
+      },
+      order: {
+        createdAt: "DESC",
+      },
+    });
   }
 
-  private mapOrderItem(item: OrderItemDto) {
-    return {
-      id: item.id,
-      title: item.title,
-      description: item.description,
-      price: Number(item.price),
-      sauces: item.sauces ?? [],
-      active: item.active ?? true,
-      image: item.image ?? { name: '' },
-      count: Number(item.count) || 1,
-    };
+  findForSession(sessionId: string): Promise<Order[]> {
+    return this.ordersRepo.find({
+      where: { sessionId },
+      relations: {
+        items: {
+          product: true,
+        },
+      },
+      order: {
+        createdAt: "DESC",
+      },
+    });
   }
 
-  async addOrder(
-    dto: CreateOrderDto,
-    ctx: { table: string; sessionId: string },
-  ) {
-    const store = await this.getOrCreateStore();
-    const newOrder: OrderRecord = {
-      _id: uuidv4(),
-      sessionId: ctx.sessionId,
-      items: dto.items.map((item) => this.mapOrderItem(item)),
-      allPrice: Number(dto.allPrice),
-      table: ctx.table,
-      createdAt: new Date().toISOString(),
-    };
+  async createFromBasket(sessionId: string): Promise<Order> {
+    const order = await this.dataSource.transaction(async (manager) => {
+      const sessionsRepo = manager.getRepository(DiningSession);
+      const basketItemsRepo = manager.getRepository(BasketItem);
+      const ordersRepo = manager.getRepository(Order);
+      const orderItemsRepo = manager.getRepository(OrderItem);
 
-    store.orders = [...(store.orders ?? []), newOrder];
-    await this.orderRepo.save(store);
-    this.notifyOrdersChanged(store.orders);
-
-    return { message: 'New order added successfully', order: newOrder };
-  }
-
-
-  async deleteOrder(id: string) {
-    const store = await this.getOrCreateStore();
-    const before = store.orders?.length ?? 0;
-    store.orders = (store.orders ?? []).filter((o) => o._id !== id);
-
-    if (store.orders.length === before) {
-      throw new NotFoundException({
-        error: 'Заказ не найден или что-то пошло не так',
+      const session = await sessionsRepo.findOne({
+        where: { id: sessionId },
+        lock: { mode: "pessimistic_write" },
       });
-    }
 
-    await this.orderRepo.save(store);
-    this.notifyOrdersChanged(store.orders);
-    return store;
+      if (!session || session.status !== "open") {
+        throw new BadRequestException("Session is closed or invalid");
+      }
+
+      const basketItems = await basketItemsRepo.find({
+        where: { sessionId },
+        relations: {
+          product: true,
+        },
+        order: {
+          createdAt: "ASC",
+        },
+      });
+
+      if (basketItems.length === 0) {
+        throw new BadRequestException("Basket is empty");
+      }
+
+      const newOrder = ordersRepo.create({
+        tableId: session.tableId,
+        sessionId: session.id,
+        status: "placed",
+        total: 0,
+        completedAt: null,
+      });
+
+      newOrder.items = basketItems.map((basketItem) => {
+        const lineTotal = this.roundMoney(
+          (basketItem.unitPrice +
+            SAUCE_UNIT_PRICE * basketItem.sauces.length) *
+            basketItem.quantity,
+        );
+
+        return orderItemsRepo.create({
+          order: newOrder,
+          productId: basketItem.productId,
+          product: basketItem.product,
+          titleSnapshot: basketItem.product.title,
+          descriptionSnapshot: basketItem.product.description,
+          unitPrice: basketItem.unitPrice,
+          quantity: basketItem.quantity,
+          sauces: basketItem.sauces,
+          lineTotal,
+        });
+      });
+
+      newOrder.total = this.roundMoney(
+        newOrder.items.reduce((sum, item) => sum + item.lineTotal, 0),
+      );
+
+      const savedOrder = await ordersRepo.save(newOrder);
+      await basketItemsRepo.delete({ sessionId });
+
+      return ordersRepo.findOneOrFail({
+        where: { id: savedOrder.id },
+        relations: {
+          table: true,
+          session: true,
+          items: {
+            product: true,
+          },
+        },
+      });
+    });
+
+    await this.notifyOrdersChanged();
+    return order;
   }
 
-  async deleteAllOrders() {
-    const store = await this.orderRepo.findOne({ where: { id: 1 } });
-    if (!store) {
-      throw new NotFoundException({
-        error: 'Данные не найдены или что-то пошло не так',
-      });
+  async updateStatus(id: string, status: OrderStatus): Promise<Order> {
+    const order = await this.ordersRepo.findOne({
+      where: { id },
+      relations: {
+        table: true,
+        session: true,
+        items: {
+          product: true,
+        },
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundException("Order not found");
     }
 
-    store.orders = [];
-    await this.orderRepo.save(store);
-    this.notifyOrdersChanged(store.orders);
-    return { message: "Данные в массиве 'orders' были удалены" };
+    order.status = status;
+    order.completedAt = status === "completed" ? new Date() : null;
+
+    const savedOrder = await this.ordersRepo.save(order);
+    await this.notifyOrdersChanged();
+    return savedOrder;
   }
 }

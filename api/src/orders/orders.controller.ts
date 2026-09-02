@@ -1,48 +1,55 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
+  Param,
+  ParseUUIDPipe,
   Patch,
+  Post,
+  Req,
   UseGuards,
 } from "@nestjs/common";
+import { Permission } from "src/common/auth/permission";
+import { RequirePermissions } from "src/common/auth/permissions.decorator";
+import { JwtAuthGuard } from "src/common/guards/jwt-auth.guard";
+import {
+  OpenSessionGuard,
+  RequestWithSession,
+} from "src/common/guards/open-session.guard";
+import { PermissionsGuard } from "src/common/guards/permissions.guard";
+import { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
 import { OrdersService } from "./orders.service";
-import { CreateOrderDto, DeleteOrderDto } from "./dto/order.dto";
-import { RequestWithSession } from "src/common/guards/open-session.guard";
-import { OpenSessionGuard } from "src/common/guards/open-session.guard";
-import { Req } from "@nestjs/common";
 
 @Controller("api/orders")
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(Permission.ORDERS_VIEW)
   @Get()
-  getOrders() {
-    return this.ordersService.getOrders();
+  findAll() {
+    return this.ordersService.findAll();
   }
 
   @UseGuards(OpenSessionGuard)
-  @Patch()
-  addOrder(@Req() req: RequestWithSession, @Body() dto: CreateOrderDto) {
-    const session = req.diningSession!;
-    return this.ordersService.addOrder(dto, {
-      table: String(session.table.number),
-      sessionId: session.id,
-    });
+  @Get("mine")
+  findMine(@Req() req: RequestWithSession) {
+    return this.ordersService.findForSession(req.diningSession!.id);
   }
 
-  @Delete()
-  deleteOrder(@Body() dto: DeleteOrderDto) {
-    return this.ordersService.deleteOrder(dto.id);
+  @UseGuards(OpenSessionGuard)
+  @Post()
+  create(@Req() req: RequestWithSession) {
+    return this.ordersService.createFromBasket(req.diningSession!.id);
   }
-}
 
-@Controller("api/orders/all")
-export class OrdersAllController {
-  constructor(private readonly ordersService: OrdersService) {}
-
-  @Delete()
-  deleteAll() {
-    return this.ordersService.deleteAllOrders();
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(Permission.ORDERS_MANAGE)
+  @Patch(":id/status")
+  updateStatus(
+    @Param("id", new ParseUUIDPipe()) id: string,
+    @Body() dto: UpdateOrderStatusDto,
+  ) {
+    return this.ordersService.updateStatus(id, dto.status);
   }
 }

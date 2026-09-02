@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 import { DiningSession } from "./dining-session.entity";
+import { Order } from "./order.entity";
 
 @Entity("tables")
 export class DiningTable {
@@ -50,4 +51,7 @@ export class DiningTable {
 
   @OneToMany(() => DiningSession, (session) => session.table)
   sessions!: DiningSession[];
+
+  @OneToMany(() => Order, (order) => order.table)
+  orders!: Order[];
 }

@@ -10,6 +10,7 @@ import {
 } from "typeorm";
 import { Category } from "./category.entity";
 import { BasketItem } from "./basket-item.entity";
+import { OrderItem } from "./order-item.entity";
 
 @Entity("products")
 export class Product {
@@ -51,6 +52,9 @@ export class Product {
 
   @OneToMany(() => BasketItem, (item) => item.product)
   basketItems!: BasketItem[];
+
+  @OneToMany(() => OrderItem, (item) => item.product)
+  orderItems!: OrderItem[];
 
   @CreateDateColumn({ type: "timestamptz" })
   createdAt!: Date;
