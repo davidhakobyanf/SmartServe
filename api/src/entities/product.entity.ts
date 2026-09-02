@@ -17,7 +17,7 @@ export class Product {
   @Column({ type: "uuid" })
   categoryId!: string;
 
-  @ManyToOne(() => Category, {
+  @ManyToOne(() => Category, (category) => category.products, {
     nullable: false,
     onDelete: "RESTRICT",
   })

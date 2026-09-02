@@ -20,6 +20,10 @@ import { Role } from "./entities/role.entity";
 import { RolesModule } from "./roles/roles.module";
 import { DiningTable } from "./entities/dining-table.entity";
 import { TablesModule } from "./tables/tables.module";
+import { Category } from "./entities/category.entity";
+import { Product } from "./entities/product.entity";
+import { CategoriesModule } from "./categories/categories.module";
+import { ProductsModule } from './products/products.module';
 
 @Module({
   imports: [
@@ -42,7 +46,9 @@ import { TablesModule } from "./tables/tables.module";
           BasketStore,
           OrderStore,
           DiningSession,
-          DiningTable
+          DiningTable,
+          Category,
+          Product,
         ],
         synchronize: config.get<string>("DB_SYNC", "false") === "true",
       }),
@@ -57,7 +63,9 @@ import { TablesModule } from "./tables/tables.module";
     WaiterModule,
     SetupModule,
     RolesModule,
-    TablesModule
+    TablesModule,
+    CategoriesModule,
+    ProductsModule,
   ],
 })
 export class AppModule {}
