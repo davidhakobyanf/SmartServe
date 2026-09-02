@@ -11,9 +11,9 @@ import { AddBasketItemDto } from "./dto/add-basket-item.dto";
 import { UpdateBasketItemDto } from "./dto/update-basket-item.dto";
 import { OnEvent } from "@nestjs/event-emitter";
 import {
-  DOMAIN_EVENTS,
+  SESSION_DOMAIN_EVENTS,
   SessionClosedPayload,
-} from "src/sessions/session.gateway";
+} from "src/sessions/session.events";
 
 @Injectable()
 export class BasketItemsService {
@@ -159,7 +159,7 @@ export class BasketItemsService {
     return { success: true };
   }
 
-  @OnEvent(DOMAIN_EVENTS.SESSION_CLOSED)
+  @OnEvent(SESSION_DOMAIN_EVENTS.CLOSED)
   async onSessionClosed(payload: SessionClosedPayload): Promise<void> {
     await this.basketItemsRepo.delete({
       sessionId: payload.sessionId,

@@ -50,6 +50,15 @@ export class Product {
   @Column({ type: "boolean", default: true })
   isActive!: boolean;
 
+  @Column({ type: "varchar", length: 255, nullable: true })
+  imageName!: string | null;
+
+  @Column({ type: "varchar", length: 100, nullable: true })
+  imageMimeType!: string | null;
+
+  @Column({ type: "bytea", nullable: true, select: false })
+  imageData!: Buffer | null;
+
   @OneToMany(() => BasketItem, (item) => item.product)
   basketItems!: BasketItem[];
 

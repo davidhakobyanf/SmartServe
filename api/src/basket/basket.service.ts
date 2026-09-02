@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { BasketStore } from '../entities/basket-store.entity';
 import type { BasketTables, MenuCard } from '../common/types/menu-card';
 import { AddBasketItemDto } from './dto/basket.dto';
-import { DOMAIN_EVENTS, SessionClosedPayload } from 'src/sessions/session.gateway';
+import { SESSION_DOMAIN_EVENTS, SessionClosedPayload } from 'src/sessions/session.events';
 import { OnEvent } from '@nestjs/event-emitter';
 
 
@@ -154,7 +154,7 @@ export class BasketService {
     await this.basketRepo.save(store);
   }
 
-  @OnEvent(DOMAIN_EVENTS.SESSION_CLOSED)
+  @OnEvent(SESSION_DOMAIN_EVENTS.CLOSED)
   async onSessionClosed(payload: SessionClosedPayload) {
     await this.clearTable(String(payload.tableNumber));
   }

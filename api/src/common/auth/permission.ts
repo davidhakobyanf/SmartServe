@@ -7,6 +7,7 @@ export enum Permission {
 
     ORDERS_VIEW = 'orders.view',
     ORDERS_MANAGE = 'orders.manage',
+    REVENUE_VIEW = 'revenue.view',
 
     TABLES_VIEW = 'tables.view',
     TABLES_MANAGE = 'tables.manage',

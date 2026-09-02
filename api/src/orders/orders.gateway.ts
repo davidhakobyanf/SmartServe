@@ -6,6 +6,8 @@ import { Permission } from 'src/common/auth/permission';
 import { UserStatus } from 'src/common/auth/user-status';
 import { Order } from "src/entities/order.entity";
 import { UsersService } from 'src/users/users.service';
+import { hideOrdersFinancials } from './order-response';
+import { ORDER_DOMAIN_EVENTS } from './order.events';
 
 
 
@@ -15,12 +17,9 @@ export const WS_EVENTS = {
     JOIN:'join',
 } as const;
 export const  WS_ROOMS = {
-    ADMIN: 'admin',
+    ORDERS: 'orders',
+    REVENUE: 'revenue',
 } as const;
-export const DOMAIN_EVENTS = {
-    ORDERS_CHANGED:'orders:changed',
-} as const;
-
 @WebSocketGateway({
     namespace:WS_NAMESPACE,
     cors:{
@@ -67,15 +66,26 @@ export class OrdersGateway {
                 return { ok: false, error: 'Missing orders.view permission' };
             }
 
-            await client.join(WS_ROOMS.ADMIN);
+            await client.leave(WS_ROOMS.ORDERS);
+            await client.leave(WS_ROOMS.REVENUE);
+            await client.join(
+                permissions.includes(Permission.REVENUE_VIEW)
+                    ? WS_ROOMS.REVENUE
+                    : WS_ROOMS.ORDERS,
+            );
             return { ok: true };
         } catch {
             return { ok: false, error: 'Invalid or expired access token' };
         }
     }
 
-    @OnEvent(DOMAIN_EVENTS.ORDERS_CHANGED)
+    @OnEvent(ORDER_DOMAIN_EVENTS.CHANGED)
     onOrdersChanged(orders: Order[]) {
-        this.server.to(WS_ROOMS.ADMIN).emit(WS_EVENTS.ORDERS_UPDATED, orders);
+        this.server
+            .to(WS_ROOMS.ORDERS)
+            .emit(WS_EVENTS.ORDERS_UPDATED, hideOrdersFinancials(orders));
+        this.server
+            .to(WS_ROOMS.REVENUE)
+            .emit(WS_EVENTS.ORDERS_UPDATED, orders);
     }
 }

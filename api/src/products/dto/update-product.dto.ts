@@ -8,7 +8,10 @@ import {
   IsUUID,
   MaxLength,
   Min,
+  ValidateNested,
 } from "class-validator";
+import { Type } from "class-transformer";
+import { ProductImageDto } from "./product-image.dto";
 
 export class UpdateProductDto {
   @IsOptional()
@@ -39,4 +42,9 @@ export class UpdateProductDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ProductImageDto)
+  image?: ProductImageDto;
 }

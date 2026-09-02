@@ -7,6 +7,10 @@ import { Server, Socket } from "socket.io";
 import { OnEvent } from "@nestjs/event-emitter";
 import { SessionsService } from "./sessions.service";
 import { isUUID } from "class-validator";
+import {
+  SESSION_DOMAIN_EVENTS,
+  SessionClosedPayload,
+} from "./session.events";
 
 export const WS_NAMESPACE = "sessions";
 export const WS_EVENTS = {
@@ -14,21 +18,12 @@ export const WS_EVENTS = {
   CLOSED: "closed",
 } as const;
 
-export const DOMAIN_EVENTS = {
-  SESSION_CLOSED: "session_closed",
-} as const;
-
-export type SessionClosedPayload = {
-  sessionId: string;
-  tableNumber: number;
-};
-
 type JoinPayload = { token: string };
 
 @WebSocketGateway({
   namespace: WS_NAMESPACE,
   cors: {
-    origin: process.env.CORS_ORIGIN ?? "http://localhost:3001",
+    origin: process.env.CORS_ORIGIN ?? "http://localhost:3000",
     credentials: true,
   },
 })
@@ -56,7 +51,7 @@ export class SessionsGateway {
     }
   }
 
-  @OnEvent(DOMAIN_EVENTS.SESSION_CLOSED)
+  @OnEvent(SESSION_DOMAIN_EVENTS.CLOSED)
   onSessionClosed(payload: SessionClosedPayload) {
     this.server
       .to(`session:${payload.sessionId}`)

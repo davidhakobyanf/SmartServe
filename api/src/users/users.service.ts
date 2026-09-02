@@ -381,6 +381,10 @@ export class UsersService {
   }
 
   getEffectivePermissions(user: User): Permission[] {
+    if (user.role?.code === "owner") {
+      return Object.values(Permission);
+    }
+
     const effectivePermissions = new Set<Permission>([
       ...(user.role?.permissions ?? []),
       ...(user.permissionAllow ?? []),

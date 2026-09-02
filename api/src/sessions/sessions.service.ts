@@ -8,8 +8,10 @@ import { EventEmitter2 } from "@nestjs/event-emitter";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DiningSession } from "src/entities/dining-session.entity";
 import { Repository, QueryFailedError } from "typeorm";
-import { SessionClosedPayload } from "./session.gateway";
-import { DOMAIN_EVENTS } from "./session.gateway";
+import {
+  SESSION_DOMAIN_EVENTS,
+  SessionClosedPayload,
+} from "./session.events";
 import { DiningTable } from "src/entities/dining-table.entity";
 import { randomUUID } from "crypto";
 @Injectable()
@@ -142,7 +144,7 @@ export class SessionsService {
       tableNumber: saved.table.number,
     };
 
-    this.events.emit(DOMAIN_EVENTS.SESSION_CLOSED, payload);
+    this.events.emit(SESSION_DOMAIN_EVENTS.CLOSED, payload);
     return saved;
   }
 

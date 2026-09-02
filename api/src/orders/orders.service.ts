@@ -10,7 +10,7 @@ import { DiningSession } from "src/entities/dining-session.entity";
 import { Order, OrderStatus } from "src/entities/order.entity";
 import { OrderItem } from "src/entities/order-item.entity";
 import { DataSource, Repository } from "typeorm";
-import { DOMAIN_EVENTS } from "./orders.gateway";
+import { ORDER_DOMAIN_EVENTS } from "./order.events";
 
 const SAUCE_UNIT_PRICE = 350;
 
@@ -28,7 +28,7 @@ export class OrdersService {
   }
 
   private async notifyOrdersChanged(): Promise<void> {
-    this.events.emit(DOMAIN_EVENTS.ORDERS_CHANGED, await this.findAll());
+    this.events.emit(ORDER_DOMAIN_EVENTS.CHANGED, await this.findAll());
   }
 
   findAll(): Promise<Order[]> {

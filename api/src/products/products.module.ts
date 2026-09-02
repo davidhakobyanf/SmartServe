@@ -7,6 +7,7 @@ import { ProductsService } from "./products.service";
 import { UsersModule } from "src/users/users.module";
 import { PublicMenuController } from "./public-menu.controller";
 import { SessionsModule } from "src/sessions/sessions.module";
+import { ProductImagesController } from "./product-images.controller";
 
 @Module({
   imports: [
@@ -14,7 +15,11 @@ import { SessionsModule } from "src/sessions/sessions.module";
     UsersModule,
     SessionsModule,
   ],
-  controllers: [ProductsController, PublicMenuController],
+  controllers: [
+    ProductsController,
+    PublicMenuController,
+    ProductImagesController,
+  ],
   providers: [ProductsService],
   exports: [ProductsService],
 })

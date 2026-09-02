@@ -4,13 +4,9 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { User } from "./entities/user.entity";
 import { SessionProfile } from "./entities/session-profile.entity";
-import { BasketStore } from "./entities/basket-store.entity";
-import { OrderStore } from "./entities/order-store.entity";
 import { UsersModule } from "./users/users.module";
 import { AuthModule } from "./auth/auth.module";
 import { ProfileModule } from "./profile/profile.module";
-import { MenuModule } from "./menu/menu.module";
-import { BasketModule } from "./basket/basket.module";
 import { OrdersModule } from "./orders/orders.module";
 import { WaiterModule } from "./waiter/waiter.module";
 import { DiningSession } from "./entities/dining-session.entity";
@@ -47,8 +43,6 @@ import { OrderItem } from "./entities/order-item.entity";
           User,
           Role,
           SessionProfile,
-          BasketStore,
-          OrderStore,
           DiningSession,
           DiningTable,
           Category,
@@ -63,9 +57,7 @@ import { OrderItem } from "./entities/order-item.entity";
     UsersModule,
     AuthModule,
     ProfileModule,
-    MenuModule,
     SessionsModule,
-    BasketModule,
     OrdersModule,
     WaiterModule,
     SetupModule,
