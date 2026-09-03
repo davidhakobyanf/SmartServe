@@ -8,6 +8,7 @@ import type {
   OrderStatus,
   ProductRecord,
   RelationalOrder,
+  SauceRecord,
 } from '@/types/restaurant';
 import type { AuthenticatedStaff } from '@/types/staff';
 
@@ -61,6 +62,25 @@ class DataApi {
     return instance.patch(`/api/categories/${id}`, payload);
   }
 
+  static async getSauces(): Promise<AxiosResponse<SauceRecord[]>> {
+    return instance.get('/api/sauces');
+  }
+
+  static async createSauce(payload: {
+    name: string;
+    price: number;
+    isActive?: boolean;
+  }): Promise<AxiosResponse<SauceRecord>> {
+    return instance.post('/api/sauces', payload);
+  }
+
+  static async updateSauce(
+    id: string,
+    payload: Partial<Pick<SauceRecord, 'name' | 'price' | 'isActive'>>,
+  ): Promise<AxiosResponse<SauceRecord>> {
+    return instance.patch(`/api/sauces/${id}`, payload);
+  }
+
   static async getProducts(): Promise<AxiosResponse<ProductRecord[]>> {
     return instance.get('/api/products');
   }
@@ -87,14 +107,14 @@ class DataApi {
   static async addBasketItem(payload: {
     productId: string;
     quantity?: number;
-    sauces?: string[];
+    sauceIds?: string[];
   }): Promise<AxiosResponse<BasketItemRecord>> {
     return instance.post('/api/basket-items', payload);
   }
 
   static async updateBasketItem(
     id: string,
-    payload: { quantity?: number; sauces?: string[] },
+    payload: { quantity?: number; sauceIds?: string[] },
   ): Promise<AxiosResponse<BasketItemRecord>> {
     return instance.patch(`/api/basket-items/${id}`, payload);
   }

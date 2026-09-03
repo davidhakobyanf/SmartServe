@@ -2,6 +2,7 @@
   "title": "Menu Management",
   "subtitle": "Manage your restaurant menu and menu items",
   "categoriesButton": "Categories",
+  "saucesButton": "Sauces",
   "addNewItem": "Add New Item",
   "categories": {
     "all": "All Items",
@@ -23,5 +24,18 @@
   "markAvailable": "Mark available",
   "price": "{price} AMD",
   "available": "Available",
-  "unavailable": "Unavailable"
+  "unavailable": "Unavailable",
+  "sauces": {
+    "title": "Sauces",
+    "namePlaceholder": "Sauce name",
+    "priceLabel": "Sauce price",
+    "save": "Save",
+    "add": "Add",
+    "cancelEdit": "Cancel editing",
+    "empty": "No sauces yet",
+    "edit": "Edit",
+    "loadError": "Could not load sauces",
+    "saveError": "Could not save the sauce",
+    "toggleError": "Could not update the sauce"
+  }
 }

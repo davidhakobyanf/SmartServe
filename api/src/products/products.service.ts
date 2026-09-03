@@ -7,9 +7,11 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { CreateProductDto } from "./dto/create-product.dto";
 import { Category } from "src/entities/category.entity";
 import { Product } from "src/entities/product.entity";
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 import { UpdateProductDto } from "./dto/update-product.dto";
 import { ProductImageDto } from "./dto/product-image.dto";
+import { ProductSauce } from "src/entities/product-sauce.entity";
+import { Sauce } from "src/entities/sauce.entity";
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
@@ -21,7 +23,57 @@ export class ProductsService {
 
     @InjectRepository(Category)
     private readonly categoriesRepo: Repository<Category>,
+
+    @InjectRepository(ProductSauce)
+    private readonly productSaucesRepo: Repository<ProductSauce>,
+
+    @InjectRepository(Sauce)
+    private readonly saucesRepo: Repository<Sauce>,
   ) {}
+
+  private normalizeSauceIds(sauceIds: string[] = []): string[] {
+    return [...new Set(sauceIds)].sort();
+  }
+
+  private async validateSauceIds(sauceIds: string[] = []): Promise<string[]> {
+    const normalizedIds = this.normalizeSauceIds(sauceIds);
+    if (normalizedIds.length === 0) return [];
+
+    const sauces = await this.saucesRepo.findBy({
+      id: In(normalizedIds),
+    });
+    if (sauces.length !== normalizedIds.length) {
+      throw new BadRequestException("One or more sauces do not exist");
+    }
+
+    return normalizedIds;
+  }
+
+  private async replaceSauceLinks(
+    productId: string,
+    sauceIds: string[],
+  ): Promise<void> {
+    await this.productSaucesRepo.delete({ productId });
+    if (sauceIds.length === 0) return;
+
+    await this.productSaucesRepo.save(
+      sauceIds.map((sauceId) =>
+        this.productSaucesRepo.create({ productId, sauceId }),
+      ),
+    );
+  }
+
+  private findOneWithDetails(id: string): Promise<Product> {
+    return this.productsRepo.findOneOrFail({
+      where: { id },
+      relations: {
+        category: true,
+        sauceLinks: {
+          sauce: true,
+        },
+      },
+    });
+  }
 
   private async findCategory(id: string): Promise<Category> {
     const category = await this.categoriesRepo.findOne({
@@ -82,6 +134,9 @@ export class ProductsService {
     return this.productsRepo.find({
       relations: {
         category: true,
+        sauceLinks: {
+          sauce: true,
+        },
       },
       order: {
         title: "ASC",
@@ -99,6 +154,9 @@ export class ProductsService {
       },
       relations: {
         category: true,
+        sauceLinks: {
+          sauce: true,
+        },
       },
       order: {
         category: {
@@ -111,6 +169,7 @@ export class ProductsService {
 
   async create(dto: CreateProductDto): Promise<Product> {
     const category = await this.findCategory(dto.categoryId);
+    const sauceIds = await this.validateSauceIds(dto.sauceIds);
     const image = dto.image?.data ? this.decodeImage(dto.image) : {};
     const product = this.productsRepo.create({
       categoryId: category.id,
@@ -118,7 +177,6 @@ export class ProductsService {
       title: dto.title.trim(),
       description: dto.description?.trim() ?? "",
       price: dto.price,
-      sauces: dto.sauces ?? [],
       isActive: dto.isActive ?? true,
       imageName: dto.image?.name?.trim() || null,
       imageMimeType: dto.image?.mimeType?.trim() || null,
@@ -126,10 +184,8 @@ export class ProductsService {
       ...image,
     });
     const saved = await this.productsRepo.save(product);
-    return this.productsRepo.findOneOrFail({
-      where: { id: saved.id },
-      relations: { category: true },
-    });
+    await this.replaceSauceLinks(saved.id, sauceIds);
+    return this.findOneWithDetails(saved.id);
   }
 
   async update(id: string, dto: UpdateProductDto): Promise<Product> {
@@ -160,9 +216,6 @@ export class ProductsService {
       product.price = dto.price;
     }
 
-    if (dto.sauces !== undefined) {
-      product.sauces = dto.sauces;
-    }
     if (dto.isActive !== undefined) {
       product.isActive = dto.isActive;
     }
@@ -180,9 +233,10 @@ export class ProductsService {
     }
 
     await this.productsRepo.save(product);
-    return this.productsRepo.findOneOrFail({
-      where: { id },
-      relations: { category: true },
-    });
+    if (dto.sauceIds !== undefined) {
+      const sauceIds = await this.validateSauceIds(dto.sauceIds);
+      await this.replaceSauceLinks(id, sauceIds);
+    }
+    return this.findOneWithDetails(id);
   }
 }

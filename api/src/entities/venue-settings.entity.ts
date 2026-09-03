@@ -20,18 +20,6 @@ export class VenueSettings {
   @Column({ type: "varchar", length: 100, default: "Asia/Yerevan" })
   timezone!: string;
 
-  @Column({
-    type: "numeric",
-    precision: 10,
-    scale: 2,
-    default: 350,
-    transformer: {
-      to: (value: number) => value,
-      from: (value: string) => Number(value),
-    },
-  })
-  sauceUnitPrice!: number;
-
   @CreateDateColumn({ type: "timestamptz" })
   createdAt!: Date;
 

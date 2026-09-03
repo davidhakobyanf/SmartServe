@@ -12,7 +12,6 @@ import { OrderItem } from "src/entities/order-item.entity";
 import { DataSource, Repository } from "typeorm";
 import { ORDER_DOMAIN_EVENTS } from "./order.events";
 import { SESSION_DOMAIN_EVENTS } from "src/sessions/session.events";
-import { VenueSettingsService } from "src/venue-settings/venue-settings.service";
 
 @Injectable()
 export class OrdersService {
@@ -21,7 +20,6 @@ export class OrdersService {
     private readonly ordersRepo: Repository<Order>,
     private readonly dataSource: DataSource,
     private readonly events: EventEmitter2,
-    private readonly venueSettingsService: VenueSettingsService,
   ) {}
 
   private roundMoney(value: number): number {
@@ -62,7 +60,6 @@ export class OrdersService {
   }
 
   async createFromBasket(sessionId: string): Promise<Order> {
-    const { sauceUnitPrice } = await this.venueSettingsService.get();
     const order = await this.dataSource.transaction(async (manager) => {
       const sessionsRepo = manager.getRepository(DiningSession);
       const basketItemsRepo = manager.getRepository(BasketItem);
@@ -103,7 +100,10 @@ export class OrdersService {
       newOrder.items = basketItems.map((basketItem) => {
         const lineTotal = this.roundMoney(
           (basketItem.unitPrice +
-            sauceUnitPrice * basketItem.sauces.length) *
+            basketItem.sauces.reduce(
+              (sum, sauce) => sum + sauce.unitPrice,
+              0,
+            )) *
             basketItem.quantity,
         );
 

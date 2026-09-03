@@ -34,21 +34,15 @@ describe("OrdersService", () => {
     transaction: jest.fn(async (callback) => callback(manager)),
   };
   const events = { emit: jest.fn() };
-  const venueSettings = {
-    get: jest.fn().mockResolvedValue({ sauceUnitPrice: 350 }),
-  };
-
   let service: OrdersService;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    venueSettings.get.mockResolvedValue({ sauceUnitPrice: 350 });
     ordersRepo.find.mockResolvedValue([]);
     service = new OrdersService(
       ordersRepo as never,
       dataSource as never,
       events as never,
-      venueSettings as never,
     );
   });
 
@@ -58,7 +52,10 @@ describe("OrdersService", () => {
       productId: "product-1",
       product: { title: "Burger", description: "Beef" },
       unitPrice: 1000,
-      sauces: ["Garlic", "Chili"],
+      sauces: [
+        { id: "garlic-id", name: "Garlic", unitPrice: 300 },
+        { id: "chili-id", name: "Chili", unitPrice: 400 },
+      ],
       quantity: 2,
     };
     sessionsRepo.findOne.mockResolvedValue(session);

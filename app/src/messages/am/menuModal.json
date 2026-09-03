@@ -9,7 +9,8 @@
     "image": "Նկար",
     "selectImage": "Ընտրել նկար",
     "price": "Գին",
-    "pricePlaceholder": "Գին"
+    "pricePlaceholder": "Գին",
+    "inactive": "ոչ ակտիվ"
   },
   "validation": {
     "title": "Մուտքագրեք անվանումը!",

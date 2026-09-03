@@ -1,6 +1,7 @@
 import { Controller, Get, UseGuards } from "@nestjs/common";
 import { ProductsService } from "./products.service";
 import { OpenSessionGuard } from "src/common/guards/open-session.guard";
+import { productsResponse } from "./product-response";
 
 @Controller("api/menu")
 export class PublicMenuController {
@@ -8,7 +9,7 @@ export class PublicMenuController {
 
   @UseGuards(OpenSessionGuard)
   @Get()
-  findActiveMenu() {
-    return this.productsService.findActiveMenu();
+  async findActiveMenu() {
+    return productsResponse(await this.productsService.findActiveMenu(), true);
   }
 }

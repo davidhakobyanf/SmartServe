@@ -2,6 +2,7 @@
   "title": "Управление меню",
   "subtitle": "Управляйте меню вашего ресторана и его позициями",
   "categoriesButton": "Категории",
+  "saucesButton": "Соусы",
   "addNewItem": "Добавить позицию",
   "categories": {
     "all": "Все позиции",
@@ -23,5 +24,18 @@
   "markAvailable": "Отметить как доступное",
   "price": "{price} драм",
   "available": "Доступно",
-  "unavailable": "Недоступно"
+  "unavailable": "Недоступно",
+  "sauces": {
+    "title": "Соусы",
+    "namePlaceholder": "Название соуса",
+    "priceLabel": "Цена соуса",
+    "save": "Сохранить",
+    "add": "Добавить",
+    "cancelEdit": "Отменить редактирование",
+    "empty": "Соусов пока нет",
+    "edit": "Изменить",
+    "loadError": "Не удалось загрузить соусы",
+    "saveError": "Не удалось сохранить соус",
+    "toggleError": "Не удалось изменить соус"
+  }
 }

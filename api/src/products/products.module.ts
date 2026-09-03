@@ -8,10 +8,12 @@ import { UsersModule } from "src/users/users.module";
 import { PublicMenuController } from "./public-menu.controller";
 import { SessionsModule } from "src/sessions/sessions.module";
 import { ProductImagesController } from "./product-images.controller";
+import { ProductSauce } from "src/entities/product-sauce.entity";
+import { Sauce } from "src/entities/sauce.entity";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Product, Category]),
+    TypeOrmModule.forFeature([Product, Category, ProductSauce, Sauce]),
     UsersModule,
     SessionsModule,
   ],

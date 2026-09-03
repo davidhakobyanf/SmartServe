@@ -9,7 +9,8 @@
     "image": "Image",
     "selectImage": "Select Image",
     "price": "Price",
-    "pricePlaceholder": "Price"
+    "pricePlaceholder": "Price",
+    "inactive": "inactive"
   },
   "validation": {
     "title": "Please input title!",

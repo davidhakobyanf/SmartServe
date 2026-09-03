@@ -3,7 +3,7 @@ import {
   IsArray,
   IsInt,
   IsOptional,
-  IsString,
+  IsUUID,
   Max,
   Min,
 } from "class-validator";
@@ -18,6 +18,6 @@ export class UpdateBasketItemDto {
   @IsOptional()
   @IsArray()
   @ArrayMaxSize(20)
-  @IsString({ each: true })
-  sauces?: string[];
+  @IsUUID(undefined, { each: true })
+  sauceIds?: string[];
 }

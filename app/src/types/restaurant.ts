@@ -5,6 +5,21 @@ export interface CategoryRecord {
   isActive: boolean;
 }
 
+export interface SauceRecord {
+  id: string;
+  name: string;
+  price: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SauceSnapshotRecord {
+  id: string;
+  name: string;
+  unitPrice: number;
+}
+
 export interface ProductRecord {
   id: string;
   categoryId: string;
@@ -12,7 +27,7 @@ export interface ProductRecord {
   title: string;
   description: string;
   price: number;
-  sauces: string[];
+  sauces: SauceRecord[];
   isActive: boolean;
   imageName: string | null;
   imageMimeType: string | null;
@@ -24,7 +39,7 @@ export interface BasketItemRecord {
   productId: string;
   product: ProductRecord;
   quantity: number;
-  sauces: string[];
+  sauces: SauceSnapshotRecord[];
   unitPrice: number;
 }
 
@@ -37,7 +52,7 @@ export interface OrderItemRecord {
   descriptionSnapshot: string;
   unitPrice: number | null;
   quantity: number;
-  sauces: string[];
+  sauces: SauceSnapshotRecord[];
   lineTotal: number | null;
 }
 

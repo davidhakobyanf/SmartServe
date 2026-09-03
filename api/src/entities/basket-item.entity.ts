@@ -11,6 +11,7 @@ import {
 } from "typeorm";
 import { DiningSession } from "./dining-session.entity";
 import { Product } from "./product.entity";
+import { SauceSnapshot } from "src/common/types/sauce-snapshot";
 
 @Entity("basket_items")
 @Check(`"quantity" > 0`)
@@ -44,7 +45,7 @@ export class BasketItem {
   quantity!: number;
 
   @Column({ type: "jsonb", default: [] })
-  sauces!: string[];
+  sauces!: SauceSnapshot[];
 
   @Column({
     type: "numeric",

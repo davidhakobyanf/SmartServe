@@ -42,8 +42,6 @@ import { useWaiterClient } from '@/hooks/useWaiterClient';
 import { useSessionLock } from '@/hooks/useSessionLock';
 import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
 
-const SAUCE_PRICE = 350;
-
 const PAGE_SIZE = 8;
 
 const CATEGORY_ICONS = [TbSoup, TbMeat, TbCake, TbGlassFull];
@@ -56,7 +54,8 @@ const badgeFor = (index: number): 'popular' | 'chef' | null => {
 };
 
 const lineTotal = (item: MenuCard) =>
-  (item.price + SAUCE_PRICE * (item.sauces?.length ?? 0)) *
+  (item.price +
+    (item.sauces ?? []).reduce((sum, sauce) => sum + sauce.price, 0)) *
   (item.count ?? 1);
 
 const fmt = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
@@ -243,7 +242,7 @@ export default function ClientDashboard() {
     try {
       await clientAPI.addBasketItem({
         productId: item.id,
-        sauces: [],
+        sauceIds: [],
         quantity: 1,
       });
       await fetchBasket();
@@ -255,7 +254,7 @@ export default function ClientDashboard() {
 
   // A basket line is unique per (id + sauces), never by id alone.
   const lineKey = (it: MenuCard) =>
-    `${it.id}|${JSON.stringify(it.sauces ?? [])}`;
+    `${it.id}|${JSON.stringify((it.sauces ?? []).map((sauce) => sauce.id))}`;
 
   const changeCount = async (line: MenuCard, next: number) => {
     if (!line.basketItemId) return;

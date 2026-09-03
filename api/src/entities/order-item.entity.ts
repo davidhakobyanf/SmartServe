@@ -10,6 +10,7 @@ import {
 } from "typeorm";
 import { Order } from "./order.entity";
 import { Product } from "./product.entity";
+import { SauceSnapshot } from "src/common/types/sauce-snapshot";
 
 @Entity("order_items")
 @Check(`"quantity" > 0`)
@@ -60,7 +61,7 @@ export class OrderItem {
   quantity!: number;
 
   @Column({ type: "jsonb", default: [] })
-  sauces!: string[];
+  sauces!: SauceSnapshot[];
 
   @Column({
     type: "numeric",

@@ -10,10 +10,10 @@ import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import DeleteCardModal from './DeleteCardModal/DeleteCardModal';
 import EditCardModal from './EditCardModal/EditCardModal';
 import Quantity from '@/hoc/Quantity/Quantity';
-import type { MenuCard, MenuImage } from '@/types';
+import type { MenuCard, MenuImage, MenuSauce } from '@/types';
 
 interface SauceOption {
-  option: string;
+  option: MenuSauce;
   total: number;
 }
 
@@ -53,7 +53,7 @@ export default function CardModal({
 
   useEffect(() => {
     const total = plainOptions?.reduce((acc, curr) => acc + curr.total, 0) ?? 0;
-    setAllTotal((item?.price ?? 0) * quantity + total);
+    setAllTotal(((item?.price ?? 0) + total) * quantity);
   }, [plainOptions, quantity, item]);
 
   useEffect(() => {
@@ -83,18 +83,23 @@ export default function CardModal({
       key: 'option',
       render: (_: unknown, record: SauceOption) => (
         <Checkbox
-          checked={!!selectedOptions[record.option]}
+          checked={!!selectedOptions[record.option.id]}
           onChange={(e) => {
             const checked = e.target.checked;
-            setSelectedOptions((prev) => ({ ...prev, [record.option]: checked }));
+            setSelectedOptions((prev) => ({
+              ...prev,
+              [record.option.id]: checked,
+            }));
             setPlainOptions((prev) =>
               prev.map((o) =>
-                o.option === record.option ? { ...o, total: checked ? 350 : 0 } : o,
+                o.option.id === record.option.id
+                  ? { ...o, total: checked ? record.option.price : 0 }
+                  : o,
               ),
             );
           }}
         >
-          {record.option}
+          {record.option.name}
         </Checkbox>
       ),
     },
@@ -102,12 +107,12 @@ export default function CardModal({
       title: t('card.totalColumn'),
       dataIndex: 'total',
       key: 'total',
-      render: (_: unknown, record: SauceOption) => (record.total ? record.total : 350),
+      render: (_: unknown, record: SauceOption) => record.option.price,
     },
   ];
 
   const data = plainOptions?.map((option, i) => ({
-    key: i,
+    key: option.option.id,
     option: option.option,
     total: option.total,
   }));

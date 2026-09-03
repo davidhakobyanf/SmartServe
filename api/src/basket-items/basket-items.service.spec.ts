@@ -27,14 +27,23 @@ describe("BasketItemsService", () => {
   it("does not allow a sauce that the product does not have", async () => {
     productsRepo.findOne.mockResolvedValue({
       id: "product-1",
-      sauces: ["Garlic"],
+      sauceLinks: [
+        {
+          sauce: {
+            id: "garlic-id",
+            name: "Garlic",
+            price: 300,
+            isActive: true,
+          },
+        },
+      ],
       price: 1000,
     });
 
     await expect(
       service.add("session-1", {
         productId: "product-1",
-        sauces: ["Chili"],
+        sauceIds: ["chili-id"],
         quantity: 1,
       }),
     ).rejects.toBeInstanceOf(BadRequestException);
@@ -44,14 +53,34 @@ describe("BasketItemsService", () => {
   it("combines identical products and normalizes their sauces", async () => {
     const product = {
       id: "product-1",
-      sauces: ["Garlic", "Chili"],
+      sauceLinks: [
+        {
+          sauce: {
+            id: "garlic-id",
+            name: "Garlic",
+            price: 300,
+            isActive: true,
+          },
+        },
+        {
+          sauce: {
+            id: "chili-id",
+            name: "Chili",
+            price: 400,
+            isActive: true,
+          },
+        },
+      ],
       price: 1000,
     };
     const existingItem = {
       id: "item-1",
       productId: product.id,
       sessionId: "session-1",
-      sauces: ["Chili", "Garlic"],
+      sauces: [
+        { id: "chili-id", name: "Chili", unitPrice: 400 },
+        { id: "garlic-id", name: "Garlic", unitPrice: 300 },
+      ],
       quantity: 2,
     };
     productsRepo.findOne.mockResolvedValue(product);
@@ -62,7 +91,7 @@ describe("BasketItemsService", () => {
 
     const result = await service.add("session-1", {
       productId: product.id,
-      sauces: [" Garlic ", "Chili", "Garlic"],
+      sauceIds: ["garlic-id", "chili-id", "garlic-id"],
       quantity: 3,
     });
 

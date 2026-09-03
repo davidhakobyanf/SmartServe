@@ -13,6 +13,7 @@ import type { CategoryRecord } from '@/types/restaurant';
 import AddModal from '../Modal/AddModal';
 import CardModal from '../Modal/CardModal/CardModal';
 import CategoryManagementModal from './CategoryManagementModal';
+import SauceManagementModal from './SauceManagementModal';
 import css from './MenuManagement.module.css';
 
 export default function MenuManagement() {
@@ -26,6 +27,7 @@ export default function MenuManagement() {
   const [category, setCategory] = useState('all');
   const [categories, setCategories] = useState<CategoryRecord[]>([]);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [saucesOpen, setSaucesOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [cardOpen, setCardOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuCard | null>(null);
@@ -40,7 +42,11 @@ export default function MenuManagement() {
         ? { description: card.description }
         : {}),
       ...(card.price !== undefined ? { price: card.price } : {}),
-      ...(card.sauces !== undefined ? { sauces: card.sauces } : {}),
+      ...(card.sauceIds !== undefined
+        ? { sauceIds: card.sauceIds }
+        : card.sauces !== undefined
+          ? { sauceIds: card.sauces.map((sauce) => sauce.id) }
+          : {}),
       ...(card.active !== undefined ? { isActive: card.active } : {}),
       ...(card.image !== undefined ? { image: card.image } : {}),
     });
@@ -53,7 +59,7 @@ export default function MenuManagement() {
       title: formData.title,
       description: formData.description,
       price: formData.price,
-      sauces: formData.sauces ?? [],
+      sauceIds: formData.sauceIds ?? [],
       isActive: formData.active ?? true,
       image: formData.image,
     });
@@ -123,6 +129,15 @@ export default function MenuManagement() {
           <p className={css.subtitle}>{t('subtitle')}</p>
         </div>
         <div className={css.headerActions}>
+          {canManageProducts && (
+            <button
+              type="button"
+              className={css.btnGhost}
+              onClick={() => setSaucesOpen(true)}
+            >
+              {t('saucesButton')}
+            </button>
+          )}
           {canManageCategories && (
             <button
               type="button"
@@ -274,6 +289,13 @@ export default function MenuManagement() {
           open={categoriesOpen}
           onClose={() => setCategoriesOpen(false)}
           onChanged={() => void loadCategories()}
+        />
+      )}
+      {canManageProducts && (
+        <SauceManagementModal
+          open={saucesOpen}
+          onClose={() => setSaucesOpen(false)}
+          onChanged={() => void fetchProfile({ force: true })}
         />
       )}
     </div>

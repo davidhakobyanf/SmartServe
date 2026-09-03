@@ -1,11 +1,9 @@
 import {
   IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsString,
   Matches,
   MaxLength,
-  Min,
 } from "class-validator";
 
 export class UpdateVenueSettingsDto {
@@ -25,9 +23,4 @@ export class UpdateVenueSettingsDto {
   @IsNotEmpty()
   @MaxLength(100)
   timezone?: string;
-
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0)
-  sauceUnitPrice?: number;
 }

@@ -4,6 +4,13 @@ export interface MenuCardImage {
   hasData?: boolean;
 }
 
+export interface MenuSauce {
+  id: string;
+  name: string;
+  price: number;
+  isActive?: boolean;
+}
+
 export interface MenuCard {
   id: string;
   basketItemId?: string;
@@ -12,7 +19,8 @@ export interface MenuCard {
   title: string;
   description: string;
   price: number;
-  sauces: string[];
+  sauces: MenuSauce[];
+  sauceIds?: string[];
   active: boolean;
   image: MenuCardImage;
   table?: string | number;
@@ -26,6 +34,8 @@ export type {
   OrderStatus,
   ProductRecord,
   RelationalOrder,
+  SauceRecord,
+  SauceSnapshotRecord,
 } from './restaurant';
 
 export interface Profile {

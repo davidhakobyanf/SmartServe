@@ -8,7 +8,7 @@ import { UploadOutlined } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
 import { fileToImagePayload } from '@/lib/fileToImagePayload';
 import type { MenuCard } from '@/types';
-import type { CategoryRecord } from '@/types/restaurant';
+import type { CategoryRecord, SauceRecord } from '@/types/restaurant';
 import clientAPI from '@/api/api';
 
 interface AddModalProps {
@@ -26,11 +26,19 @@ export default function AddModal({
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [categories, setCategories] = useState<CategoryRecord[]>([]);
+  const [sauces, setSauces] = useState<SauceRecord[]>([]);
 
   useEffect(() => {
     if (modalOpen) {
-      void clientAPI.getCategories().then(({ data }) =>
-        setCategories((data ?? []).filter((category) => category.isActive)),
+      void Promise.all([clientAPI.getCategories(), clientAPI.getSauces()]).then(
+        ([categoriesResponse, saucesResponse]) => {
+          setCategories(
+            (categoriesResponse.data ?? []).filter((category) => category.isActive),
+          );
+          setSauces(
+            (saucesResponse.data ?? []).filter((sauce) => sauce.isActive),
+          );
+        },
       );
     }
   }, [modalOpen]);
@@ -38,11 +46,6 @@ export default function AddModal({
   const onChange = ({ fileList: newFileList }: { fileList: UploadFile[] }) => {
     setFileList(newFileList);
   };
-
-  const options = Array.from({ length: 26 }, (_, i) => {
-    const n = i + 10;
-    return { value: n.toString(36) + n, label: n.toString(36) + n };
-  });
 
   const onFinish = async (values: Record<string, unknown>) => {
     const uploadFile = fileList[0]?.originFileObj as File | undefined;
@@ -94,8 +97,16 @@ export default function AddModal({
         >
           <Input placeholder={t('fields.titlePlaceholder')} />
         </Form.Item>
-        <Form.Item name="sauces" label={t('fields.sauces')}>
-          <Select mode="tags" style={{ width: '100%' }} placeholder={t('fields.tagsPlaceholder')} options={options} />
+        <Form.Item name="sauceIds" label={t('fields.sauces')}>
+          <Select
+            mode="multiple"
+            style={{ width: '100%' }}
+            placeholder={t('fields.tagsPlaceholder')}
+            options={sauces.map((sauce) => ({
+              value: sauce.id,
+              label: `${sauce.name} — ${Number(sauce.price)} ֏`,
+            }))}
+          />
         </Form.Item>
         <Form.Item
           name="description"

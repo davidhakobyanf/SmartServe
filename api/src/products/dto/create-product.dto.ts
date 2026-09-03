@@ -33,8 +33,8 @@ export class CreateProductDto {
 
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
-  sauces?: string[];
+  @IsUUID(undefined, { each: true })
+  sauceIds?: string[];
 
   @IsOptional()
   @IsBoolean()

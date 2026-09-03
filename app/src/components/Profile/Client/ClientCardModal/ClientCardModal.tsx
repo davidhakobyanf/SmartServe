@@ -9,8 +9,6 @@ import { useFetching } from '@/hoc/fetchingHook';
 import clientAPI from '@/api/api';
 import type { MenuCard, MenuImage } from '@/types';
 
-const SAUCE_PRICE = 350;
-
 const fmt = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
 interface ClientCardModalProps {
@@ -43,13 +41,13 @@ export default function ClientCardModal({
         if (editItem?.basketItemId) {
           await clientAPI.updateBasketItem(editItem.basketItemId, {
             quantity,
-            sauces: modifiedItem.sauces,
+            sauceIds: modifiedItem.sauces.map((sauce) => sauce.id),
           });
         } else {
           await clientAPI.addBasketItem({
             productId: modifiedItem.id,
             quantity,
-            sauces: modifiedItem.sauces,
+            sauceIds: modifiedItem.sauces.map((sauce) => sauce.id),
           });
         }
       } catch (err) {
@@ -65,7 +63,7 @@ export default function ClientCardModal({
       setQuantity(editItem.count ?? 1);
       const preset: Record<string, boolean> = {};
       (editItem.sauces ?? []).forEach((s) => {
-        preset[s] = true;
+        preset[s.id] = true;
       });
       setSelected(preset);
     } else {
@@ -88,18 +86,22 @@ export default function ClientCardModal({
         ? images.find((i) => i.id === item.id)?.src
         : undefined;
 
-  const selectedCount = Object.values(selected).filter(Boolean).length;
+  const selectedSauces = (item?.sauces ?? []).filter(
+    (sauce) => selected[sauce.id],
+  );
   const total =
-    ((item?.price ?? 0) + selectedCount * SAUCE_PRICE) * quantity;
+    ((item?.price ?? 0) +
+      selectedSauces.reduce((sum, sauce) => sum + sauce.price, 0)) *
+    quantity;
 
-  const toggleSauce = (sauce: string) =>
-    setSelected((prev) => ({ ...prev, [sauce]: !prev[sauce] }));
+  const toggleSauce = (sauceId: string) =>
+    setSelected((prev) => ({ ...prev, [sauceId]: !prev[sauceId] }));
 
   const handleAdd = async () => {
     if (!item?.active) return;
     const modifiedItem: MenuCard = {
       ...item,
-      sauces: Object.keys(selected).filter((key) => selected[key]),
+      sauces: selectedSauces,
       count: quantity,
     };
     await fetchAddCard(modifiedItem);
@@ -191,22 +193,22 @@ export default function ClientCardModal({
               </div>
               <div className={css.sauceList}>
                 {item.sauces.map((sauce) => {
-                  const on = !!selected[sauce];
+                  const on = !!selected[sauce.id];
                   return (
                     <button
-                      key={sauce}
+                      key={sauce.id}
                       type="button"
                       className={css.sauceRow}
-                      onClick={() => toggleSauce(sauce)}
+                      onClick={() => toggleSauce(sauce.id)}
                     >
                       <span
                         className={`${css.check} ${on ? css.checkOn : ''}`}
                       >
                         {on && <TbCheck />}
                       </span>
-                      <span className={css.sauceName}>{sauce}</span>
+                      <span className={css.sauceName}>{sauce.name}</span>
                       <span className={css.saucePrice}>
-                        {fmt(SAUCE_PRICE)} ֏
+                        {fmt(sauce.price)} ֏
                       </span>
                     </button>
                   );

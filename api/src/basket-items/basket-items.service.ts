@@ -14,6 +14,7 @@ import {
   SESSION_DOMAIN_EVENTS,
   SessionClosedPayload,
 } from "src/sessions/session.events";
+import { SauceSnapshot } from "src/common/types/sauce-snapshot";
 
 @Injectable()
 export class BasketItemsService {
@@ -34,20 +35,32 @@ export class BasketItemsService {
     });
   }
 
-  private normalizeSauces(sauces: string[] = []): string[] {
-    return [
-      ...new Set(sauces.map((sauce) => sauce.trim()).filter(Boolean)),
-    ].sort();
+  private normalizeSauceIds(sauceIds: string[] = []): string[] {
+    return [...new Set(sauceIds)].sort();
   }
 
-  private validateSauces(product: Product, sauces: string[]): void {
-    const allowedSauces = new Set(product.sauces.map((sauce) => sauce.trim()));
-
-    const hasInvalidSauce = sauces.some((sauce) => !allowedSauces.has(sauce));
-
-    if (hasInvalidSauce) {
+  private resolveSauces(
+    product: Product,
+    sauceIds: string[],
+  ): SauceSnapshot[] {
+    const activeSauces = new Map(
+      (product.sauceLinks ?? [])
+        .map((link) => link.sauce)
+        .filter((sauce) => sauce.isActive)
+        .map((sauce) => [sauce.id, sauce]),
+    );
+    if (sauceIds.some((sauceId) => !activeSauces.has(sauceId))) {
       throw new BadRequestException("Invalid sauce for this product");
     }
+
+    return sauceIds.map((sauceId) => {
+      const sauce = activeSauces.get(sauceId)!;
+      return {
+        id: sauce.id,
+        name: sauce.name,
+        unitPrice: sauce.price,
+      };
+    });
   }
   findAll(sessionId: string): Promise<BasketItem[]> {
     return this.basketItemsRepo.find({
@@ -74,6 +87,9 @@ export class BasketItemsService {
       },
       relations: {
         category: true,
+        sauceLinks: {
+          sauce: true,
+        },
       },
     });
 
@@ -81,8 +97,8 @@ export class BasketItemsService {
       throw new NotFoundException("Product is unavailable");
     }
 
-    const sauces = this.normalizeSauces(dto.sauces);
-    this.validateSauces(product, sauces);
+    const sauceIds = this.normalizeSauceIds(dto.sauceIds);
+    const sauces = this.resolveSauces(product, sauceIds);
 
     const sameProductItems = await this.basketItemsRepo.find({
       where: {
@@ -92,7 +108,9 @@ export class BasketItemsService {
     });
 
     const existingItem = sameProductItems.find(
-      (item) => JSON.stringify(item.sauces) === JSON.stringify(sauces),
+      (item) =>
+        JSON.stringify(item.sauces.map((sauce) => sauce.id).sort()) ===
+        JSON.stringify(sauceIds),
     );
 
     const quantity = dto.quantity ?? 1;
@@ -136,6 +154,9 @@ export class BasketItemsService {
       relations: {
         product: {
           category: true,
+          sauceLinks: {
+            sauce: true,
+          },
         },
       },
     });
@@ -147,10 +168,9 @@ export class BasketItemsService {
       item.quantity = dto.quantity;
     }
 
-    if (dto.sauces !== undefined) {
-      const sauces = this.normalizeSauces(dto.sauces);
-      this.validateSauces(item.product, sauces);
-      item.sauces = sauces;
+    if (dto.sauceIds !== undefined) {
+      const sauceIds = this.normalizeSauceIds(dto.sauceIds);
+      item.sauces = this.resolveSauces(item.product, sauceIds);
     }
     const savedItem = await this.basketItemsRepo.save(item);
     await this.notifyBasketChanged(sessionId);

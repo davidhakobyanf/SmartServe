@@ -3,7 +3,6 @@ import {
   IsArray,
   IsInt,
   IsOptional,
-  IsString,
   IsUUID,
   Max,
   Min,
@@ -22,6 +21,6 @@ export class AddBasketItemDto {
   @IsOptional()
   @IsArray()
   @ArrayMaxSize(20)
-  @IsString({ each: true })
-  sauces?: string[];
+  @IsUUID(undefined, { each: true })
+  sauceIds?: string[];
 }

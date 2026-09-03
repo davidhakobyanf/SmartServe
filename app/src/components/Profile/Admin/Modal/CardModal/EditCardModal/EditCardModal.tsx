@@ -11,7 +11,7 @@ import clientAPI from '@/api/api';
 import { fileToImagePayload } from '@/lib/fileToImagePayload';
 import { resolveMenuImageSrc } from '@/lib/menuImages';
 import type { MenuCard } from '@/types';
-import type { CategoryRecord } from '@/types/restaurant';
+import type { CategoryRecord, SauceRecord } from '@/types/restaurant';
 
 interface EditCardModalProps {
   item: MenuCard | null;
@@ -32,9 +32,15 @@ export default function EditCardModal({
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [categories, setCategories] = useState<CategoryRecord[]>([]);
+  const [sauces, setSauces] = useState<SauceRecord[]>([]);
 
   useEffect(() => {
-    void clientAPI.getCategories().then(({ data }) => setCategories(data ?? []));
+    void Promise.all([clientAPI.getCategories(), clientAPI.getSauces()]).then(
+      ([categoriesResponse, saucesResponse]) => {
+        setCategories(categoriesResponse.data ?? []);
+        setSauces(saucesResponse.data ?? []);
+      },
+    );
   }, []);
 
   const [editCard] = useFetching(async (card: Partial<MenuCard>) => {
@@ -45,7 +51,8 @@ export default function EditCardModal({
         title: card.title,
         description: card.description,
         price: card.price,
-        sauces: card.sauces ?? [],
+        sauceIds:
+          card.sauceIds ?? (card.sauces ?? []).map((sauce) => sauce.id),
         isActive: card.active,
         image: card.image,
       });
@@ -63,7 +70,7 @@ export default function EditCardModal({
       title: item.title,
       description: item.description,
       price: item.price,
-      sauces: item.sauces,
+      sauceIds: item.sauces.map((sauce) => sauce.id),
       categoryId: item.categoryId,
     });
     setFileList([
@@ -120,8 +127,18 @@ export default function EditCardModal({
         <Form.Item name="title" label={t('fields.title')} rules={[{ required: true }]}>
           <Input placeholder={t('fields.titlePlaceholder')} />
         </Form.Item>
-        <Form.Item name="sauces" label={t('fields.sauces')}>
-          <Select mode="tags" style={{ width: '100%' }} placeholder={t('fields.tagsPlaceholder')} />
+        <Form.Item name="sauceIds" label={t('fields.sauces')}>
+          <Select
+            mode="multiple"
+            style={{ width: '100%' }}
+            placeholder={t('fields.tagsPlaceholder')}
+            options={sauces.map((sauce) => ({
+              value: sauce.id,
+              label: `${sauce.name} — ${Number(sauce.price)} ֏${
+                sauce.isActive ? '' : ` (${t('fields.inactive')})`
+              }`,
+            }))}
+          />
         </Form.Item>
         <Form.Item name="description" label={t('fields.description')} rules={[{ required: true }]}>
           <TextArea rows={4} />

@@ -25,7 +25,6 @@ export class VenueSettingsService {
         venueName: "SmartServe",
         currency: "AMD",
         timezone: "Asia/Yerevan",
-        sauceUnitPrice: 350,
       }),
     );
   }
@@ -42,10 +41,6 @@ export class VenueSettingsService {
     if (dto.timezone !== undefined) {
       settings.timezone = dto.timezone.trim();
     }
-    if (dto.sauceUnitPrice !== undefined) {
-      settings.sauceUnitPrice = dto.sauceUnitPrice;
-    }
-
     return this.settingsRepo.save(settings);
   }
 
@@ -54,7 +49,6 @@ export class VenueSettingsService {
     return {
       venueName: settings.venueName,
       currency: settings.currency,
-      sauceUnitPrice: settings.sauceUnitPrice,
     };
   }
 }

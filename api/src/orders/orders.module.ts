@@ -9,7 +9,6 @@ import { UsersModule } from "src/users/users.module";
 import { OrdersController } from "./orders.controller";
 import { OrdersGateway } from "./orders.gateway";
 import { OrdersService } from "./orders.service";
-import { VenueSettingsModule } from "src/venue-settings/venue-settings.module";
 
 @Module({
   imports: [
@@ -21,7 +20,6 @@ import { VenueSettingsModule } from "src/venue-settings/venue-settings.module";
     ]),
     SessionsModule,
     UsersModule,
-    VenueSettingsModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService, OrdersGateway],

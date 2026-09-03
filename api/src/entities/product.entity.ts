@@ -11,6 +11,7 @@ import {
 import { Category } from "./category.entity";
 import { BasketItem } from "./basket-item.entity";
 import { OrderItem } from "./order-item.entity";
+import { ProductSauce } from "./product-sauce.entity";
 
 @Entity("products")
 export class Product {
@@ -44,9 +45,6 @@ export class Product {
   })
   price!: number;
 
-  @Column({ type: "jsonb", default: [] })
-  sauces!: string[];
-
   @Column({ type: "boolean", default: true })
   isActive!: boolean;
 
@@ -64,6 +62,9 @@ export class Product {
 
   @OneToMany(() => OrderItem, (item) => item.product)
   orderItems!: OrderItem[];
+
+  @OneToMany(() => ProductSauce, (productSauce) => productSauce.product)
+  sauceLinks!: ProductSauce[];
 
   @CreateDateColumn({ type: "timestamptz" })
   createdAt!: Date;

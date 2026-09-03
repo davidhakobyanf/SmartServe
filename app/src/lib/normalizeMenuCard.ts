@@ -14,7 +14,12 @@ export function productToMenuCard(product: ProductRecord): MenuCard {
     title: product.title,
     description: product.description,
     price: Number(product.price) || 0,
-    sauces: Array.isArray(product.sauces) ? product.sauces : [],
+    sauces: Array.isArray(product.sauces)
+      ? product.sauces.map((sauce) => ({
+          ...sauce,
+          price: Number(sauce.price) || 0,
+        }))
+      : [],
     active: product.isActive,
     image: {
       name: product.imageName ?? '',
@@ -31,7 +36,13 @@ export function basketItemToMenuCard(item: BasketItemRecord): MenuCard {
     ...card,
     basketItemId: item.id,
     price: Number(item.unitPrice) || 0,
-    sauces: Array.isArray(item.sauces) ? item.sauces : [],
+    sauces: Array.isArray(item.sauces)
+      ? item.sauces.map((sauce) => ({
+          id: sauce.id,
+          name: sauce.name,
+          price: Number(sauce.unitPrice) || 0,
+        }))
+      : [],
     count: Number(item.quantity) || 1,
   };
 }
@@ -48,7 +59,13 @@ export function relationalOrderToOrderRecord(order: RelationalOrder): OrderRecor
       title: item.titleSnapshot,
       description: item.descriptionSnapshot,
       price: Number(item.unitPrice) || 0,
-      sauces: Array.isArray(item.sauces) ? item.sauces : [],
+      sauces: Array.isArray(item.sauces)
+        ? item.sauces.map((sauce) => ({
+            id: sauce.id,
+            name: sauce.name,
+            price: Number(sauce.unitPrice) || 0,
+          }))
+        : [],
       active: true,
       image: { name: '', hasData: Boolean(item.productId) },
       count: Number(item.quantity) || 1,

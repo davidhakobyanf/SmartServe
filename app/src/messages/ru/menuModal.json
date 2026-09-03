@@ -9,7 +9,8 @@
     "image": "Изображение",
     "selectImage": "Выбрать изображение",
     "price": "Цена",
-    "pricePlaceholder": "Цена"
+    "pricePlaceholder": "Цена",
+    "inactive": "неактивен"
   },
   "validation": {
     "title": "Введите название!",
