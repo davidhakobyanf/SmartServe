@@ -2,27 +2,20 @@ import { Module } from "@nestjs/common";
 import { EventEmitterModule } from "@nestjs/event-emitter";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { User } from "./entities/user.entity";
 import { UsersModule } from "./users/users.module";
 import { AuthModule } from "./auth/auth.module";
 import { ProfileModule } from "./profile/profile.module";
 import { OrdersModule } from "./orders/orders.module";
 import { WaiterModule } from "./waiter/waiter.module";
-import { DiningSession } from "./entities/dining-session.entity";
 import { SessionsModule } from "./sessions/sessions.module";
 import { SetupModule } from "./setup/setup.module";
-import { Role } from "./entities/role.entity";
 import { RolesModule } from "./roles/roles.module";
-import { DiningTable } from "./entities/dining-table.entity";
 import { TablesModule } from "./tables/tables.module";
-import { Category } from "./entities/category.entity";
-import { Product } from "./entities/product.entity";
 import { CategoriesModule } from "./categories/categories.module";
 import { ProductsModule } from "./products/products.module";
-import { BasketItem } from "./entities/basket-item.entity";
 import { BasketItemsModule } from "./basket-items/basket-items.module";
-import { Order } from "./entities/order.entity";
-import { OrderItem } from "./entities/order-item.entity";
+import { VenueSettingsModule } from "./venue-settings/venue-settings.module";
+import { ENTITIES } from "./database/entities";
 
 @Module({
   imports: [
@@ -38,18 +31,12 @@ import { OrderItem } from "./entities/order-item.entity";
         username: config.get<string>("DB_USERNAME", "smartserve"),
         password: config.get<string>("DB_PASSWORD", "smartserve"),
         database: config.get<string>("DB_DATABASE", "smartserve"),
-        entities: [
-          User,
-          Role,
-          DiningSession,
-          DiningTable,
-          Category,
-          Product,
-          BasketItem,
-          Order,
-          OrderItem,
-        ],
-        synchronize: config.get<string>("DB_SYNC", "false") === "true",
+        entities: ENTITIES,
+        migrations: [__dirname + "/migrations/*{.ts,.js}"],
+        migrationsTableName: "typeorm_migrations",
+        migrationsRun:
+          config.get<string>("DB_MIGRATIONS_RUN", "true") === "true",
+        synchronize: false,
       }),
     }),
     UsersModule,
@@ -64,6 +51,7 @@ import { OrderItem } from "./entities/order-item.entity";
     CategoriesModule,
     ProductsModule,
     BasketItemsModule,
+    VenueSettingsModule,
   ],
 })
 export class AppModule {}

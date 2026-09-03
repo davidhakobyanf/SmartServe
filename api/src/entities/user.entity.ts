@@ -4,6 +4,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -66,6 +67,16 @@ export class User {
     nullable:true,
   })
   approvedByUserId!: string | null;
+
+  @ManyToOne(() => User, (user) => user.approvedUsers, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'approvedByUserId' })
+  approvedBy!: User | null;
+
+  @OneToMany(() => User, (user) => user.approvedBy)
+  approvedUsers!: User[];
 
   @Column({
     type: 'timestamptz',
