@@ -14,6 +14,7 @@ import { normalizeOrderRecord } from '@/lib/normalizeMenuCard';
 import { createSocket } from '@/lib/ws/socket';
 import clientAPI from '@/api/api';
 import { useProfileData } from '@/context/ProfileDataContext';
+import type { RelationalOrder } from '@/types/restaurant';
 
 const NAMESPACE = '/orders';
 const EVT = { JOIN: 'join', UPDATED: 'orders:updated' } as const;
@@ -34,7 +35,7 @@ const OrdersContext = createContext<OrdersContextValue | null>(null);
 
 function normalizeList(raw: unknown): OrderRecord[] {
   if (!Array.isArray(raw)) return [];
-  return raw.map((item) => normalizeOrderRecord(item as OrderRecord));
+  return raw.map((item) => normalizeOrderRecord(item as RelationalOrder));
 }
 
 export function OrdersProvider({ children }: { children: React.ReactNode }) {

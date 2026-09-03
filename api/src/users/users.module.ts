@@ -3,7 +3,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { User } from '../entities/user.entity';
-import { SessionProfile } from '../entities/session-profile.entity';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
@@ -13,7 +12,7 @@ import { Role } from 'src/entities/role.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, SessionProfile, Role]),
+    TypeOrmModule.forFeature([User, Role]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

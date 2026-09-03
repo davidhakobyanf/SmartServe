@@ -30,7 +30,7 @@ export default function DeleteCardModal({
 }: DeleteCardModalProps) {
   const [deleteCard] = useFetching(async (id: string) => {
     try {
-      await clientAPI.deleteCard(id);
+      await clientAPI.updateProduct(id, { isActive: false });
       await fetchProfile({ force: true });
       setShowDeleteConfirmation(false);
       setCardModalOpen(false);

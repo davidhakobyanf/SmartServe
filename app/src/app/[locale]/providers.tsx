@@ -7,7 +7,6 @@ import type { Locale as AntdLocale } from 'antd/es/locale';
 import enUS from 'antd/locale/en_US';
 import ruRU from 'antd/locale/ru_RU';
 import hyAM from 'antd/locale/hy_AM';
-import { DataProvider } from '@/context/DataContext';
 import { ProfileDataProvider } from '@/context/ProfileDataContext';
 import type { Locale } from '@/i18n/routing';
 
@@ -61,9 +60,7 @@ export default function Providers({
     <AntdRegistry>
       <ConfigProvider theme={theme} locale={antdLocales[locale]}>
         <AntdApp>
-          <DataProvider>
-            <ProfileDataProvider>{children}</ProfileDataProvider>
-          </DataProvider>
+          <ProfileDataProvider>{children}</ProfileDataProvider>
         </AntdApp>
       </ConfigProvider>
     </AntdRegistry>

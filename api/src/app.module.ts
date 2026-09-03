@@ -3,7 +3,6 @@ import { EventEmitterModule } from "@nestjs/event-emitter";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { User } from "./entities/user.entity";
-import { SessionProfile } from "./entities/session-profile.entity";
 import { UsersModule } from "./users/users.module";
 import { AuthModule } from "./auth/auth.module";
 import { ProfileModule } from "./profile/profile.module";
@@ -42,7 +41,6 @@ import { OrderItem } from "./entities/order-item.entity";
         entities: [
           User,
           Role,
-          SessionProfile,
           DiningSession,
           DiningTable,
           Category,

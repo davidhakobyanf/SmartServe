@@ -11,9 +11,7 @@ import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
 import { Repository } from "typeorm";
 import { User } from "../entities/user.entity";
-import { SessionProfile } from "../entities/session-profile.entity";
 import { isValidPassword } from "../common/utils/password.util";
-import { sanitizeMenuCards } from "../common/utils/menu-card-response.util";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
 import { UserStatus } from "src/common/auth/user-status";
@@ -25,8 +23,6 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepo: Repository<User>,
-    @InjectRepository(SessionProfile)
-    private readonly sessionRepo: Repository<SessionProfile>,
     private readonly jwtService: JwtService,
     @InjectRepository(Role)
     private readonly rolesRepo: Repository<Role>,
@@ -57,7 +53,6 @@ export class UsersService {
       password: hashedPassword,
       status: UserStatus.PENDING,
       roleId: null,
-      cards: [],
     });
     await this.usersRepo.save(user);
 
@@ -110,24 +105,7 @@ export class UsersService {
       name: user.name,
       surname: user.surname,
       email: user.email,
-      card: sanitizeMenuCards(user.cards ?? []),
     };
-  }
-
-  async setActiveUser(userId: string) {
-    let session = await this.sessionRepo.findOne({ where: { id: 1 } });
-    if (!session) {
-      session = this.sessionRepo.create({ id: 1, userId });
-    } else {
-      session.userId = userId;
-    }
-    await this.sessionRepo.save(session);
-  }
-
-  async getActiveUser(): Promise<User | null> {
-    const session = await this.sessionRepo.findOne({ where: { id: 1 } });
-    if (!session?.userId) return null;
-    return this.usersRepo.findOne({ where: { id: session.userId } });
   }
 
   async saveUser(user: User): Promise<User> {

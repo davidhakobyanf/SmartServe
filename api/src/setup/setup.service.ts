@@ -60,7 +60,6 @@ export class SetupService {
       approvedAt: new Date(),
       rejectionReason: null,
       lastLoginAt: null,
-      cards: [],
     });
     const { savedRole, savedUser } = await this.usersRepo.manager.transaction(
       async (manager) => {

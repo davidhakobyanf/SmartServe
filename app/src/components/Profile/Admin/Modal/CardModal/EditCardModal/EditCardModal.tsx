@@ -39,7 +39,16 @@ export default function EditCardModal({
 
   const [editCard] = useFetching(async (card: Partial<MenuCard>) => {
     try {
-      await clientAPI.editCard(card);
+      if (!card.id) return;
+      await clientAPI.updateProduct(card.id, {
+        categoryId: card.categoryId,
+        title: card.title,
+        description: card.description,
+        price: card.price,
+        sauces: card.sauces ?? [],
+        isActive: card.active,
+        image: card.image,
+      });
       await fetchProfile({ force: true });
       setShowEditConfirmation(false);
       setCardModalOpen(false);

@@ -7,7 +7,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import type { MenuCard } from '../common/types/menu-card';
 import type { Permission } from '../common/auth/permission';
 import { UserStatus } from '../common/auth/user-status';
 import { Role } from './role.entity';
@@ -86,9 +85,6 @@ export class User {
   })
   lastLoginAt!: Date | null;
   
-  @Column({ type: 'jsonb', default: [] })
-  cards!: MenuCard[];
-
   @CreateDateColumn()
   createdAt!: Date;
 

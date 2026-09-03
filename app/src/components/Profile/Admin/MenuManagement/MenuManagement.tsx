@@ -7,7 +7,6 @@ import { TbPlus, TbSearch, TbDotsVertical, TbCategory } from 'react-icons/tb';
 import clientAPI from '@/api/api';
 import { useFetching } from '@/hoc/fetchingHook';
 import { useProfileData } from '@/context/ProfileDataContext';
-import { useData } from '@/context/DataContext';
 import { loadMenuImages } from '@/lib/menuImages';
 import type { MenuCard, MenuImage } from '@/types';
 import type { CategoryRecord } from '@/types/restaurant';
@@ -21,7 +20,6 @@ export default function MenuManagement() {
   const { profileDataList, fetchProfile, permissions } = useProfileData();
   const canManageCategories = permissions.includes('categories.manage');
   const canManageProducts = permissions.includes('products.manage');
-  const { setCardActive, cardActive } = useData();
   const [images, setImages] = useState<MenuImage[]>([]);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('newest');
@@ -34,12 +32,31 @@ export default function MenuManagement() {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const [editCard] = useFetching(async (card: Partial<MenuCard>) => {
-    await clientAPI.editCard(card);
+    if (!card.id) return;
+    await clientAPI.updateProduct(card.id, {
+      ...(card.categoryId !== undefined ? { categoryId: card.categoryId } : {}),
+      ...(card.title !== undefined ? { title: card.title } : {}),
+      ...(card.description !== undefined
+        ? { description: card.description }
+        : {}),
+      ...(card.price !== undefined ? { price: card.price } : {}),
+      ...(card.sauces !== undefined ? { sauces: card.sauces } : {}),
+      ...(card.active !== undefined ? { isActive: card.active } : {}),
+      ...(card.image !== undefined ? { image: card.image } : {}),
+    });
     await fetchProfile({ force: true });
   });
 
   const [fetchAddCard] = useFetching(async (formData: Partial<MenuCard>) => {
-    await clientAPI.createCard(formData);
+    await clientAPI.createProduct({
+      categoryId: formData.categoryId,
+      title: formData.title,
+      description: formData.description,
+      price: formData.price,
+      sauces: formData.sauces ?? [],
+      isActive: formData.active ?? true,
+      image: formData.image,
+    });
     await fetchProfile({ force: true });
   });
 
@@ -57,13 +74,6 @@ export default function MenuManagement() {
       setImages(loadMenuImages(profileDataList.card));
     }
   }, [profileDataList.card]);
-
-  useEffect(() => {
-    if (Object.keys(cardActive).length !== 0) {
-      void editCard(cardActive);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cardActive]);
 
   const cards = useMemo(() => {
     let list = [...(profileDataList.card ?? [])];
@@ -95,7 +105,7 @@ export default function MenuManagement() {
   };
 
   const toggleActive = (item: MenuCard) => {
-    setCardActive({ ...item, active: !item.active });
+    void editCard({ id: item.id, active: !item.active });
   };
 
   const SORT_OPTIONS = [

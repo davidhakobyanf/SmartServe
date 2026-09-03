@@ -1,6 +1,6 @@
 import axios, { type AxiosResponse } from 'axios';
 import { API_URL } from '@/lib/apiUrl';
-import type { MenuCard, Profile } from '@/types';
+import type { Profile } from '@/types';
 import type { DiningSession } from '@/types/tables';
 import type {
   BasketItemRecord,
@@ -40,12 +40,6 @@ instance.interceptors.request.use((config) => {
 
 export const apiClient = instance;
 
-
-type BasketPayload = MenuCard & { count: number };
-type OrderPayload = {
-  items: unknown[];
-  allPrice: number;
-};
 
 class DataApi {
   static async getCategories(): Promise<AxiosResponse<CategoryRecord[]>> {
@@ -109,14 +103,6 @@ class DataApi {
     return instance.delete(`/api/basket-items/${id}`);
   }
 
-  static async clearBasketItems(): Promise<AxiosResponse<{ success: true }>> {
-    return instance.delete('/api/basket-items');
-  }
-
-  static async getSessionOrders(): Promise<AxiosResponse<RelationalOrder[]>> {
-    return instance.get('/api/orders/mine');
-  }
-
   static async placeOrder(): Promise<AxiosResponse<RelationalOrder>> {
     return instance.post('/api/orders');
   }
@@ -138,108 +124,6 @@ class DataApi {
 
   static async getOrders(): Promise<AxiosResponse<RelationalOrder[]>> {
     return instance.get<RelationalOrder[]>('/api/orders');
-  }
-
-  static async getBasket(): Promise<AxiosResponse<unknown>> {
-    return instance.get('/api/basket', {
-      headers: {
-        Authorization: 'Bearer ',
-        'Content-Type': 'application/json',
-      },
-    });
-  }
-  static async getMine(): Promise<AxiosResponse<MenuCard[]>> {
-    return instance.get<MenuCard[]>('/api/basket/mine');
-  }
-  static async clearMine(): Promise<AxiosResponse<unknown>> {
-    return instance.delete('/api/basket/mine');
-  }
-
-  static async createCard(card: Partial<MenuCard>): Promise<AxiosResponse<ProductRecord>> {
-    return instance.post<ProductRecord>('/api/products', {
-      categoryId: card.categoryId,
-      title: card.title,
-      description: card.description,
-      price: card.price,
-      sauces: card.sauces ?? [],
-      isActive: card.active ?? true,
-      image: card.image,
-    });
-  }
-
-  static async createBasket(card: BasketPayload): Promise<AxiosResponse<unknown>> {
-    return instance.patch('/api/basket', card, {
-      headers: {
-        Authorization: 'Bearer',
-        'Content-Type': 'application/json',
-      },
-    });
-  }
-
-  static async createOrder(card: OrderPayload): Promise<AxiosResponse<unknown>> {
-    return instance.patch('/api/orders', card, {
-      headers: {
-        Authorization: 'Bearer',
-        'Content-Type': 'application/json',
-      },
-    });
-  }
-
-  static async deleteAllBasket(table: string | number): Promise<AxiosResponse<unknown>> {
-    return instance.request({
-      url: '/api/basket/all',
-      method: 'delete',
-      headers: {
-        Authorization: 'Bearer',
-        'Content-Type': 'application/json',
-      },
-      data: { table },
-    });
-  }
-
-  static async deleteAllOrders(): Promise<void> {
-    const { data } = await this.getOrders();
-    await Promise.all(
-      data
-        .filter((order) => order.status === 'placed')
-        .map((order) => this.updateOrderStatus(order.id, 'cancelled')),
-    );
-  }
-
-  static async deleteOrder(id: string): Promise<AxiosResponse<RelationalOrder>> {
-    return this.updateOrderStatus(id, 'cancelled');
-  }
-
-  static async deleteBasket(
-    id: string,
-    sauces?: string[],
-  ): Promise<AxiosResponse<unknown>> {
-    return instance.request({
-      url: '/api/basket',
-      method: 'delete',
-      headers: {
-        Authorization: 'Bearer',
-        'Content-Type': 'application/json',
-      },
-      data: { id, sauces },
-    });
-  }
-
-  static async deleteCard(id: string): Promise<AxiosResponse<ProductRecord>> {
-    return instance.patch(`/api/products/${id}`, { isActive: false });
-  }
-
-  static async editCard(card: Partial<MenuCard>): Promise<AxiosResponse<ProductRecord>> {
-    if (!card.id) throw new Error('Product id is required');
-    return instance.patch(`/api/products/${card.id}`, {
-      ...(card.categoryId !== undefined ? { categoryId: card.categoryId } : {}),
-      ...(card.title !== undefined ? { title: card.title } : {}),
-      ...(card.description !== undefined ? { description: card.description } : {}),
-      ...(card.price !== undefined ? { price: card.price } : {}),
-      ...(card.sauces !== undefined ? { sauces: card.sauces } : {}),
-      ...(card.active !== undefined ? { isActive: card.active } : {}),
-      ...(card.image !== undefined ? { image: card.image } : {}),
-    });
   }
 
   static async openSession(tableToken: string): Promise<AxiosResponse<DiningSession>> {
