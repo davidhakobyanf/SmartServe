@@ -1,26 +1,30 @@
 Project SmartServe_Current_Database {
   database_type: 'PostgreSQL'
-  Note: 'CURRENT — таблицы, которые уже существуют в NestJS/TypeORM. JSONB-поля не являются реляционными связями.'
+  Note: 'CURRENT — фактическая схема NestJS/TypeORM после миграций InitialSchema и AddPricedSauces.'
 }
 
-Enum user_status {
+Enum user_status_enum {
   pending
   active
   rejected
   disabled
 }
 
+Enum order_status_enum {
+  placed
+  completed
+  cancelled
+}
+
 Table roles {
   id uuid [pk]
   name varchar(100) [not null]
   code varchar(50) [not null, unique]
-  permissions jsonb [not null, note: 'Массив Permission; это не M:N']
+  permissions jsonb [not null, default: `[]`, note: 'Массив прав роли']
   isSystem boolean [not null, default: false]
   isActive boolean [not null, default: true]
-  createdAt timestamptz [not null]
-  updatedAt timestamptz [not null]
-
-  Note: 'LIVE — роли сотрудников'
+  createdAt timestamp [not null]
+  updatedAt timestamp [not null]
 }
 
 Table users {
@@ -30,53 +34,152 @@ Table users {
   email varchar [not null, unique]
   password varchar [not null]
   roleId uuid
-  status user_status [not null, default: 'pending']
-  permissionAllow jsonb [not null, note: 'Не M:N']
-  permissionDeny jsonb [not null, note: 'Не M:N']
-  approvedByUserId uuid [note: 'Пока обычная UUID-колонка без FK']
+  status user_status_enum [not null, default: 'pending']
+  permissionAllow jsonb [not null, default: `[]`]
+  permissionDeny jsonb [not null, default: `[]`]
+  approvedByUserId uuid
   approvedAt timestamptz
   rejectionReason text
   lastLoginAt timestamptz
-  cards jsonb [not null, note: 'Legacy-меню внутри users; не relation']
+  createdAt timestamp [not null]
+  updatedAt timestamp [not null]
+}
+
+Table venue_settings {
+  id smallint [pk, note: 'Singleton: всегда id = 1']
+  venueName varchar(160) [not null, default: 'SmartServe']
+  currency varchar(3) [not null, default: 'AMD']
+  timezone varchar(100) [not null, default: 'Asia/Yerevan']
   createdAt timestamptz [not null]
   updatedAt timestamptz [not null]
-
-  Note: 'LIVE — пользователи и сотрудники'
 }
 
-Table session_profile {
-  id int [pk, default: 1]
-  userId uuid [note: 'Нет FK и TypeORM relation']
-
-  Note: 'LEGACY singleton — последний вошедший пользователь'
-}
-
-Table basket_store {
-  id int [pk, default: 1]
-  tables jsonb [not null, note: 'Record<tableNumber, MenuCard[]>; не M:N']
-
-  Note: 'LEGACY singleton — все корзины в одной JSONB-колонке'
-}
-
-Table order_store {
-  id int [pk, default: 1]
-  orders jsonb [not null, note: 'OrderRecord[]; не relation']
-
-  Note: 'LEGACY singleton — все заказы в одной JSONB-колонке'
-}
-
-Table "dining-sessions" {
+Table tables {
   id uuid [pk]
-  tableNumber int [not null]
-  status varchar [not null, default: 'open', note: 'open | closed']
+  number int [not null, unique]
+  name varchar(100)
+  publicToken uuid [not null, unique, note: 'Постоянный токен QR-кода стола']
+  isActive boolean [not null, default: true]
   createdAt timestamptz [not null]
+  updatedAt timestamptz [not null]
+}
+
+Table categories {
+  id uuid [pk]
+  name varchar(100) [not null, unique]
+  sortOrder int [not null, default: 0]
+  isActive boolean [not null, default: true]
+  createdAt timestamptz [not null]
+  updatedAt timestamptz [not null]
+}
+
+Table products {
+  id uuid [pk]
+  categoryId uuid [not null]
+  title varchar(160) [not null]
+  description text [not null, default: '']
+  price numeric(10,2) [not null]
+  isActive boolean [not null, default: true]
+  imageName varchar(255)
+  imageMimeType varchar(100)
+  imageData bytea [note: 'Бинарные данные изображения; не выбираются обычными запросами']
+  createdAt timestamptz [not null]
+  updatedAt timestamptz [not null]
+}
+
+Table sauces {
+  id uuid [pk]
+  name varchar(100) [not null, unique]
+  price numeric(10,2) [not null]
+  isActive boolean [not null, default: true]
+  createdAt timestamptz [not null]
+  updatedAt timestamptz [not null]
+}
+
+Table product_sauces {
+  productId uuid [not null]
+  sauceId uuid [not null]
+
+  indexes {
+    (productId, sauceId) [pk]
+    sauceId [name: 'IDX_product_sauces_sauceId']
+  }
+
+  Note: 'Junction-таблица: какие соусы доступны для каждого товара'
+}
+
+Table dining_sessions {
+  id uuid [pk, note: 'Новый UUID создаётся после закрытия предыдущей сессии']
+  tableId uuid [not null]
+  status varchar [not null, default: 'open', note: 'open | closed']
+  createdAt timestamp [not null]
   closedAt timestamptz
 
   indexes {
-    tableNumber
+    tableId
+    tableId [name: 'uq_open_session_per_table', unique, note: 'Частичный индекс: WHERE status = open']
   }
+}
 
-  Note: 'CURRENT — tableNumber пока не является FK'
+Table basket_items {
+  id uuid [pk]
+  sessionId uuid [not null]
+  productId uuid [not null]
+  quantity int [not null, default: 1, note: 'CHECK quantity > 0']
+  sauces jsonb [not null, default: `[]`, note: 'Снимки выбранных соусов: id, name, unitPrice']
+  unitPrice numeric(10,2) [not null, note: 'Цена товара на момент добавления']
+  createdAt timestamptz [not null]
+  updatedAt timestamptz [not null]
+
+  indexes {
+    sessionId
+    productId
+  }
+}
+
+Table orders {
+  id uuid [pk]
+  tableId uuid [not null]
+  sessionId uuid [not null]
+  status order_status_enum [not null, default: 'placed']
+  total numeric(12,2) [not null]
+  completedAt timestamptz
+  createdAt timestamptz [not null]
+  updatedAt timestamptz [not null]
+
+  indexes {
+    tableId
+    sessionId
+  }
+}
+
+Table order_items {
+  id uuid [pk]
+  orderId uuid [not null]
+  productId uuid [note: 'Nullable: история остаётся после удаления товара']
+  titleSnapshot varchar(160) [not null]
+  descriptionSnapshot text [not null, default: '']
+  unitPrice numeric(10,2) [not null]
+  quantity int [not null, note: 'CHECK quantity > 0']
+  sauces jsonb [not null, default: `[]`, note: 'Снимки выбранных соусов: id, name, unitPrice']
+  lineTotal numeric(12,2) [not null]
+  createdAt timestamptz [not null]
+
+  indexes {
+    orderId
+    productId
+  }
 }
 
 Ref roles_users: users.roleId > roles.id [delete: set null]
+Ref approver_users: users.approvedByUserId > users.id [delete: set null]
+Ref category_products: products.categoryId > categories.id [delete: restrict]
+Ref product_available_sauces: product_sauces.productId > products.id [delete: cascade]
+Ref sauce_available_products: product_sauces.sauceId > sauces.id [delete: cascade]
+Ref table_sessions: dining_sessions.tableId > tables.id [delete: restrict]
+Ref session_basket_items: basket_items.sessionId > dining_sessions.id [delete: cascade]
+Ref product_basket_items: basket_items.productId > products.id [delete: restrict]
+Ref table_orders: orders.tableId > tables.id [delete: restrict]
+Ref session_orders: orders.sessionId > dining_sessions.id [delete: restrict]
+Ref order_order_items: order_items.orderId > orders.id [delete: cascade]
+Ref product_order_items: order_items.productId > products.id [delete: set null]
