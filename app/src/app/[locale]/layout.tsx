@@ -17,6 +17,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'SmartServe',
   description: 'Restaurant ordering',
+  icons: {
+    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
+    shortcut: '/favicon.svg',
+  },
 };
 
 export function generateStaticParams() {
