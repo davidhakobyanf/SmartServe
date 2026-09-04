@@ -17,6 +17,7 @@ import { BasketItemsModule } from "./basket-items/basket-items.module";
 import { VenueSettingsModule } from "./venue-settings/venue-settings.module";
 import { ENTITIES } from "./database/entities";
 import { SaucesModule } from "./sauces/sauces.module";
+import { HealthController } from "./health.controller";
 
 @Module({
   imports: [
@@ -25,20 +26,28 @@ import { SaucesModule } from "./sauces/sauces.module";
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: "postgres",
-        host: config.get<string>("DB_HOST", "localhost"),
-        port: config.get<number>("DB_PORT", 5432),
-        username: config.get<string>("DB_USERNAME", "smartserve"),
-        password: config.get<string>("DB_PASSWORD", "smartserve"),
-        database: config.get<string>("DB_DATABASE", "smartserve"),
-        entities: ENTITIES,
-        migrations: [__dirname + "/migrations/*{.ts,.js}"],
-        migrationsTableName: "typeorm_migrations",
-        migrationsRun:
-          config.get<string>("DB_MIGRATIONS_RUN", "true") === "true",
-        synchronize: false,
-      }),
+      useFactory: (config: ConfigService) => {
+        const databaseUrl = config.get<string>("DATABASE_URL");
+
+        return {
+          type: "postgres",
+          ...(databaseUrl
+            ? { url: databaseUrl }
+            : {
+                host: config.get<string>("DB_HOST", "localhost"),
+                port: config.get<number>("DB_PORT", 5432),
+                username: config.get<string>("DB_USERNAME", "smartserve"),
+                password: config.get<string>("DB_PASSWORD", "smartserve"),
+                database: config.get<string>("DB_DATABASE", "smartserve"),
+              }),
+          entities: ENTITIES,
+          migrations: [__dirname + "/migrations/*{.ts,.js}"],
+          migrationsTableName: "typeorm_migrations",
+          migrationsRun:
+            config.get<string>("DB_MIGRATIONS_RUN", "true") === "true",
+          synchronize: false,
+        };
+      },
     }),
     UsersModule,
     AuthModule,
@@ -55,5 +64,6 @@ import { SaucesModule } from "./sauces/sauces.module";
     VenueSettingsModule,
     SaucesModule,
   ],
+  controllers: [HealthController],
 })
 export class AppModule {}
