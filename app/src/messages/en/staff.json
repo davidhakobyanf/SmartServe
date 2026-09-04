@@ -15,5 +15,24 @@
   "validation": { "role": "Select a role", "reason": "Enter at least 3 characters", "name": "Enter at least 2 characters", "code": "Enter a system code", "codePattern": "Use lowercase letters, numbers and underscores" },
   "noRole": "No role",
   "system": "System",
+  "permissionLabels": {
+    "dashboard_view": "View dashboard",
+    "menu_view": "View menu",
+    "categories_manage": "Manage categories",
+    "products_manage": "Manage products",
+    "orders_view": "View orders",
+    "orders_manage": "Manage orders",
+    "revenue_view": "View revenue",
+    "tables_view": "View tables",
+    "tables_manage": "Manage tables",
+    "tables_qr_manage": "Manage table QR codes",
+    "waiter_calls_view": "View waiter calls",
+    "waiter_calls_manage": "Handle waiter calls",
+    "users_view": "View employees",
+    "users_manage": "Manage employees",
+    "users_approve": "Approve employees",
+    "roles_manage": "Manage roles",
+    "venue_settings_manage": "Manage restaurant settings"
+  },
   "permissionCount": "{count, plural, =0 {No permissions} one {# permission} other {# permissions}}"
 }

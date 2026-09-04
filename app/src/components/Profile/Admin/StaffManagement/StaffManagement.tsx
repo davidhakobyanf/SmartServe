@@ -277,7 +277,7 @@ export default function StaffManagement() {
   }));
   const permissionOptions = PERMISSIONS.map((permission) => ({
     value: permission,
-    label: permission,
+    label: t(`permissionLabels.${permission.replaceAll('.', '_')}`),
   }));
 
   const statusColor: Record<StaffUser['status'], string> = {
