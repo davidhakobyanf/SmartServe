@@ -12,20 +12,35 @@ import {
 } from "class-validator";
 import { Type } from "class-transformer";
 import { ProductImageDto } from "./product-image.dto";
+import {
+  LocalizedDescriptionDto,
+  LocalizedTitleDto,
+} from "../../common/i18n/localized-text.dto";
 
 export class CreateProductDto {
   @IsUUID()
   categoryId!: string;
 
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
   @MaxLength(160)
-  title!: string;
+  title?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedTitleDto)
+  titleTranslations?: LocalizedTitleDto;
 
   @IsOptional()
   @IsString()
   @MaxLength(2000)
   description?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedDescriptionDto)
+  descriptionTranslations?: LocalizedDescriptionDto;
 
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)

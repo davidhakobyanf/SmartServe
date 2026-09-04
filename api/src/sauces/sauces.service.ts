@@ -9,6 +9,11 @@ import { Sauce } from "src/entities/sauce.entity";
 import { ILike, Repository } from "typeorm";
 import { CreateSauceDto } from "./dto/create-sauce.dto";
 import { UpdateSauceDto } from "./dto/update-sauce.dto";
+import {
+  cleanLocalizedText,
+  primaryLocalizedText,
+  withLegacyEnglish,
+} from "src/common/i18n/localized-text";
 
 @Injectable()
 export class SaucesService {
@@ -27,7 +32,11 @@ export class SaucesService {
   }
 
   async create(dto: CreateSauceDto): Promise<Sauce> {
-    const name = dto.name.trim();
+    const nameTranslations = withLegacyEnglish(
+      dto.nameTranslations,
+      dto.name,
+    );
+    const name = primaryLocalizedText(nameTranslations);
     if (!name) {
       throw new BadRequestException("Sauce name cannot be empty");
     }
@@ -44,6 +53,7 @@ export class SaucesService {
 
     const sauce = this.saucesRepo.create({
       name,
+      nameTranslations,
       price: dto.price,
       isActive: dto.isActive ?? true,
     });
@@ -59,14 +69,22 @@ export class SaucesService {
 
     if (
       dto.name === undefined &&
+      dto.nameTranslations === undefined &&
       dto.price === undefined &&
       dto.isActive === undefined
     ) {
       throw new BadRequestException("At least one field must be provided");
     }
 
-    if (dto.name !== undefined) {
-      const name = dto.name.trim();
+    if (dto.name !== undefined || dto.nameTranslations !== undefined) {
+      const nameTranslations =
+        dto.nameTranslations !== undefined
+          ? cleanLocalizedText(dto.nameTranslations)
+          : withLegacyEnglish(sauce.nameTranslations, dto.name);
+      if (dto.name !== undefined && dto.nameTranslations === undefined) {
+        nameTranslations.en = dto.name.trim();
+      }
+      const name = primaryLocalizedText(nameTranslations);
       if (!name) {
         throw new BadRequestException("Sauce name cannot be empty");
       }
@@ -77,6 +95,7 @@ export class SaucesService {
         throw new ConflictException("Sauce already exists");
       }
       sauce.name = name;
+      sauce.nameTranslations = nameTranslations;
     }
     if (dto.price !== undefined) {
       sauce.price = dto.price;

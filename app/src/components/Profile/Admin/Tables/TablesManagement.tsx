@@ -30,15 +30,23 @@ import tablesApi from '@/api/tablesApi';
 import type { RestaurantTable, TablePayload } from '@/types/tables';
 import css from './TablesManagement.module.css';
 import { useProfileData } from '@/context/ProfileDataContext';
+import LocalizedTextFields from '@/components/Common/LocalizedTextFields';
+import {
+  cleanLocalizedText,
+  hasLocalizedText,
+  missingContentLocales,
+  type LocalizedText,
+} from '@/types/localization';
 
 interface TableFormValues {
   number: number;
-  name?: string;
+  nameTranslations?: LocalizedText;
   isActive: boolean;
 }
 
 export default function TablesManagement() {
   const t = useTranslations('tables');
+  const commonT = useTranslations('common');
   const { message } = App.useApp();
   const { permissions } = useProfileData();
   const canManageTables = permissions.includes('tables.manage');
@@ -91,7 +99,7 @@ export default function TablesManagement() {
     setEditing(table);
     form.setFieldsValue({
       number: table.number,
-      name: table.name ?? '',
+      nameTranslations: table.nameTranslations,
       isActive: table.isActive,
     });
     setFormOpen(true);
@@ -100,7 +108,7 @@ export default function TablesManagement() {
   const submit = async (values: TableFormValues) => {
     const payload: TablePayload = {
       number: values.number,
-      name: values.name?.trim() || undefined,
+      nameTranslations: cleanLocalizedText(values.nameTranslations),
       isActive: values.isActive,
     };
 
@@ -112,6 +120,18 @@ export default function TablesManagement() {
       } else {
         await tablesApi.createTable(payload);
         message.success(t('messages.created'));
+      }
+      if (hasLocalizedText(values.nameTranslations)) {
+        const missing = missingContentLocales(values.nameTranslations);
+        if (missing.length > 0) {
+          message.warning(
+            commonT('missingTranslations', {
+              languages: missing
+                .map((locale) => commonT(`lang_${locale}`))
+                .join(', '),
+            }),
+          );
+        }
       }
       setFormOpen(false);
       form.resetFields();
@@ -297,11 +317,20 @@ export default function TablesManagement() {
             label={t('form.number')}
             rules={[{ required: true, message: t('form.numberRequired') }]}
           >
-            <InputNumber min={1} precision={0} style={{ width: '100%' }} />
+            <InputNumber
+              min={1}
+              precision={0}
+              inputMode="numeric"
+              placeholder={t('form.numberPlaceholder')}
+              style={{ width: '100%' }}
+            />
           </Form.Item>
-          <Form.Item name="name" label={t('form.name')}>
-            <Input placeholder={t('form.namePlaceholder')} maxLength={100} />
-          </Form.Item>
+          <LocalizedTextFields
+            name="nameTranslations"
+            label={t('form.name')}
+            placeholder={t('form.namePlaceholder')}
+            maxLength={100}
+          />
           <Form.Item name="isActive" label={t('form.active')} valuePropName="checked">
             <Switch />
           </Form.Item>

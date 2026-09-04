@@ -35,6 +35,13 @@ import {
 } from '@/types/staff';
 import css from './StaffManagement.module.css';
 import { useProfileData } from '@/context/ProfileDataContext';
+import LocalizedTextFields from '@/components/Common/LocalizedTextFields';
+import {
+  cleanLocalizedText,
+  hasLocalizedText,
+  missingContentLocales,
+  type LocalizedText,
+} from '@/types/localization';
 
 type View = 'users' | 'roles';
 type RoleAction = 'approve' | 'change';
@@ -53,7 +60,7 @@ interface PermissionValues {
 }
 
 interface RoleFormValues {
-  name: string;
+  nameTranslations?: LocalizedText;
   code?: string;
   permissions: Permission[];
 }
@@ -115,6 +122,7 @@ function formatDate(value: string | null): string {
 
 export default function StaffManagement() {
   const t = useTranslations('staff');
+  const commonT = useTranslations('common');
   const { message } = App.useApp();
   const { permissions } = useProfileData();
   const canViewUsers = permissions.includes('users.view');
@@ -294,7 +302,9 @@ export default function StaffManagement() {
   const openEditRole = (role: StaffRole) => {
     setEditingRole(role);
     roleForm.setFieldsValue({
-      name: role.name,
+      nameTranslations: hasLocalizedText(role.nameTranslations)
+        ? role.nameTranslations
+        : { en: role.name },
       code: role.code,
       permissions: role.permissions,
     });
@@ -302,21 +312,36 @@ export default function StaffManagement() {
   };
 
   const submitRole = async (values: RoleFormValues) => {
+    if (!hasLocalizedText(values.nameTranslations)) {
+      message.error(commonT('translationRequired'));
+      return;
+    }
+    const nameTranslations = cleanLocalizedText(values.nameTranslations);
     const success = await runAction(
       () =>
         editingRole
           ? staffApi.updateRole(editingRole.id, {
-              name: values.name.trim(),
+              nameTranslations,
               permissions: values.permissions ?? [],
             })
           : staffApi.createRole({
-              name: values.name.trim(),
+              nameTranslations,
               code: values.code ?? '',
               permissions: values.permissions ?? [],
             }),
       editingRole ? t('messages.roleUpdated') : t('messages.roleCreated'),
     );
     if (success) {
+      const missing = missingContentLocales(nameTranslations);
+      if (missing.length > 0) {
+        message.warning(
+          commonT('missingTranslations', {
+            languages: missing
+              .map((locale) => commonT(`lang_${locale}`))
+              .join(', '),
+          }),
+        );
+      }
       setRoleModalOpen(false);
       setEditingRole(null);
       roleForm.resetFields();
@@ -598,9 +623,13 @@ export default function StaffManagement() {
         onCancel={() => { setRoleModalOpen(false); setEditingRole(null); }}
       >
         <Form form={roleForm} layout="vertical" onFinish={(values) => void submitRole(values)}>
-          <Form.Item name="name" label={t('modals.nameLabel')} rules={[{ required: true, min: 2, message: t('validation.name') }]}> 
-            <Input placeholder={t('modals.namePlaceholder')} />
-          </Form.Item>
+          <LocalizedTextFields
+            name="nameTranslations"
+            label={t('modals.nameLabel')}
+            placeholder={t('modals.namePlaceholder')}
+            maxLength={100}
+            required
+          />
           {!editingRole && (
             <Form.Item
               name="code"

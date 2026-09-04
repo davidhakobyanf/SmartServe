@@ -1,6 +1,9 @@
+import type { LocalizedText } from './localization';
+
 export interface CategoryRecord {
   id: string;
   name: string;
+  nameTranslations: LocalizedText;
   sortOrder: number;
   isActive: boolean;
 }
@@ -8,6 +11,7 @@ export interface CategoryRecord {
 export interface SauceRecord {
   id: string;
   name: string;
+  nameTranslations: LocalizedText;
   price: number;
   isActive: boolean;
   createdAt: string;
@@ -17,6 +21,7 @@ export interface SauceRecord {
 export interface SauceSnapshotRecord {
   id: string;
   name: string;
+  nameTranslations?: LocalizedText;
   unitPrice: number;
 }
 
@@ -25,7 +30,9 @@ export interface ProductRecord {
   categoryId: string;
   category: CategoryRecord;
   title: string;
+  titleTranslations: LocalizedText;
   description: string;
+  descriptionTranslations: LocalizedText;
   price: number;
   sauces: SauceRecord[];
   isActive: boolean;
@@ -50,6 +57,7 @@ export interface OrderItemRecord {
   productId: string | null;
   titleSnapshot: string;
   descriptionSnapshot: string;
+  product?: ProductRecord | null;
   unitPrice: number | null;
   quantity: number;
   sauces: SauceSnapshotRecord[];

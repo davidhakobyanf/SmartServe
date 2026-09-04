@@ -2,5 +2,9 @@
   "language": "Language",
   "lang_en": "English",
   "lang_ru": "Русский",
-  "lang_am": "Հայերեն"
+  "lang_am": "Հայերեն",
+  "translations": "Translations",
+  "translationHint": "English is primary. If a translation is missing, another available language will be shown.",
+  "translationRequired": "Add text in at least one language.",
+  "missingTranslations": "Saved, but translations are missing for: {languages}. Available text will be shown instead."
 }

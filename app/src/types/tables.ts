@@ -4,6 +4,7 @@ export interface SessionTable {
   id: string;
   number: number;
   name: string | null;
+  nameTranslations: LocalizedText;
 }
 
 export interface DiningSession {
@@ -25,5 +26,7 @@ export interface RestaurantTable extends SessionTable {
 export interface TablePayload {
   number: number;
   name?: string;
+  nameTranslations?: LocalizedText;
   isActive?: boolean;
 }
+import type { LocalizedText } from './localization';

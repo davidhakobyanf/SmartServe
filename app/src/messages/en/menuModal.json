@@ -1,11 +1,14 @@
 {
   "dram": "dram",
   "fields": {
+    "category": "Category",
+    "categoryPlaceholder": "Select a category",
     "title": "Title",
     "titlePlaceholder": "Title",
     "sauces": "Sauces",
     "tagsPlaceholder": "Tags Mode",
     "description": "Description",
+    "descriptionPlaceholder": "Describe the menu item",
     "image": "Image",
     "selectImage": "Select Image",
     "price": "Price",
@@ -13,6 +16,7 @@
     "inactive": "inactive"
   },
   "validation": {
+    "category": "Select a category!",
     "title": "Please input title!",
     "description": "Please input Description!",
     "price": "Please input price!",

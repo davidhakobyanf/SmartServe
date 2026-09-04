@@ -10,6 +10,11 @@ import { CreateTableDto } from "./dto/create-table.dto";
 import { randomUUID } from "crypto";
 import { DiningSession } from "src/entities/dining-session.entity";
 import { UpdateTableDto } from "./dto/update-table.dto";
+import {
+  cleanLocalizedText,
+  primaryLocalizedText,
+  withLegacyEnglish,
+} from "src/common/i18n/localized-text";
 
 @Injectable()
 export class TablesService {
@@ -32,9 +37,14 @@ export class TablesService {
         `Table with number ${dto.number} already exists.`,
       );
     }
+    const nameTranslations = withLegacyEnglish(
+      dto.nameTranslations,
+      dto.name,
+    );
     const table = this.tablesRepo.create({
       number: dto.number,
-      name: dto.name?.trim() || null,
+      name: primaryLocalizedText(nameTranslations) || null,
+      nameTranslations,
       publicToken: randomUUID(),
       isActive: dto.isActive ?? true,
     });
@@ -61,8 +71,17 @@ export class TablesService {
 
       table.number = dto.number;
     }
-    if (dto.name !== undefined) {
-      table.name = dto.name?.trim() || null;
+    if (dto.nameTranslations !== undefined) {
+      table.nameTranslations = cleanLocalizedText(dto.nameTranslations);
+      table.name = primaryLocalizedText(table.nameTranslations) || null;
+    } else if (dto.name !== undefined) {
+      table.nameTranslations = withLegacyEnglish(
+        table.nameTranslations,
+        dto.name,
+      );
+      table.nameTranslations.en = dto.name?.trim() || undefined;
+      table.nameTranslations = cleanLocalizedText(table.nameTranslations);
+      table.name = primaryLocalizedText(table.nameTranslations) || null;
     }
     if (dto.isActive !== undefined) {
       if (dto.isActive === false) {

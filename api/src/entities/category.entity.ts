@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 import { Product } from "./product.entity";
+import type { LocalizedText } from "../common/i18n/localized-text";
 
 @Entity("categories")
 export class Category {
@@ -15,6 +16,9 @@ export class Category {
 
   @Column({ type: "varchar", length: 100, unique: true })
   name!: string;
+
+  @Column({ type: "jsonb", default: {} })
+  nameTranslations!: LocalizedText;
 
   @Column({ type: "int", default: 0 })
   sortOrder!: number;

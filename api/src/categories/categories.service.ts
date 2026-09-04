@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -8,6 +9,11 @@ import { Category } from "src/entities/category.entity";
 import { Repository } from "typeorm";
 import { CreateCategoryDto } from "./dto/create-category.dto";
 import { UpdateCategoryDto } from "./dto/update-category.dto";
+import {
+  cleanLocalizedText,
+  primaryLocalizedText,
+  withLegacyEnglish,
+} from "src/common/i18n/localized-text";
 
 @Injectable()
 export class CategoriesService {
@@ -26,7 +32,16 @@ export class CategoriesService {
   }
 
   async create(dto: CreateCategoryDto): Promise<Category> {
-    const name = dto.name.trim();
+    const nameTranslations = withLegacyEnglish(
+      dto.nameTranslations,
+      dto.name,
+    );
+    const name = primaryLocalizedText(nameTranslations);
+    if (!name) {
+      throw new BadRequestException(
+        "A category name is required in at least one language",
+      );
+    }
     const existngCategory = await this.categoryRepository.findOne({
       where: { name },
     });
@@ -37,6 +52,7 @@ export class CategoriesService {
 
     const category = this.categoryRepository.create({
       name,
+      nameTranslations,
       sortOrder: dto.sortOrder ?? 0,
       isActive: dto.isActive ?? true,
     });
@@ -53,8 +69,20 @@ export class CategoriesService {
       throw new NotFoundException("Category not found");
     }
 
-    if (dto.name !== undefined) {
-      const name = dto.name.trim();
+    if (dto.name !== undefined || dto.nameTranslations !== undefined) {
+      const nameTranslations =
+        dto.nameTranslations !== undefined
+          ? cleanLocalizedText(dto.nameTranslations)
+          : withLegacyEnglish(category.nameTranslations, dto.name);
+      if (dto.name !== undefined && dto.nameTranslations === undefined) {
+        nameTranslations.en = dto.name.trim();
+      }
+      const name = primaryLocalizedText(nameTranslations);
+      if (!name) {
+        throw new BadRequestException(
+          "A category name is required in at least one language",
+        );
+      }
 
       const existingCategory = await this.categoryRepository.findOne({
         where: { name },
@@ -65,6 +93,7 @@ export class CategoriesService {
       }
 
       category.name = name;
+      category.nameTranslations = nameTranslations;
     }
 
     if (dto.sortOrder !== undefined) {

@@ -41,6 +41,7 @@ export class SetupService {
 
     const ownerRole = this.rolesRepo.create({
       name: "Owner",
+      nameTranslations: { en: "Owner" },
       code: "owner",
       permissions: Object.values(Permission),
       isSystem: true,

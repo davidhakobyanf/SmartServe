@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -19,6 +20,7 @@ import { CurrentUser } from "src/common/decorators/current-user.decorator";
 import { User } from "src/entities/user.entity";
 import { UsersService } from "src/users/users.service";
 import { DiningTable } from "src/entities/dining-table.entity";
+import { localizedNameResponse } from "src/common/i18n/localized-response";
 
 @Controller("api/tables")
 @UseGuards(JwtAuthGuard, PermissionsGuard)
@@ -28,25 +30,39 @@ export class TablesController {
     private readonly usersService: UsersService,
   ) {}
 
-  private responseFor(user: User, table: DiningTable) {
+  private responseFor(user: User, table: DiningTable, locale?: string) {
     const canManageQr = this.usersService
       .getEffectivePermissions(user)
       .includes(Permission.TABLES_QR_MANAGE);
+    const localizedTable = localizedNameResponse(table, locale);
 
-    return canManageQr ? table : { ...table, publicToken: undefined };
+    return canManageQr
+      ? localizedTable
+      : { ...localizedTable, publicToken: undefined };
   }
 
   @Get()
   @RequirePermissions(Permission.TABLES_VIEW)
-  async findAll(@CurrentUser() user: User) {
+  async findAll(
+    @CurrentUser() user: User,
+    @Headers("accept-language") locale?: string,
+  ) {
     const tables = await this.tablesService.findAll();
-    return tables.map((table) => this.responseFor(user, table));
+    return tables.map((table) => this.responseFor(user, table, locale));
   }
 
   @Post()
   @RequirePermissions(Permission.TABLES_MANAGE)
-  async create(@Body() dto: CreateTableDto, @CurrentUser() user: User) {
-    return this.responseFor(user, await this.tablesService.create(dto));
+  async create(
+    @Body() dto: CreateTableDto,
+    @CurrentUser() user: User,
+    @Headers("accept-language") locale?: string,
+  ) {
+    return this.responseFor(
+      user,
+      await this.tablesService.create(dto),
+      locale,
+    );
   }
 
   @Patch(":id")
@@ -55,7 +71,12 @@ export class TablesController {
     @Param("id", new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateTableDto,
     @CurrentUser() user: User,
+    @Headers("accept-language") locale?: string,
   ) {
-    return this.responseFor(user, await this.tablesService.update(id, dto));
+    return this.responseFor(
+      user,
+      await this.tablesService.update(id, dto),
+      locale,
+    );
   }
 }

@@ -6,14 +6,24 @@ import {
   IsArray,
   ArrayUnique,
   IsEnum,
+  IsOptional,
+  ValidateNested,
 } from "class-validator";
+import { Type } from "class-transformer";
 import { Permission } from "src/common/auth/permission";
+import { LocalizedNameDto } from "src/common/i18n/localized-text.dto";
 
 export class CreateRoleDto {
+  @IsOptional()
   @IsString()
   @MinLength(2)
   @MaxLength(100)
-  name!: string;
+  name?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedNameDto)
+  nameTranslations?: LocalizedNameDto;
 
   @IsString()
   @MinLength(2)

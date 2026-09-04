@@ -12,6 +12,10 @@ import {
 } from "class-validator";
 import { Type } from "class-transformer";
 import { ProductImageDto } from "./product-image.dto";
+import {
+  LocalizedDescriptionDto,
+  LocalizedTitleDto,
+} from "../../common/i18n/localized-text.dto";
 
 export class UpdateProductDto {
   @IsOptional()
@@ -25,9 +29,19 @@ export class UpdateProductDto {
   title?: string;
 
   @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedTitleDto)
+  titleTranslations?: LocalizedTitleDto;
+
+  @IsOptional()
   @IsString()
   @MaxLength(2000)
   description?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedDescriptionDto)
+  descriptionTranslations?: LocalizedDescriptionDto;
 
   @IsOptional()
   @IsNumber({ maxDecimalPlaces: 2 })

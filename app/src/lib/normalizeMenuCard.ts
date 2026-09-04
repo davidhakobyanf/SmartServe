@@ -5,18 +5,30 @@ import type {
   ProductRecord,
   RelationalOrder,
 } from '@/types/restaurant';
+import { resolveLocalizedText } from '@/types/localization';
 
 export function productToMenuCard(product: ProductRecord): MenuCard {
   return {
     id: product.id,
     categoryId: product.categoryId,
-    categoryName: product.category?.name,
-    title: product.title,
-    description: product.description,
+    categoryName: product.category
+      ? resolveLocalizedText(
+          product.category.nameTranslations,
+          product.category.name,
+        )
+      : undefined,
+    title: resolveLocalizedText(product.titleTranslations, product.title),
+    titleTranslations: product.titleTranslations,
+    description: resolveLocalizedText(
+      product.descriptionTranslations,
+      product.description,
+    ),
+    descriptionTranslations: product.descriptionTranslations,
     price: Number(product.price) || 0,
     sauces: Array.isArray(product.sauces)
       ? product.sauces.map((sauce) => ({
           ...sauce,
+          name: resolveLocalizedText(sauce.nameTranslations, sauce.name),
           price: Number(sauce.price) || 0,
         }))
       : [],
@@ -39,7 +51,8 @@ export function basketItemToMenuCard(item: BasketItemRecord): MenuCard {
     sauces: Array.isArray(item.sauces)
       ? item.sauces.map((sauce) => ({
           id: sauce.id,
-          name: sauce.name,
+          name: resolveLocalizedText(sauce.nameTranslations, sauce.name),
+          nameTranslations: sauce.nameTranslations,
           price: Number(sauce.unitPrice) || 0,
         }))
       : [],
@@ -56,13 +69,20 @@ export function relationalOrderToOrderRecord(order: RelationalOrder): OrderRecor
     status: order.status,
     items: (order.items ?? []).map((item) => ({
       id: item.productId ?? item.id,
-      title: item.titleSnapshot,
-      description: item.descriptionSnapshot,
+      title: resolveLocalizedText(
+        item.product?.titleTranslations,
+        item.titleSnapshot,
+      ),
+      description: resolveLocalizedText(
+        item.product?.descriptionTranslations,
+        item.descriptionSnapshot,
+      ),
       price: Number(item.unitPrice) || 0,
       sauces: Array.isArray(item.sauces)
         ? item.sauces.map((sauce) => ({
             id: sauce.id,
-            name: sauce.name,
+            name: resolveLocalizedText(sauce.nameTranslations, sauce.name),
+            nameTranslations: sauce.nameTranslations,
             price: Number(sauce.unitPrice) || 0,
           }))
         : [],

@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -24,14 +25,17 @@ export class ProductsController {
 
   @Get()
   @RequirePermissions(Permission.MENU_VIEW)
-  async findAll() {
-    return productsResponse(await this.productsService.findAll());
+  async findAll(@Headers("accept-language") locale?: string) {
+    return productsResponse(await this.productsService.findAll(), false, locale);
   }
 
   @Post()
   @RequirePermissions(Permission.PRODUCTS_MANAGE)
-  async create(@Body() dto: CreateProductDto) {
-    return productResponse(await this.productsService.create(dto));
+  async create(
+    @Body() dto: CreateProductDto,
+    @Headers("accept-language") locale?: string,
+  ) {
+    return productResponse(await this.productsService.create(dto), false, locale);
   }
 
   @Patch(":id")
@@ -39,7 +43,12 @@ export class ProductsController {
   async update(
     @Param("id", new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateProductDto,
+    @Headers("accept-language") locale?: string,
   ) {
-    return productResponse(await this.productsService.update(id, dto));
+    return productResponse(
+      await this.productsService.update(id, dto),
+      false,
+      locale,
+    );
   }
 }

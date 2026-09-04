@@ -9,6 +9,11 @@ import { Role } from "src/entities/role.entity";
 import { Repository } from "typeorm";
 import { CreateRoleDto } from "./dto/create-role.dto";
 import { UpdateRoleDto } from "./dto/update-role.dto";
+import {
+  cleanLocalizedText,
+  primaryLocalizedText,
+  withLegacyEnglish,
+} from "src/common/i18n/localized-text";
 
 @Injectable()
 export class RolesService {
@@ -25,7 +30,11 @@ export class RolesService {
     if (existingRole) {
       throw new ConflictException("A role with this code already exists.");
     }
-    const name = dto.name.trim();
+    const nameTranslations = withLegacyEnglish(
+      dto.nameTranslations,
+      dto.name,
+    );
+    const name = primaryLocalizedText(nameTranslations);
 
     if (!name) {
       throw new BadRequestException("Role name cannot be empty");
@@ -33,6 +42,7 @@ export class RolesService {
 
     const role = this.rolesRepo.create({
       name,
+      nameTranslations,
       code: dto.code,
       permissions: [...dto.permissions],
       isSystem: false,
@@ -51,17 +61,29 @@ export class RolesService {
     if (role.isSystem) {
       throw new BadRequestException("System roles cannot be modified");
     }
-    if (dto.name === undefined && dto.permissions === undefined) {
+    if (
+      dto.name === undefined &&
+      dto.nameTranslations === undefined &&
+      dto.permissions === undefined
+    ) {
       throw new BadRequestException("At least one field must be provided");
     }
-    if (dto.name !== undefined) {
-      const name = dto.name.trim();
+    if (dto.name !== undefined || dto.nameTranslations !== undefined) {
+      const nameTranslations =
+        dto.nameTranslations !== undefined
+          ? cleanLocalizedText(dto.nameTranslations)
+          : withLegacyEnglish(role.nameTranslations, dto.name);
+      if (dto.name !== undefined && dto.nameTranslations === undefined) {
+        nameTranslations.en = dto.name.trim();
+      }
+      const name = primaryLocalizedText(nameTranslations);
 
       if (!name) {
         throw new BadRequestException("Role name cannot be empty");
       }
 
       role.name = name;
+      role.nameTranslations = nameTranslations;
     }
     if (dto.permissions !== undefined) {
       role.permissions = [...dto.permissions];

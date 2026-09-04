@@ -1,11 +1,14 @@
 {
   "dram": "драм",
   "fields": {
+    "category": "Категория",
+    "categoryPlaceholder": "Выберите категорию",
     "title": "Название",
     "titlePlaceholder": "Название",
     "sauces": "Соусы",
     "tagsPlaceholder": "Режим тегов",
     "description": "Описание",
+    "descriptionPlaceholder": "Опишите позицию меню",
     "image": "Изображение",
     "selectImage": "Выбрать изображение",
     "price": "Цена",
@@ -13,6 +16,7 @@
     "inactive": "неактивен"
   },
   "validation": {
+    "category": "Выберите категорию!",
     "title": "Введите название!",
     "description": "Введите описание!",
     "price": "Введите цену!",

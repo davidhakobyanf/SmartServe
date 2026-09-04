@@ -7,6 +7,7 @@ export interface MenuCardImage {
 export interface MenuSauce {
   id: string;
   name: string;
+  nameTranslations?: LocalizedText;
   price: number;
   isActive?: boolean;
 }
@@ -17,7 +18,9 @@ export interface MenuCard {
   categoryId?: string;
   categoryName?: string;
   title: string;
+  titleTranslations?: LocalizedText;
   description: string;
+  descriptionTranslations?: LocalizedText;
   price: number;
   sauces: MenuSauce[];
   sauceIds?: string[];
@@ -61,3 +64,4 @@ export interface RegisterFormValues {
   email: string;
   password: string;
 }
+import type { LocalizedText } from './localization';

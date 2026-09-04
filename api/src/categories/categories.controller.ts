@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -15,6 +16,7 @@ import { RequirePermissions } from "src/common/auth/permissions.decorator";
 import { Permission } from "src/common/auth/permission";
 import { CreateCategoryDto } from "./dto/create-category.dto";
 import { UpdateCategoryDto } from "./dto/update-category.dto";
+import { localizedNameResponse } from "src/common/i18n/localized-response";
 
 @Controller("api/categories")
 @UseGuards(JwtAuthGuard, PermissionsGuard)
@@ -23,22 +25,34 @@ export class CategoriesController {
 
   @Get()
   @RequirePermissions(Permission.MENU_VIEW)
-  findAll() {
-    return this.categoriesService.findAll();
+  async findAll(@Headers("accept-language") locale?: string) {
+    return (await this.categoriesService.findAll()).map((category) =>
+      localizedNameResponse(category, locale),
+    );
   }
 
   @Post()
   @RequirePermissions(Permission.CATEGORIES_MANAGE)
-  create(@Body() dto: CreateCategoryDto) {
-    return this.categoriesService.create(dto);
+  async create(
+    @Body() dto: CreateCategoryDto,
+    @Headers("accept-language") locale?: string,
+  ) {
+    return localizedNameResponse(
+      await this.categoriesService.create(dto),
+      locale,
+    );
   }
 
   @Patch(":id")
   @RequirePermissions(Permission.CATEGORIES_MANAGE)
-  update(
+  async update(
     @Param("id", new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateCategoryDto,
+    @Headers("accept-language") locale?: string,
   ) {
-    return this.categoriesService.update(id, dto);
+    return localizedNameResponse(
+      await this.categoriesService.update(id, dto),
+      locale,
+    );
   }
 }

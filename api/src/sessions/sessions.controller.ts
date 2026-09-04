@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   Param,
   Post,
   Patch,
@@ -23,6 +24,7 @@ import { CurrentUser } from "src/common/decorators/current-user.decorator";
 import { User } from "src/entities/user.entity";
 import { UsersService } from "src/users/users.service";
 import { DiningSession } from "src/entities/dining-session.entity";
+import { localizedNameResponse } from "src/common/i18n/localized-response";
 
 @Controller("api/sessions")
 export class SessionsController {
@@ -31,19 +33,23 @@ export class SessionsController {
     private readonly usersService: UsersService,
   ) {}
 
-  private adminResponseFor(user: User, session: DiningSession) {
+  private adminResponseFor(user: User, session: DiningSession, locale?: string) {
     const canManageQr = this.usersService
       .getEffectivePermissions(user)
       .includes(Permission.TABLES_QR_MANAGE);
 
-    if (canManageQr || !session.table) return session;
+    const localizedSession = session.table
+      ? { ...session, table: localizedNameResponse(session.table, locale) }
+      : session;
+
+    if (canManageQr || !localizedSession.table) return localizedSession;
     return {
-      ...session,
-      table: { ...session.table, publicToken: undefined },
+      ...localizedSession,
+      table: { ...localizedSession.table, publicToken: undefined },
     };
   }
 
-  private guestResponseFor(session: DiningSession) {
+  private guestResponseFor(session: DiningSession, locale?: string) {
     return {
       id: session.id,
       status: session.status,
@@ -52,30 +58,43 @@ export class SessionsController {
       table: {
         id: session.table.id,
         number: session.table.number,
-        name: session.table.name,
+        name: localizedNameResponse(session.table, locale).name,
+        nameTranslations: session.table.nameTranslations,
       },
     };
   }
 
   @Post("open")
-  async open(@Body() dto: OpenSessionDto) {
+  async open(
+    @Body() dto: OpenSessionDto,
+    @Headers("accept-language") locale?: string,
+  ) {
     return this.guestResponseFor(
       await this.sessionService.openForTable(dto.tableToken),
+      locale,
     );
   }
 
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @RequirePermissions(Permission.TABLES_VIEW)
   @Get("open")
-  async listOpen(@CurrentUser() user: User) {
+  async listOpen(
+    @CurrentUser() user: User,
+    @Headers("accept-language") locale?: string,
+  ) {
     const sessions = await this.sessionService.listOpen();
-    return sessions.map((session) => this.adminResponseFor(user, session));
+    return sessions.map((session) =>
+      this.adminResponseFor(user, session, locale),
+    );
   }
 
   @UseGuards(OpenSessionGuard)
   @Get("current")
-  getCurrent(@Req() req: RequestWithSession) {
-    return this.guestResponseFor(req.diningSession!);
+  getCurrent(
+    @Req() req: RequestWithSession,
+    @Headers("accept-language") locale?: string,
+  ) {
+    return this.guestResponseFor(req.diningSession!, locale);
   }
 
   @UseGuards(JwtAuthGuard, PermissionsGuard)
@@ -84,7 +103,12 @@ export class SessionsController {
   async close(
     @Param("id", new ParseUUIDPipe()) id: string,
     @CurrentUser() user: User,
+    @Headers("accept-language") locale?: string,
   ) {
-    return this.adminResponseFor(user, await this.sessionService.close(id));
+    return this.adminResponseFor(
+      user,
+      await this.sessionService.close(id),
+      locale,
+    );
   }
 }

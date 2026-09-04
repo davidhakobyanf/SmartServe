@@ -1,10 +1,17 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { App, Button, Input, InputNumber, List, Modal, Space, Switch } from 'antd';
+import { App, Button, Form, InputNumber, List, Modal, Switch } from 'antd';
 import { useTranslations } from 'next-intl';
 import clientAPI from '@/api/api';
 import type { SauceRecord } from '@/types/restaurant';
+import LocalizedTextFields from '@/components/Common/LocalizedTextFields';
+import {
+  cleanLocalizedText,
+  hasLocalizedText,
+  missingContentLocales,
+  type LocalizedText,
+} from '@/types/localization';
 
 interface Props {
   open: boolean;
@@ -12,12 +19,17 @@ interface Props {
   onChanged: () => void;
 }
 
+interface SauceFormValues {
+  nameTranslations?: LocalizedText;
+  price: number;
+}
+
 export default function SauceManagementModal({ open, onClose, onChanged }: Props) {
   const { message } = App.useApp();
   const t = useTranslations('menu.sauces');
+  const commonT = useTranslations('common');
+  const [form] = Form.useForm<SauceFormValues>();
   const [sauces, setSauces] = useState<SauceRecord[]>([]);
-  const [name, setName] = useState('');
-  const [price, setPrice] = useState<number>(0);
   const [editing, setEditing] = useState<SauceRecord | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -35,19 +47,37 @@ export default function SauceManagementModal({ open, onClose, onChanged }: Props
   }, [open, load]);
 
   const resetForm = () => {
-    setName('');
-    setPrice(0);
+    form.resetFields();
+    form.setFieldValue('price', 0);
     setEditing(null);
   };
 
   const save = async () => {
-    if (!name.trim()) return;
+    const values = await form.validateFields();
+    if (!hasLocalizedText(values.nameTranslations)) {
+      message.error(commonT('translationRequired'));
+      return;
+    }
+    const nameTranslations = cleanLocalizedText(values.nameTranslations);
     try {
       setLoading(true);
       if (editing) {
-        await clientAPI.updateSauce(editing.id, { name: name.trim(), price });
+        await clientAPI.updateSauce(editing.id, {
+          nameTranslations,
+          price: values.price,
+        });
       } else {
-        await clientAPI.createSauce({ name: name.trim(), price });
+        await clientAPI.createSauce({ nameTranslations, price: values.price });
+      }
+      const missing = missingContentLocales(nameTranslations);
+      if (missing.length > 0) {
+        message.warning(
+          commonT('missingTranslations', {
+            languages: missing
+              .map((locale) => commonT(`lang_${locale}`))
+              .join(', '),
+          }),
+        );
       }
       resetForm();
       await load();
@@ -61,8 +91,10 @@ export default function SauceManagementModal({ open, onClose, onChanged }: Props
 
   const startEditing = (sauce: SauceRecord) => {
     setEditing(sauce);
-    setName(sauce.name);
-    setPrice(Number(sauce.price));
+    form.setFieldsValue({
+      nameTranslations: sauce.nameTranslations,
+      price: Number(sauce.price),
+    });
   };
 
   const toggle = async (sauce: SauceRecord, isActive: boolean) => {
@@ -83,24 +115,25 @@ export default function SauceManagementModal({ open, onClose, onChanged }: Props
       afterClose={resetForm}
       footer={null}
     >
-      <Space.Compact style={{ width: '100%', marginBottom: 20 }}>
-        <Input
-          value={name}
-          onChange={(event) => setName(event.target.value)}
+      <Form form={form} layout="vertical" initialValues={{ price: 0 }}>
+        <LocalizedTextFields
+          name="nameTranslations"
+          label={t('nameLabel')}
           placeholder={t('namePlaceholder')}
-          onPressEnter={() => void save()}
+          maxLength={100}
+          required
         />
-        <InputNumber
-          min={0}
-          precision={2}
-          value={price}
-          onChange={(value) => setPrice(Number(value) || 0)}
-          aria-label={t('priceLabel')}
-        />
+        <Form.Item
+          name="price"
+          label={t('priceLabel')}
+          rules={[{ required: true, message: t('priceRequired') }]}
+        >
+          <InputNumber min={0} precision={2} style={{ width: '100%' }} />
+        </Form.Item>
         <Button type="primary" loading={loading} onClick={() => void save()}>
           {editing ? t('save') : t('add')}
         </Button>
-      </Space.Compact>
+      </Form>
       {editing && (
         <Button type="link" onClick={resetForm} style={{ marginBottom: 12 }}>
           {t('cancelEdit')}

@@ -58,6 +58,7 @@ export class BasketItemsService {
       return {
         id: sauce.id,
         name: sauce.name,
+        nameTranslations: sauce.nameTranslations,
         unitPrice: sauce.price,
       };
     });

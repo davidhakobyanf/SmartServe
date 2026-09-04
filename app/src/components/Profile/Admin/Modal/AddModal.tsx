@@ -2,19 +2,34 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Button, Input, InputNumber, Modal, Select, Form, Upload } from 'antd';
-import TextArea from 'antd/es/input/TextArea';
+import { App, Button, InputNumber, Modal, Select, Form, Upload } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
 import { fileToImagePayload } from '@/lib/fileToImagePayload';
 import type { MenuCard } from '@/types';
 import type { CategoryRecord, SauceRecord } from '@/types/restaurant';
 import clientAPI from '@/api/api';
+import LocalizedTextFields from '@/components/Common/LocalizedTextFields';
+import {
+  cleanLocalizedText,
+  hasLocalizedText,
+  missingContentLocales,
+  type LocalizedText,
+} from '@/types/localization';
 
 interface AddModalProps {
   modalOpen: boolean;
   setModalOpen: (open: boolean) => void;
   fetchAddCard: (values: Partial<MenuCard>) => void;
+}
+
+interface ProductFormValues {
+  categoryId: string;
+  titleTranslations?: LocalizedText;
+  descriptionTranslations?: LocalizedText;
+  sauceIds?: string[];
+  price: number;
+  image?: unknown;
 }
 
 export default function AddModal({
@@ -23,7 +38,9 @@ export default function AddModal({
   fetchAddCard,
 }: AddModalProps) {
   const t = useTranslations('menuModal');
-  const [form] = Form.useForm();
+  const commonT = useTranslations('common');
+  const { message } = App.useApp();
+  const [form] = Form.useForm<ProductFormValues>();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [categories, setCategories] = useState<CategoryRecord[]>([]);
   const [sauces, setSauces] = useState<SauceRecord[]>([]);
@@ -47,20 +64,46 @@ export default function AddModal({
     setFileList(newFileList);
   };
 
-  const onFinish = async (values: Record<string, unknown>) => {
+  const onFinish = async (values: ProductFormValues) => {
+    if (
+      !hasLocalizedText(values.titleTranslations) ||
+      !hasLocalizedText(values.descriptionTranslations)
+    ) {
+      message.error(commonT('translationRequired'));
+      return;
+    }
     const uploadFile = fileList[0]?.originFileObj as File | undefined;
     if (!uploadFile) {
       form.setFields([{ name: 'image', errors: [t('validation.image')] }]);
       return;
     }
     const image = await fileToImagePayload(uploadFile);
+    const titleTranslations = cleanLocalizedText(values.titleTranslations);
+    const descriptionTranslations = cleanLocalizedText(
+      values.descriptionTranslations,
+    );
     const updatedValues = {
       ...values,
+      titleTranslations,
+      descriptionTranslations,
       price: Number(values.price),
       image,
       active: true,
     };
     fetchAddCard(updatedValues as Partial<MenuCard>);
+    const missing = new Set([
+      ...missingContentLocales(titleTranslations),
+      ...missingContentLocales(descriptionTranslations),
+    ]);
+    if (missing.size > 0) {
+      message.warning(
+        commonT('missingTranslations', {
+          languages: [...missing]
+            .map((locale) => commonT(`lang_${locale}`))
+            .join(', '),
+        }),
+      );
+    }
     setModalOpen(false);
     form.resetFields();
     setFileList([]);
@@ -72,31 +115,31 @@ export default function AddModal({
       open={modalOpen}
       onOk={() => form.submit()}
       onCancel={() => setModalOpen(false)}
-      width={350}
+      width={520}
       footer={null}
       forceRender
     >
       <Form form={form} onFinish={onFinish} layout="vertical">
         <Form.Item
           name="categoryId"
-          label="Категория"
-          rules={[{ required: true, message: 'Выберите категорию' }]}
+          label={t('fields.category')}
+          rules={[{ required: true, message: t('validation.category') }]}
         >
           <Select
             options={categories.map((category) => ({
               value: category.id,
               label: category.name,
             }))}
-            placeholder="Выберите категорию"
+            placeholder={t('fields.categoryPlaceholder')}
           />
         </Form.Item>
-        <Form.Item
-          name="title"
+        <LocalizedTextFields
+          name="titleTranslations"
           label={t('fields.title')}
-          rules={[{ required: true, message: t('validation.title') }]}
-        >
-          <Input placeholder={t('fields.titlePlaceholder')} />
-        </Form.Item>
+          placeholder={t('fields.titlePlaceholder')}
+          maxLength={160}
+          required
+        />
         <Form.Item name="sauceIds" label={t('fields.sauces')}>
           <Select
             mode="multiple"
@@ -108,13 +151,14 @@ export default function AddModal({
             }))}
           />
         </Form.Item>
-        <Form.Item
-          name="description"
+        <LocalizedTextFields
+          name="descriptionTranslations"
           label={t('fields.description')}
-          rules={[{ required: true, message: t('validation.description') }]}
-        >
-          <TextArea rows={4} />
-        </Form.Item>
+          placeholder={t('fields.descriptionPlaceholder')}
+          maxLength={2000}
+          multiline
+          required
+        />
         <Form.Item
           name="image"
           label={t('fields.image')}

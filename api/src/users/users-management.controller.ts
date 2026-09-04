@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Headers, Param, Patch, UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "src/common/guards/jwt-auth.guard";
 import { PermissionsGuard } from "src/common/guards/permissions.guard";
 import { UsersService } from "./users.service";
@@ -10,6 +10,7 @@ import { User } from "src/entities/user.entity";
 import { RejectUserDto } from "./dto/reject-user.dto";
 import { ChangeUserRoleDto } from "./dto/change-user-role.dto";
 import { UpdateUserPermissionsDto } from "./dto/update-user-permissions.dto";
+import { resolveLocalizedText } from "src/common/i18n/localized-text";
 @Controller("api/users")
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 export class UsersManagementController {
@@ -17,7 +18,7 @@ export class UsersManagementController {
 
   @Get()
   @RequirePermissions(Permission.USERS_VIEW)
-  async findAll() {
+  async findAll(@Headers("accept-language") locale?: string) {
     const users = await this.usersService.findAll();
 
     return users.map((user) => ({
@@ -33,7 +34,15 @@ export class UsersManagementController {
       permissionAllow: user.permissionAllow,
       permissionDeny: user.permissionDeny,
       role: user.role
-        ? { id: user.role.id, name: user.role.name, code: user.role.code }
+        ? {
+            id: user.role.id,
+            name: resolveLocalizedText(
+              user.role.nameTranslations,
+              user.role.name,
+              locale,
+            ),
+            code: user.role.code,
+          }
         : null,
     }));
   }
@@ -96,6 +105,7 @@ export class UsersManagementController {
     @Param("id") id: string,
     @Body() dto: ChangeUserRoleDto,
     @CurrentUser() actor: User,
+    @Headers("accept-language") locale?: string,
   ) {
     const user = await this.usersService.changeRole(id, dto.roleId, actor.id);
     return {
@@ -106,7 +116,11 @@ export class UsersManagementController {
       role: user.role
         ? {
             id: user.role.id,
-            name: user.role.name,
+            name: resolveLocalizedText(
+              user.role.nameTranslations,
+              user.role.name,
+              locale,
+            ),
             code: user.role.code,
           }
         : null,

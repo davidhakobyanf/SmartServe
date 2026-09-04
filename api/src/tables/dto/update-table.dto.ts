@@ -5,7 +5,10 @@ import {
   IsString,
   MaxLength,
   Min,
+  ValidateNested,
 } from "class-validator";
+import { Type } from "class-transformer";
+import { LocalizedNameDto } from "../../common/i18n/localized-text.dto";
 
 export class UpdateTableDto {
   @IsOptional()
@@ -17,6 +20,11 @@ export class UpdateTableDto {
   @IsString()
   @MaxLength(100)
   name?: string | null;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LocalizedNameDto)
+  nameTranslations?: LocalizedNameDto;
 
   @IsOptional()
   @IsBoolean()

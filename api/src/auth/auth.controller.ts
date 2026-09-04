@@ -1,9 +1,10 @@
-import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Headers, Post, UseGuards } from "@nestjs/common";
 import { UsersService } from "../users/users.service";
 import { LoginDto } from "../users/dto/login.dto";
 import { JwtAuthGuard } from "src/common/guards/jwt-auth.guard";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";
 import { User } from "src/entities/user.entity";
+import { resolveLocalizedText } from "src/common/i18n/localized-text";
 
 @Controller("api")
 export class AuthController {
@@ -16,7 +17,10 @@ export class AuthController {
 
   @Get("auth/me")
   @UseGuards(JwtAuthGuard)
-  me(@CurrentUser() user: User) {
+  me(
+    @CurrentUser() user: User,
+    @Headers("accept-language") locale?: string,
+  ) {
     const permissions = this.usersService.getEffectivePermissions(user);
 
     return {
@@ -28,7 +32,11 @@ export class AuthController {
       permissions,
       role: {
         id: user.role!.id,
-        name: user.role!.name,
+        name: resolveLocalizedText(
+          user.role!.nameTranslations,
+          user.role!.name,
+          locale,
+        ),
         code: user.role!.code,
       },
     };

@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 import { ProductSauce } from "./product-sauce.entity";
+import type { LocalizedText } from "../common/i18n/localized-text";
 
 @Entity("sauces")
 export class Sauce {
@@ -19,6 +20,9 @@ export class Sauce {
     unique: true,
   })
   name!: string;
+
+  @Column({ type: "jsonb", default: {} })
+  nameTranslations!: LocalizedText;
 
   @Column({
     type: "numeric",

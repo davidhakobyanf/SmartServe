@@ -8,6 +8,7 @@ import {
 } from "typeorm";
 import { DiningSession } from "./dining-session.entity";
 import { Order } from "./order.entity";
+import type { LocalizedText } from "../common/i18n/localized-text";
 
 @Entity("tables")
 export class DiningTable {
@@ -26,6 +27,9 @@ export class DiningTable {
     nullable: true,
   })
   name!: string | null;
+
+  @Column({ type: "jsonb", default: {} })
+  nameTranslations!: LocalizedText;
 
   @Column({
     type: "uuid",

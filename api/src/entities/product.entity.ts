@@ -12,6 +12,7 @@ import { Category } from "./category.entity";
 import { BasketItem } from "./basket-item.entity";
 import { OrderItem } from "./order-item.entity";
 import { ProductSauce } from "./product-sauce.entity";
+import type { LocalizedText } from "../common/i18n/localized-text";
 
 @Entity("products")
 export class Product {
@@ -31,8 +32,14 @@ export class Product {
   @Column({ type: "varchar", length: 160 })
   title!: string;
 
+  @Column({ type: "jsonb", default: {} })
+  titleTranslations!: LocalizedText;
+
   @Column({ type: "text", default: "" })
   description!: string;
+
+  @Column({ type: "jsonb", default: {} })
+  descriptionTranslations!: LocalizedText;
 
   @Column({
     type: "numeric",

@@ -1,11 +1,14 @@
 {
   "dram": "դրամ",
   "fields": {
+    "category": "Կատեգորիա",
+    "categoryPlaceholder": "Ընտրեք կատեգորիա",
     "title": "Անվանում",
     "titlePlaceholder": "Անվանում",
     "sauces": "Սոուսներ",
     "tagsPlaceholder": "Թեգերի ռեժիմ",
     "description": "Նկարագրություն",
+    "descriptionPlaceholder": "Նկարագրեք ուտեստը",
     "image": "Նկար",
     "selectImage": "Ընտրել նկար",
     "price": "Գին",
@@ -13,6 +16,7 @@
     "inactive": "ոչ ակտիվ"
   },
   "validation": {
+    "category": "Ընտրեք կատեգորիա։",
     "title": "Մուտքագրեք անվանումը!",
     "description": "Մուտքագրեք նկարագրությունը!",
     "price": "Մուտքագրեք գինը!",

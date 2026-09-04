@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from "@nestjs/common";
+import { Controller, Get, Headers, UseGuards } from "@nestjs/common";
 import { ProductsService } from "./products.service";
 import { OpenSessionGuard } from "src/common/guards/open-session.guard";
 import { productsResponse } from "./product-response";
@@ -9,7 +9,11 @@ export class PublicMenuController {
 
   @UseGuards(OpenSessionGuard)
   @Get()
-  async findActiveMenu() {
-    return productsResponse(await this.productsService.findActiveMenu(), true);
+  async findActiveMenu(@Headers("accept-language") locale?: string) {
+    return productsResponse(
+      await this.productsService.findActiveMenu(),
+      true,
+      locale,
+    );
   }
 }

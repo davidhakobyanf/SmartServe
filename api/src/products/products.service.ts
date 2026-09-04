@@ -12,6 +12,11 @@ import { UpdateProductDto } from "./dto/update-product.dto";
 import { ProductImageDto } from "./dto/product-image.dto";
 import { ProductSauce } from "src/entities/product-sauce.entity";
 import { Sauce } from "src/entities/sauce.entity";
+import {
+  cleanLocalizedText,
+  primaryLocalizedText,
+  withLegacyEnglish,
+} from "src/common/i18n/localized-text";
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
@@ -171,11 +176,27 @@ export class ProductsService {
     const category = await this.findCategory(dto.categoryId);
     const sauceIds = await this.validateSauceIds(dto.sauceIds);
     const image = dto.image?.data ? this.decodeImage(dto.image) : {};
+    const titleTranslations = withLegacyEnglish(
+      dto.titleTranslations,
+      dto.title,
+    );
+    const title = primaryLocalizedText(titleTranslations);
+    if (!title) {
+      throw new BadRequestException(
+        "A product title is required in at least one language",
+      );
+    }
+    const descriptionTranslations = withLegacyEnglish(
+      dto.descriptionTranslations,
+      dto.description,
+    );
     const product = this.productsRepo.create({
       categoryId: category.id,
       category,
-      title: dto.title.trim(),
-      description: dto.description?.trim() ?? "",
+      title,
+      titleTranslations,
+      description: primaryLocalizedText(descriptionTranslations),
+      descriptionTranslations,
       price: dto.price,
       isActive: dto.isActive ?? true,
       imageName: dto.image?.name?.trim() || null,
@@ -206,11 +227,42 @@ export class ProductsService {
       product.category = category;
     }
 
-    if (dto.title !== undefined) {
-      product.title = dto.title.trim();
+    if (dto.title !== undefined || dto.titleTranslations !== undefined) {
+      const titleTranslations =
+        dto.titleTranslations !== undefined
+          ? cleanLocalizedText(dto.titleTranslations)
+          : withLegacyEnglish(product.titleTranslations, dto.title);
+      if (dto.title !== undefined && dto.titleTranslations === undefined) {
+        titleTranslations.en = dto.title.trim();
+      }
+      const title = primaryLocalizedText(titleTranslations);
+      if (!title) {
+        throw new BadRequestException(
+          "A product title is required in at least one language",
+        );
+      }
+      product.title = title;
+      product.titleTranslations = titleTranslations;
     }
-    if (dto.description !== undefined) {
-      product.description = dto.description.trim();
+    if (
+      dto.description !== undefined ||
+      dto.descriptionTranslations !== undefined
+    ) {
+      const descriptionTranslations =
+        dto.descriptionTranslations !== undefined
+          ? cleanLocalizedText(dto.descriptionTranslations)
+          : withLegacyEnglish(
+              product.descriptionTranslations,
+              dto.description,
+            );
+      if (
+        dto.description !== undefined &&
+        dto.descriptionTranslations === undefined
+      ) {
+        descriptionTranslations.en = dto.description.trim();
+      }
+      product.descriptionTranslations = descriptionTranslations;
+      product.description = primaryLocalizedText(descriptionTranslations);
     }
     if (dto.price !== undefined) {
       product.price = dto.price;

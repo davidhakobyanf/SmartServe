@@ -1,5 +1,6 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Permission } from '../common/auth/permission';
+import type { LocalizedText } from '../common/i18n/localized-text';
 
 
 @Entity('roles')
@@ -13,6 +14,9 @@ export class Role {
     //Manager
     @Column({ type:'varchar', length:100 })
     name!:string;
+
+    @Column({ type: 'jsonb', default: {} })
+    nameTranslations!: LocalizedText;
     
 
     //waiter

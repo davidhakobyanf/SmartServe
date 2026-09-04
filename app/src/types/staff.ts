@@ -34,6 +34,7 @@ export type StaffUserStatus = 'pending' | 'active' | 'rejected' | 'disabled';
 export interface StaffRoleSummary {
   id: string;
   name: string;
+  nameTranslations?: LocalizedText;
   code: string;
 }
 
@@ -61,13 +62,15 @@ export interface StaffUser {
 }
 
 export interface RolePayload {
-  name: string;
+  name?: string;
+  nameTranslations?: LocalizedText;
   code: string;
   permissions: Permission[];
 }
 
 export interface UpdateRolePayload {
   name?: string;
+  nameTranslations?: LocalizedText;
   permissions?: Permission[];
 }
 
@@ -75,3 +78,4 @@ export interface UpdateUserPermissionsPayload {
   permissionAllow: Permission[];
   permissionDeny: Permission[];
 }
+import type { LocalizedText } from './localization';

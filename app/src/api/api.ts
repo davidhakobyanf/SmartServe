@@ -11,6 +11,7 @@ import type {
   SauceRecord,
 } from '@/types/restaurant';
 import type { AuthenticatedStaff } from '@/types/staff';
+import type { LocalizedText } from '@/types/localization';
 
 const instance = axios.create({
   baseURL: API_URL,
@@ -27,6 +28,9 @@ export function setSessionToken(token: string | null): void {
 instance.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
     const accessToken = localStorage.getItem('accessToken');
+    const locale = document.documentElement.lang || 'en';
+
+    config.headers.set('Accept-Language', locale);
 
     if (accessToken) {
       config.headers.set('Authorization', `Bearer ${accessToken}`);
@@ -48,7 +52,8 @@ class DataApi {
   }
 
   static async createCategory(payload: {
-    name: string;
+    name?: string;
+    nameTranslations?: LocalizedText;
     sortOrder?: number;
     isActive?: boolean;
   }): Promise<AxiosResponse<CategoryRecord>> {
@@ -57,7 +62,9 @@ class DataApi {
 
   static async updateCategory(
     id: string,
-    payload: Partial<Pick<CategoryRecord, 'name' | 'sortOrder' | 'isActive'>>,
+    payload: Partial<
+      Pick<CategoryRecord, 'name' | 'nameTranslations' | 'sortOrder' | 'isActive'>
+    >,
   ): Promise<AxiosResponse<CategoryRecord>> {
     return instance.patch(`/api/categories/${id}`, payload);
   }
@@ -67,7 +74,8 @@ class DataApi {
   }
 
   static async createSauce(payload: {
-    name: string;
+    name?: string;
+    nameTranslations?: LocalizedText;
     price: number;
     isActive?: boolean;
   }): Promise<AxiosResponse<SauceRecord>> {
@@ -76,7 +84,9 @@ class DataApi {
 
   static async updateSauce(
     id: string,
-    payload: Partial<Pick<SauceRecord, 'name' | 'price' | 'isActive'>>,
+    payload: Partial<
+      Pick<SauceRecord, 'name' | 'nameTranslations' | 'price' | 'isActive'>
+    >,
   ): Promise<AxiosResponse<SauceRecord>> {
     return instance.patch(`/api/sauces/${id}`, payload);
   }

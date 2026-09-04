@@ -38,8 +38,14 @@ export default function MenuManagement() {
     await clientAPI.updateProduct(card.id, {
       ...(card.categoryId !== undefined ? { categoryId: card.categoryId } : {}),
       ...(card.title !== undefined ? { title: card.title } : {}),
+      ...(card.titleTranslations !== undefined
+        ? { titleTranslations: card.titleTranslations }
+        : {}),
       ...(card.description !== undefined
         ? { description: card.description }
+        : {}),
+      ...(card.descriptionTranslations !== undefined
+        ? { descriptionTranslations: card.descriptionTranslations }
         : {}),
       ...(card.price !== undefined ? { price: card.price } : {}),
       ...(card.sauceIds !== undefined
@@ -56,8 +62,8 @@ export default function MenuManagement() {
   const [fetchAddCard] = useFetching(async (formData: Partial<MenuCard>) => {
     await clientAPI.createProduct({
       categoryId: formData.categoryId,
-      title: formData.title,
-      description: formData.description,
+      titleTranslations: formData.titleTranslations,
+      descriptionTranslations: formData.descriptionTranslations,
       price: formData.price,
       sauceIds: formData.sauceIds ?? [],
       isActive: formData.active ?? true,

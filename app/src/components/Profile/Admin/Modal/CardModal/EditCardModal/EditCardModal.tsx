@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Button, Input, InputNumber, Modal, Select, Form, Upload } from 'antd';
-import TextArea from 'antd/es/input/TextArea';
+import { App, Button, InputNumber, Modal, Select, Form, Upload } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
 import { useFetching } from '@/hoc/fetchingHook';
@@ -12,6 +11,13 @@ import { fileToImagePayload } from '@/lib/fileToImagePayload';
 import { resolveMenuImageSrc } from '@/lib/menuImages';
 import type { MenuCard } from '@/types';
 import type { CategoryRecord, SauceRecord } from '@/types/restaurant';
+import LocalizedTextFields from '@/components/Common/LocalizedTextFields';
+import {
+  cleanLocalizedText,
+  hasLocalizedText,
+  missingContentLocales,
+  type LocalizedText,
+} from '@/types/localization';
 
 interface EditCardModalProps {
   item: MenuCard | null;
@@ -19,6 +25,15 @@ interface EditCardModalProps {
   setShowEditConfirmation: (v: boolean) => void;
   showEditConfirmation: boolean;
   setCardModalOpen: (v: boolean) => void;
+}
+
+interface ProductFormValues {
+  categoryId: string;
+  titleTranslations?: LocalizedText;
+  descriptionTranslations?: LocalizedText;
+  sauceIds?: string[];
+  price: number;
+  image?: unknown;
 }
 
 export default function EditCardModal({
@@ -29,7 +44,9 @@ export default function EditCardModal({
   setCardModalOpen,
 }: EditCardModalProps) {
   const t = useTranslations('menuModal');
-  const [form] = Form.useForm();
+  const commonT = useTranslations('common');
+  const { message } = App.useApp();
+  const [form] = Form.useForm<ProductFormValues>();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [categories, setCategories] = useState<CategoryRecord[]>([]);
   const [sauces, setSauces] = useState<SauceRecord[]>([]);
@@ -48,8 +65,8 @@ export default function EditCardModal({
       if (!card.id) return;
       await clientAPI.updateProduct(card.id, {
         categoryId: card.categoryId,
-        title: card.title,
-        description: card.description,
+        titleTranslations: card.titleTranslations,
+        descriptionTranslations: card.descriptionTranslations,
         price: card.price,
         sauceIds:
           card.sauceIds ?? (card.sauces ?? []).map((sauce) => sauce.id),
@@ -67,8 +84,12 @@ export default function EditCardModal({
   useEffect(() => {
     if (!item) return;
     form.setFieldsValue({
-      title: item.title,
-      description: item.description,
+      titleTranslations: hasLocalizedText(item.titleTranslations)
+        ? item.titleTranslations
+        : { en: item.title },
+      descriptionTranslations: hasLocalizedText(item.descriptionTranslations)
+        ? item.descriptionTranslations
+        : { en: item.description },
       price: item.price,
       sauceIds: item.sauces.map((sauce) => sauce.id),
       categoryId: item.categoryId,
@@ -83,8 +104,15 @@ export default function EditCardModal({
     ]);
   }, [item, form]);
 
-  const onFinish = async (values: Record<string, unknown>) => {
+  const onFinish = async (values: ProductFormValues) => {
     if (!item) return;
+    if (
+      !hasLocalizedText(values.titleTranslations) ||
+      !hasLocalizedText(values.descriptionTranslations)
+    ) {
+      message.error(commonT('translationRequired'));
+      return;
+    }
     const uploadFile = fileList[0]?.originFileObj as File | undefined;
     const image = uploadFile
       ? await fileToImagePayload(uploadFile)
@@ -95,12 +123,29 @@ export default function EditCardModal({
         };
     const updatedValues = {
       ...values,
+      titleTranslations: cleanLocalizedText(values.titleTranslations),
+      descriptionTranslations: cleanLocalizedText(
+        values.descriptionTranslations,
+      ),
       price: Number(values.price),
       image,
       active: item.active,
       id: item.id,
     };
     void editCard(updatedValues as Partial<MenuCard>);
+    const missing = new Set([
+      ...missingContentLocales(values.titleTranslations),
+      ...missingContentLocales(values.descriptionTranslations),
+    ]);
+    if (missing.size > 0) {
+      message.warning(
+        commonT('missingTranslations', {
+          languages: [...missing]
+            .map((locale) => commonT(`lang_${locale}`))
+            .join(', '),
+        }),
+      );
+    }
   };
 
   return (
@@ -111,12 +156,12 @@ export default function EditCardModal({
         form.resetFields();
         setShowEditConfirmation(false);
       }}
-      width={350}
+      width={520}
       footer={null}
       forceRender
     >
       <Form form={form} onFinish={onFinish} layout="vertical">
-        <Form.Item name="categoryId" label="Категория" rules={[{ required: true }]}>
+        <Form.Item name="categoryId" label={t('fields.category')} rules={[{ required: true, message: t('validation.category') }]}> 
           <Select
             options={categories.map((category) => ({
               value: category.id,
@@ -124,9 +169,13 @@ export default function EditCardModal({
             }))}
           />
         </Form.Item>
-        <Form.Item name="title" label={t('fields.title')} rules={[{ required: true }]}>
-          <Input placeholder={t('fields.titlePlaceholder')} />
-        </Form.Item>
+        <LocalizedTextFields
+          name="titleTranslations"
+          label={t('fields.title')}
+          placeholder={t('fields.titlePlaceholder')}
+          maxLength={160}
+          required
+        />
         <Form.Item name="sauceIds" label={t('fields.sauces')}>
           <Select
             mode="multiple"
@@ -140,9 +189,14 @@ export default function EditCardModal({
             }))}
           />
         </Form.Item>
-        <Form.Item name="description" label={t('fields.description')} rules={[{ required: true }]}>
-          <TextArea rows={4} />
-        </Form.Item>
+        <LocalizedTextFields
+          name="descriptionTranslations"
+          label={t('fields.description')}
+          placeholder={t('fields.descriptionPlaceholder')}
+          maxLength={2000}
+          multiline
+          required
+        />
         <Form.Item name="image" label={t('fields.image')}>
           <Upload
             fileList={fileList}

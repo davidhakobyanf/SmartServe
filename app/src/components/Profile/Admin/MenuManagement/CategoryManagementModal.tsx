@@ -1,9 +1,17 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { App, Button, Input, InputNumber, List, Modal, Space, Switch } from 'antd';
+import { App, Button, Form, InputNumber, List, Modal, Switch } from 'antd';
+import { useTranslations } from 'next-intl';
 import clientAPI from '@/api/api';
 import type { CategoryRecord } from '@/types/restaurant';
+import LocalizedTextFields from '@/components/Common/LocalizedTextFields';
+import {
+  cleanLocalizedText,
+  hasLocalizedText,
+  missingContentLocales,
+  type LocalizedText,
+} from '@/types/localization';
 
 interface Props {
   open: boolean;
@@ -11,11 +19,17 @@ interface Props {
   onChanged: () => void;
 }
 
+interface CategoryFormValues {
+  nameTranslations?: LocalizedText;
+  sortOrder: number;
+}
+
 export default function CategoryManagementModal({ open, onClose, onChanged }: Props) {
   const { message } = App.useApp();
+  const t = useTranslations('menu.categoriesManagement');
+  const commonT = useTranslations('common');
+  const [form] = Form.useForm<CategoryFormValues>();
   const [categories, setCategories] = useState<CategoryRecord[]>([]);
-  const [name, setName] = useState('');
-  const [sortOrder, setSortOrder] = useState(0);
   const [editing, setEditing] = useState<CategoryRecord | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -29,28 +43,46 @@ export default function CategoryManagementModal({ open, onClose, onChanged }: Pr
   }, [open, load]);
 
   const resetForm = () => {
-    setName('');
-    setSortOrder(0);
+    form.resetFields();
+    form.setFieldValue('sortOrder', 0);
     setEditing(null);
   };
 
   const save = async () => {
-    if (!name.trim()) return;
+    const values = await form.validateFields();
+    if (!hasLocalizedText(values.nameTranslations)) {
+      message.error(commonT('translationRequired'));
+      return;
+    }
+    const nameTranslations = cleanLocalizedText(values.nameTranslations);
     try {
       setLoading(true);
       if (editing) {
         await clientAPI.updateCategory(editing.id, {
-          name: name.trim(),
-          sortOrder,
+          nameTranslations,
+          sortOrder: values.sortOrder,
         });
       } else {
-        await clientAPI.createCategory({ name: name.trim(), sortOrder });
+        await clientAPI.createCategory({
+          nameTranslations,
+          sortOrder: values.sortOrder,
+        });
+      }
+      const missing = missingContentLocales(nameTranslations);
+      if (missing.length > 0) {
+        message.warning(
+          commonT('missingTranslations', {
+            languages: missing
+              .map((locale) => commonT(`lang_${locale}`))
+              .join(', '),
+          }),
+        );
       }
       resetForm();
       await load();
       onChanged();
     } catch {
-      message.error('Не удалось сохранить категорию');
+      message.error(t('saveError'));
     } finally {
       setLoading(false);
     }
@@ -58,8 +90,10 @@ export default function CategoryManagementModal({ open, onClose, onChanged }: Pr
 
   const startEditing = (category: CategoryRecord) => {
     setEditing(category);
-    setName(category.name);
-    setSortOrder(category.sortOrder);
+    form.setFieldsValue({
+      nameTranslations: category.nameTranslations,
+      sortOrder: category.sortOrder,
+    });
   };
 
   const toggle = async (category: CategoryRecord, isActive: boolean) => {
@@ -68,37 +102,35 @@ export default function CategoryManagementModal({ open, onClose, onChanged }: Pr
       await load();
       onChanged();
     } catch {
-      message.error('Не удалось изменить категорию');
+      message.error(t('toggleError'));
     }
   };
 
   return (
-    <Modal title="Категории" open={open} onCancel={onClose} footer={null}>
-      <Space.Compact style={{ width: '100%', marginBottom: 20 }}>
-        <Input
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          placeholder="Название категории"
-          onPressEnter={() => void save()}
+    <Modal title={t('title')} open={open} onCancel={onClose} footer={null}>
+      <Form form={form} layout="vertical" initialValues={{ sortOrder: 0 }}>
+        <LocalizedTextFields
+          name="nameTranslations"
+          label={t('name')}
+          placeholder={t('namePlaceholder')}
+          maxLength={100}
+          required
         />
-        <InputNumber
-          min={0}
-          value={sortOrder}
-          onChange={(value) => setSortOrder(value ?? 0)}
-          aria-label="Порядок"
-        />
+        <Form.Item name="sortOrder" label={t('sortOrder')}>
+          <InputNumber min={0} style={{ width: '100%' }} />
+        </Form.Item>
         <Button type="primary" loading={loading} onClick={() => void save()}>
-          {editing ? 'Сохранить' : 'Добавить'}
+          {editing ? t('save') : t('add')}
         </Button>
-      </Space.Compact>
+      </Form>
       {editing && (
         <Button type="link" onClick={resetForm} style={{ marginBottom: 12 }}>
-          Отменить редактирование
+          {t('cancelEdit')}
         </Button>
       )}
       <List
         dataSource={categories}
-        locale={{ emptyText: 'Категорий пока нет' }}
+        locale={{ emptyText: t('empty') }}
         renderItem={(category) => (
           <List.Item
             actions={[
@@ -107,7 +139,7 @@ export default function CategoryManagementModal({ open, onClose, onChanged }: Pr
                 type="link"
                 onClick={() => startEditing(category)}
               >
-                Изменить
+                {t('edit')}
               </Button>,
               <Switch
                 key="active"
@@ -118,7 +150,7 @@ export default function CategoryManagementModal({ open, onClose, onChanged }: Pr
           >
             <List.Item.Meta
               title={category.name}
-              description={`Порядок: ${category.sortOrder}`}
+              description={t('sortOrderValue', { value: category.sortOrder })}
             />
           </List.Item>
         )}
