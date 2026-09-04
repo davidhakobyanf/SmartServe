@@ -1,0 +1,186 @@
+// SmartServe — PostgreSQL schema (paste into https://dbdiagram.io)
+// Source of truth: api/src/entities/*.entity.ts (migration-managed, synchronize=false)
+
+Enum user_status_enum {
+  pending
+  active
+  rejected
+  disabled
+}
+
+Enum order_status_enum {
+  placed
+  completed
+  cancelled
+}
+
+Enum dining_session_status {
+  open
+  closed
+}
+
+Table roles {
+  id uuid [pk]
+  name varchar(100) [not null]
+  nameTranslations jsonb [not null, default: `{}`, note: 'LocalizedText {en,am,ru}']
+  code varchar(50) [not null, unique, note: 'owner | manager | administrator | waiter ...']
+  permissions jsonb [not null, default: `[]`, note: 'Permission[]']
+  isSystem boolean [not null, default: false]
+  isActive boolean [not null, default: true]
+  createdAt timestamptz [not null]
+  updatedAt timestamptz [not null]
+}
+
+Table users {
+  id uuid [pk]
+  name varchar [not null]
+  surname varchar [not null]
+  email varchar [not null, unique]
+  password varchar [not null, note: 'bcrypt hash']
+  roleId uuid [null, ref: > roles.id, note: 'ON DELETE SET NULL']
+  status user_status_enum [not null, default: 'pending']
+  permissionAllow jsonb [not null, default: `[]`, note: 'Permission[] — grants on top of role']
+  permissionDeny jsonb [not null, default: `[]`, note: 'Permission[] — revokes from role']
+  approvedByUserId uuid [null, ref: > users.id, note: 'self-FK, ON DELETE SET NULL']
+  approvedAt timestamptz [null]
+  rejectionReason text [null]
+  lastLoginAt timestamptz [null]
+  createdAt timestamptz [not null]
+  updatedAt timestamptz [not null]
+}
+
+Table categories {
+  id uuid [pk]
+  name varchar(100) [not null, unique]
+  nameTranslations jsonb [not null, default: `{}`, note: 'LocalizedText {en,am,ru}']
+  sortOrder int [not null, default: 0]
+  isActive boolean [not null, default: true]
+  createdAt timestamptz [not null]
+  updatedAt timestamptz [not null]
+}
+
+Table products {
+  id uuid [pk]
+  categoryId uuid [not null, ref: > categories.id, note: 'ON DELETE RESTRICT']
+  title varchar(160) [not null]
+  titleTranslations jsonb [not null, default: `{}`, note: 'LocalizedText {en,am,ru}']
+  description text [not null, default: '']
+  descriptionTranslations jsonb [not null, default: `{}`, note: 'LocalizedText {en,am,ru}']
+  price numeric(10,2) [not null]
+  isActive boolean [not null, default: true]
+  imageName varchar(255) [null]
+  imageMimeType varchar(100) [null]
+  imageData bytea [null, note: 'select:false; served via GET /api/products/:id/image']
+  createdAt timestamptz [not null]
+  updatedAt timestamptz [not null]
+}
+
+Table sauces {
+  id uuid [pk]
+  name varchar(100) [not null, unique]
+  nameTranslations jsonb [not null, default: `{}`, note: 'LocalizedText {en,am,ru}']
+  price numeric(10,2) [not null]
+  isActive boolean [not null, default: true]
+  createdAt timestamptz [not null]
+  updatedAt timestamptz [not null]
+}
+
+// Join table: products *—* sauces (composite PK)
+Table product_sauces {
+  productId uuid [not null, ref: > products.id, note: 'ON DELETE CASCADE']
+  sauceId uuid [not null, ref: > sauces.id, note: 'ON DELETE CASCADE']
+
+  indexes {
+    (productId, sauceId) [pk]
+    sauceId [name: 'IDX_product_sauces_sauceId']
+  }
+}
+
+Table tables {
+  id uuid [pk]
+  number int [not null, unique]
+  name varchar(100) [null]
+  nameTranslations jsonb [not null, default: `{}`, note: 'LocalizedText {en,am,ru}']
+  publicToken uuid [not null, unique, note: 'QR / public link token']
+  isActive boolean [not null, default: true]
+  createdAt timestamptz [not null]
+  updatedAt timestamptz [not null]
+}
+
+Table dining_sessions {
+  id uuid [pk]
+  tableId uuid [not null, ref: > tables.id, note: 'ON DELETE RESTRICT']
+  status dining_session_status [not null, default: 'open']
+  createdAt timestamptz [not null]
+  closedAt timestamptz [null]
+
+  indexes {
+    tableId
+    // Partial unique: only ONE open session per table
+    (tableId) [unique, name: 'uq_open_session_per_table', note: "WHERE status = 'open'"]
+  }
+}
+
+// Guest cart lines (live). sauces is a frozen snapshot value object.
+Table basket_items {
+  id uuid [pk]
+  sessionId uuid [not null, ref: > dining_sessions.id, note: 'ON DELETE CASCADE']
+  productId uuid [not null, ref: > products.id, note: 'ON DELETE RESTRICT']
+  quantity int [not null, default: 1, note: 'CHECK quantity > 0']
+  sauces jsonb [not null, default: `[]`, note: 'SauceSnapshot[] {id,name,nameTranslations,unitPrice}']
+  unitPrice numeric(10,2) [not null]
+  createdAt timestamptz [not null]
+  updatedAt timestamptz [not null]
+
+  indexes {
+    sessionId
+    productId
+  }
+}
+
+Table orders {
+  id uuid [pk]
+  tableId uuid [not null, ref: > tables.id, note: 'ON DELETE RESTRICT']
+  sessionId uuid [not null, ref: > dining_sessions.id, note: 'ON DELETE RESTRICT']
+  status order_status_enum [not null, default: 'placed']
+  total numeric(12,2) [not null]
+  completedAt timestamptz [null]
+  createdAt timestamptz [not null]
+  updatedAt timestamptz [not null]
+
+  indexes {
+    tableId
+    sessionId
+  }
+}
+
+// Order lines. title/description/sauces are FROZEN snapshots at order time,
+// so the order is immune to later menu edits. productId may become null if
+// the product is later deleted (ON DELETE SET NULL).
+Table order_items {
+  id uuid [pk]
+  orderId uuid [not null, ref: > orders.id, note: 'ON DELETE CASCADE']
+  productId uuid [null, ref: > products.id, note: 'ON DELETE SET NULL']
+  titleSnapshot varchar(160) [not null]
+  descriptionSnapshot text [not null, default: '']
+  unitPrice numeric(10,2) [not null]
+  quantity int [not null, note: 'CHECK quantity > 0']
+  sauces jsonb [not null, default: `[]`, note: 'SauceSnapshot[]']
+  lineTotal numeric(12,2) [not null]
+  createdAt timestamptz [not null]
+
+  indexes {
+    orderId
+    productId
+  }
+}
+
+// Singleton config row (id = 1)
+Table venue_settings {
+  id smallint [pk, note: 'always 1']
+  venueName varchar(160) [not null, default: 'SmartServe']
+  currency varchar(3) [not null, default: 'AMD']
+  timezone varchar(100) [not null, default: 'Asia/Yerevan']
+  createdAt timestamptz [not null]
+  updatedAt timestamptz [not null]
+}
