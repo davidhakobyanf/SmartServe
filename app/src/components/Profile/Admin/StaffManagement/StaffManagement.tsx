@@ -58,6 +58,44 @@ interface RoleFormValues {
   permissions: Permission[];
 }
 
+const STAFF_API_ERROR_KEYS: Record<string, string> = {
+  'A role with this code already exists.': 'roleCodeExists',
+  'Role name cannot be empty': 'roleNameEmpty',
+  'Role not found': 'roleNotFound',
+  'System roles cannot be modified': 'systemRoleCannotBeModified',
+  'At least one field must be provided': 'fieldRequired',
+  'Only inactive roles can be enabled': 'onlyInactiveRoleCanBeEnabled',
+  'You cannot disable your own role': 'cannotDisableOwnRole',
+  'System roles cannot be disabled': 'systemRoleCannotBeDisabled',
+  'Only active roles can be disabled': 'onlyActiveRoleCanBeDisabled',
+  'User not found': 'userNotFound',
+  'Only pending users can be approved': 'onlyPendingUserCanBeApproved',
+  'An inactive role cannot be assigned': 'inactiveRoleCannotBeAssigned',
+  'Only pending users can be rejected': 'onlyPendingUserCanBeRejected',
+  'You cannot disable your own account': 'cannotDisableOwnAccount',
+  'Only active users can be disabled': 'onlyActiveUserCanBeDisabled',
+  'The last active owner cannot be disabled': 'lastOwnerCannotBeDisabled',
+  'Only disabled users can be enabled': 'onlyDisabledUserCanBeEnabled',
+  'An active role must be assigned before enabling the user': 'activeRoleRequired',
+  'You cannot change your own role': 'cannotChangeOwnRole',
+  'Only active or disabled users can have their role changed': 'roleChangeStatus',
+  'The user already has this role': 'userAlreadyHasRole',
+  'The last active owner cannot lose the owner role': 'lastOwnerCannotLoseRole',
+  'You cannot change your own permissions': 'cannotChangeOwnPermissions',
+  'Only active or disabled users can have their permissions changed': 'permissionChangeStatus',
+  'Owner permissions cannot be overridden': 'ownerPermissionsCannotBeChanged',
+  'A permission cannot be both allowed and denied': 'permissionConflict',
+  'Missing access token': 'missingAccessToken',
+  'Invalid authorization header': 'invalidAuthorizationHeader',
+  'Invalid or expired access token': 'invalidOrExpiredToken',
+  'Invalid access token payload': 'invalidToken',
+  'User from access token was not found': 'tokenUserNotFound',
+  'User is not active': 'userNotActive',
+  'Active role is not assigned': 'activeRoleNotAssigned',
+  'User is not authenticated': 'notAuthenticated',
+  'Insufficient permissions': 'insufficientPermissions',
+};
+
 function getApiError(error: unknown, fallback: string): string {
   if (!axios.isAxiosError(error)) return fallback;
 
@@ -102,6 +140,15 @@ export default function StaffManagement() {
   const [permissionForm] = Form.useForm<PermissionValues>();
   const [roleForm] = Form.useForm<RoleFormValues>();
 
+  const getLocalizedApiError = useCallback(
+    (error: unknown, fallback: string): string => {
+      const apiMessage = getApiError(error, fallback);
+      const translationKey = STAFF_API_ERROR_KEYS[apiMessage];
+      return translationKey ? t(`apiErrors.${translationKey}`) : apiMessage;
+    },
+    [t],
+  );
+
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
@@ -112,11 +159,11 @@ export default function StaffManagement() {
       setUsers(nextUsers);
       setRoles(nextRoles);
     } catch (error) {
-      message.error(getApiError(error, t('messages.loadError')));
+      message.error(getLocalizedApiError(error, t('messages.loadError')));
     } finally {
       setLoading(false);
     }
-  }, [canManageRoles, canViewUsers, message, t]);
+  }, [canManageRoles, canViewUsers, getLocalizedApiError, message, t]);
 
   useEffect(() => {
     void loadData();
@@ -170,7 +217,7 @@ export default function StaffManagement() {
       await loadData();
       return true;
     } catch (error) {
-      message.error(getApiError(error, t('messages.actionError')));
+      message.error(getLocalizedApiError(error, t('messages.actionError')));
       return false;
     } finally {
       setActionLoading(false);
@@ -180,9 +227,11 @@ export default function StaffManagement() {
   const openRoleSelection = (user: StaffUser, action: RoleAction) => {
     setRoleTarget(user);
     setRoleAction(action);
-    roleSelectionForm.setFieldsValue({
-      roleId: action === 'change' ? user.role?.id : activeRoles[0]?.id,
-    });
+    roleSelectionForm.resetFields();
+
+    if (action === 'change' && user.role?.id) {
+      roleSelectionForm.setFieldValue('roleId', user.role.id);
+    }
   };
 
   const submitRoleSelection = async (values: RoleSelectionValues) => {
@@ -196,7 +245,10 @@ export default function StaffManagement() {
         ? t('messages.approved')
         : t('messages.roleChanged'),
     );
-    if (success) setRoleTarget(null);
+    if (success) {
+      setRoleTarget(null);
+      roleSelectionForm.resetFields();
+    }
   };
 
   const submitReject = async (values: RejectValues) => {
@@ -476,11 +528,14 @@ export default function StaffManagement() {
       <Modal
         open={Boolean(roleTarget)}
         title={roleAction === 'approve' ? t('modals.approveTitle') : t('modals.changeRoleTitle')}
-        okText={t('common.save')}
+        okText={roleAction === 'approve' ? t('actions.approve') : t('common.save')}
         cancelText={t('common.cancel')}
         confirmLoading={actionLoading}
         onOk={() => roleSelectionForm.submit()}
-        onCancel={() => setRoleTarget(null)}
+        onCancel={() => {
+          setRoleTarget(null);
+          roleSelectionForm.resetFields();
+        }}
       >
         <Form form={roleSelectionForm} layout="vertical" onFinish={(values) => void submitRoleSelection(values)}>
           <p className={css.modalHint}>{roleTarget?.name} {roleTarget?.surname}</p>
