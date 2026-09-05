@@ -1,11 +1,21 @@
 import type { LocalizedText } from './localization';
 
+export interface ImageUploadPayload {
+  name: string;
+  mimeType: string;
+  data: string;
+}
+
 export interface CategoryRecord {
   id: string;
   name: string;
   nameTranslations: LocalizedText;
   sortOrder: number;
   isActive: boolean;
+  imageName: string | null;
+  imageMimeType: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface SauceRecord {
@@ -14,6 +24,8 @@ export interface SauceRecord {
   nameTranslations: LocalizedText;
   price: number;
   isActive: boolean;
+  imageName: string | null;
+  imageMimeType: string | null;
   createdAt: string;
   updatedAt: string;
 }

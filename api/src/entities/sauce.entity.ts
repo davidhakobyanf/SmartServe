@@ -41,6 +41,15 @@ export class Sauce {
   })
   isActive!: boolean;
 
+  @Column({ type: "varchar", length: 255, nullable: true })
+  imageName!: string | null;
+
+  @Column({ type: "varchar", length: 100, nullable: true })
+  imageMimeType!: string | null;
+
+  @Column({ type: "bytea", nullable: true, select: false })
+  imageData!: Buffer | null;
+
   @OneToMany(() => ProductSauce, (productSauce) => productSauce.sauce)
   productLinks!: ProductSauce[];
 

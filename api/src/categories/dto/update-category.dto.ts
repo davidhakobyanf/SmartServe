@@ -10,6 +10,7 @@ import {
 } from "class-validator";
 import { Type } from "class-transformer";
 import { LocalizedNameDto } from "../../common/i18n/localized-text.dto";
+import { ImageUploadDto } from "../../common/dto/image-upload.dto";
 
 export class UpdateCategoryDto {
   @IsOptional()
@@ -31,4 +32,13 @@ export class UpdateCategoryDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ImageUploadDto)
+  image?: ImageUploadDto;
+
+  @IsOptional()
+  @IsBoolean()
+  removeImage?: boolean;
 }

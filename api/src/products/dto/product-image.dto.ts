@@ -1,21 +1,3 @@
-import { IsBoolean, IsOptional, IsString, MaxLength } from "class-validator";
+import { ImageUploadDto } from "../../common/dto/image-upload.dto";
 
-export class ProductImageDto {
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
-  name?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  mimeType?: string;
-
-  @IsOptional()
-  @IsString()
-  data?: string;
-
-  @IsOptional()
-  @IsBoolean()
-  hasData?: boolean;
-}
+export class ProductImageDto extends ImageUploadDto {}

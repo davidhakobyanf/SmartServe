@@ -5,6 +5,7 @@ import type { DiningSession } from '@/types/tables';
 import type {
   BasketItemRecord,
   CategoryRecord,
+  ImageUploadPayload,
   OrderStatus,
   ProductRecord,
   PublicVenueSettingsRecord,
@@ -74,6 +75,7 @@ class DataApi {
     nameTranslations?: LocalizedText;
     sortOrder?: number;
     isActive?: boolean;
+    image?: ImageUploadPayload;
   }): Promise<AxiosResponse<CategoryRecord>> {
     return instance.post('/api/categories', payload);
   }
@@ -82,7 +84,7 @@ class DataApi {
     id: string,
     payload: Partial<
       Pick<CategoryRecord, 'name' | 'nameTranslations' | 'sortOrder' | 'isActive'>
-    >,
+    > & { image?: ImageUploadPayload; removeImage?: boolean },
   ): Promise<AxiosResponse<CategoryRecord>> {
     return instance.patch(`/api/categories/${id}`, payload);
   }
@@ -96,6 +98,7 @@ class DataApi {
     nameTranslations?: LocalizedText;
     price: number;
     isActive?: boolean;
+    image?: ImageUploadPayload;
   }): Promise<AxiosResponse<SauceRecord>> {
     return instance.post('/api/sauces', payload);
   }
@@ -104,7 +107,7 @@ class DataApi {
     id: string,
     payload: Partial<
       Pick<SauceRecord, 'name' | 'nameTranslations' | 'price' | 'isActive'>
-    >,
+    > & { image?: ImageUploadPayload; removeImage?: boolean },
   ): Promise<AxiosResponse<SauceRecord>> {
     return instance.patch(`/api/sauces/${id}`, payload);
   }

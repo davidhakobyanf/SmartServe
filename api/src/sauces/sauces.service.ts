@@ -14,6 +14,7 @@ import {
   primaryLocalizedText,
   withLegacyEnglish,
 } from "src/common/i18n/localized-text";
+import { decodeImage } from "src/common/utils/image-upload.util";
 
 @Injectable()
 export class SaucesService {
@@ -29,6 +30,23 @@ export class SaucesService {
         name: "ASC",
       },
     });
+  }
+
+  async getImage(id: string): Promise<{ buffer: Buffer; mimeType: string }> {
+    const sauce = await this.saucesRepo
+      .createQueryBuilder("sauce")
+      .addSelect("sauce.imageData")
+      .where("sauce.id = :id", { id })
+      .getOne();
+
+    if (!sauce?.imageData) {
+      throw new NotFoundException("Sauce image not found");
+    }
+
+    return {
+      buffer: sauce.imageData,
+      mimeType: sauce.imageMimeType || "image/jpeg",
+    };
   }
 
   async create(dto: CreateSauceDto): Promise<Sauce> {
@@ -51,11 +69,16 @@ export class SaucesService {
       throw new ConflictException("Sauce already exists");
     }
 
+    const image = dto.image?.data ? decodeImage(dto.image, "sauce-image") : {};
     const sauce = this.saucesRepo.create({
       name,
       nameTranslations,
       price: dto.price,
       isActive: dto.isActive ?? true,
+      imageName: null,
+      imageMimeType: null,
+      imageData: null,
+      ...image,
     });
 
     return this.saucesRepo.save(sauce);
@@ -71,7 +94,9 @@ export class SaucesService {
       dto.name === undefined &&
       dto.nameTranslations === undefined &&
       dto.price === undefined &&
-      dto.isActive === undefined
+      dto.isActive === undefined &&
+      dto.image === undefined &&
+      dto.removeImage === undefined
     ) {
       throw new BadRequestException("At least one field must be provided");
     }
@@ -102,6 +127,14 @@ export class SaucesService {
     }
     if (dto.isActive !== undefined) {
       sauce.isActive = dto.isActive;
+    }
+
+    if (dto.removeImage) {
+      sauce.imageName = null;
+      sauce.imageMimeType = null;
+      sauce.imageData = null;
+    } else if (dto.image?.data) {
+      Object.assign(sauce, decodeImage(dto.image, "sauce-image"));
     }
 
     return this.saucesRepo.save(sauce);

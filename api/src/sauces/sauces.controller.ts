@@ -7,8 +7,10 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Res,
   UseGuards,
 } from "@nestjs/common";
+import type { Response } from "express";
 import { Permission } from "src/common/auth/permission";
 import { RequirePermissions } from "src/common/auth/permissions.decorator";
 import { JwtAuthGuard } from "src/common/guards/jwt-auth.guard";
@@ -51,5 +53,21 @@ export class SaucesController {
       await this.saucesService.update(id, dto),
       locale,
     );
+  }
+}
+
+@Controller("api/sauce-images")
+export class SauceImagesController {
+  constructor(private readonly saucesService: SaucesService) {}
+
+  @Get(":id")
+  async getImage(
+    @Param("id", new ParseUUIDPipe()) id: string,
+    @Res() response: Response,
+  ): Promise<void> {
+    const image = await this.saucesService.getImage(id);
+    response.setHeader("Content-Type", image.mimeType);
+    response.setHeader("Cache-Control", "public, max-age=86400");
+    response.send(image.buffer);
   }
 }
