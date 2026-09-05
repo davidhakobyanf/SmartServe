@@ -1,0 +1,21 @@
+.uploadTrigger {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 12px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.uploadTrigger svg {
+  color: var(--primary);
+  font-size: 20px;
+}
