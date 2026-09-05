@@ -12,8 +12,9 @@ import type { MenuCard, MenuImage } from '@/types';
 import type { CategoryRecord } from '@/types/restaurant';
 import AddModal from '../Modal/AddModal';
 import CardModal from '../Modal/CardModal/CardModal';
-import CategoryManagementModal from './CategoryManagementModal';
-import SauceManagementModal from './SauceManagementModal';
+import MenuAssetsManagementModal, {
+  type MenuAssetsTab,
+} from './MenuAssetsManagementModal';
 import css from './MenuManagement.module.css';
 
 export default function MenuManagement() {
@@ -26,8 +27,8 @@ export default function MenuManagement() {
   const [sort, setSort] = useState('newest');
   const [category, setCategory] = useState('all');
   const [categories, setCategories] = useState<CategoryRecord[]>([]);
-  const [categoriesOpen, setCategoriesOpen] = useState(false);
-  const [saucesOpen, setSaucesOpen] = useState(false);
+  const [assetsOpen, setAssetsOpen] = useState(false);
+  const [assetsTab, setAssetsTab] = useState<MenuAssetsTab>('categories');
   const [addOpen, setAddOpen] = useState(false);
   const [cardOpen, setCardOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuCard | null>(null);
@@ -120,6 +121,11 @@ export default function MenuManagement() {
     void editCard({ id: item.id, active: !item.active });
   };
 
+  const openAssets = (tab: MenuAssetsTab) => {
+    setAssetsTab(tab);
+    setAssetsOpen(true);
+  };
+
   const SORT_OPTIONS = [
     { value: 'newest', label: t('sort.newest') },
     { value: 'price-asc', label: t('sort.priceAsc') },
@@ -139,7 +145,7 @@ export default function MenuManagement() {
             <button
               type="button"
               className={css.btnGhost}
-              onClick={() => setSaucesOpen(true)}
+              onClick={() => openAssets('sauces')}
             >
               {t('saucesButton')}
             </button>
@@ -148,7 +154,7 @@ export default function MenuManagement() {
             <button
               type="button"
               className={css.btnGhost}
-              onClick={() => setCategoriesOpen(true)}
+              onClick={() => openAssets('categories')}
             >
               <TbCategory /> {t('categoriesButton')}
             </button>
@@ -290,18 +296,16 @@ export default function MenuManagement() {
           />
         </>
       )}
-      {canManageCategories && (
-        <CategoryManagementModal
-          open={categoriesOpen}
-          onClose={() => setCategoriesOpen(false)}
-          onChanged={() => void loadCategories()}
-        />
-      )}
-      {canManageProducts && (
-        <SauceManagementModal
-          open={saucesOpen}
-          onClose={() => setSaucesOpen(false)}
-          onChanged={() => void fetchProfile({ force: true })}
+      {(canManageCategories || canManageProducts) && (
+        <MenuAssetsManagementModal
+          open={assetsOpen}
+          activeTab={assetsTab}
+          canManageCategories={canManageCategories}
+          canManageSauces={canManageProducts}
+          onTabChange={setAssetsTab}
+          onClose={() => setAssetsOpen(false)}
+          onCategoriesChanged={() => void loadCategories()}
+          onSaucesChanged={() => void fetchProfile({ force: true })}
         />
       )}
     </div>

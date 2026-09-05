@@ -11,7 +11,6 @@ import {
   Image,
   InputNumber,
   List,
-  Modal,
   Switch,
   Upload,
 } from 'antd';
@@ -32,8 +31,6 @@ import {
 } from '@/types/localization';
 
 interface Props {
-  open: boolean;
-  onClose: () => void;
   onChanged: () => void;
 }
 
@@ -42,7 +39,7 @@ interface SauceFormValues {
   price: number;
 }
 
-export default function SauceManagementModal({ open, onClose, onChanged }: Props) {
+export default function SauceManagementPanel({ onChanged }: Props) {
   const { message, modal } = App.useApp();
   const t = useTranslations('menu.sauces');
   const commonT = useTranslations('common');
@@ -65,8 +62,8 @@ export default function SauceManagementModal({ open, onClose, onChanged }: Props
   }, [message, t]);
 
   useEffect(() => {
-    if (open) void load();
-  }, [open, load]);
+    void load();
+  }, [load]);
 
   const resetForm = () => {
     form.resetFields();
@@ -208,13 +205,7 @@ export default function SauceManagementModal({ open, onClose, onChanged }: Props
   };
 
   return (
-    <Modal
-      title={t('title')}
-      open={open}
-      onCancel={onClose}
-      afterClose={resetForm}
-      footer={null}
-    >
+    <>
       <div ref={formSectionRef}>
         {editing && (
           <Alert
@@ -337,6 +328,6 @@ export default function SauceManagementModal({ open, onClose, onChanged }: Props
           </List.Item>
         )}
       />
-    </Modal>
+    </>
   );
 }

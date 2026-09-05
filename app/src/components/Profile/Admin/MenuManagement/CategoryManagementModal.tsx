@@ -11,7 +11,6 @@ import {
   Image,
   InputNumber,
   List,
-  Modal,
   Switch,
   Upload,
 } from 'antd';
@@ -32,8 +31,6 @@ import {
 } from '@/types/localization';
 
 interface Props {
-  open: boolean;
-  onClose: () => void;
   onChanged: () => void;
 }
 
@@ -42,7 +39,7 @@ interface CategoryFormValues {
   sortOrder: number;
 }
 
-export default function CategoryManagementModal({ open, onClose, onChanged }: Props) {
+export default function CategoryManagementPanel({ onChanged }: Props) {
   const { message, modal } = App.useApp();
   const t = useTranslations('menu.categoriesManagement');
   const commonT = useTranslations('common');
@@ -61,8 +58,8 @@ export default function CategoryManagementModal({ open, onClose, onChanged }: Pr
   }, []);
 
   useEffect(() => {
-    if (open) void load();
-  }, [open, load]);
+    void load();
+  }, [load]);
 
   const resetForm = () => {
     form.resetFields();
@@ -208,7 +205,7 @@ export default function CategoryManagementModal({ open, onClose, onChanged }: Pr
   };
 
   return (
-    <Modal title={t('title')} open={open} onCancel={onClose} footer={null}>
+    <>
       <div ref={formSectionRef}>
         {editing && (
           <Alert
@@ -327,6 +324,6 @@ export default function CategoryManagementModal({ open, onClose, onChanged }: Pr
           </List.Item>
         )}
       />
-    </Modal>
+    </>
   );
 }

@@ -3,6 +3,7 @@
   "subtitle": "Управляйте меню вашего ресторана и его позициями",
   "categoriesButton": "Категории",
   "saucesButton": "Соусы",
+  "assetsManagementTitle": "Категории и соусы",
   "addNewItem": "Добавить позицию",
   "categories": {
     "all": "Все позиции",

@@ -3,6 +3,7 @@
   "subtitle": "Manage your restaurant menu and menu items",
   "categoriesButton": "Categories",
   "saucesButton": "Sauces",
+  "assetsManagementTitle": "Categories and sauces",
   "addNewItem": "Add New Item",
   "categories": {
     "all": "All Items",
