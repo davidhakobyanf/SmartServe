@@ -8,6 +8,7 @@ import enUS from 'antd/locale/en_US';
 import ruRU from 'antd/locale/ru_RU';
 import hyAM from 'antd/locale/hy_AM';
 import { ProfileDataProvider } from '@/context/ProfileDataContext';
+import { VenueSettingsProvider } from '@/context/VenueSettingsContext';
 import type { Locale } from '@/i18n/routing';
 
 const antdLocales: Record<Locale, AntdLocale> = {
@@ -60,7 +61,9 @@ export default function Providers({
     <AntdRegistry>
       <ConfigProvider theme={theme} locale={antdLocales[locale]}>
         <AntdApp>
-          <ProfileDataProvider>{children}</ProfileDataProvider>
+          <VenueSettingsProvider>
+            <ProfileDataProvider>{children}</ProfileDataProvider>
+          </VenueSettingsProvider>
         </AntdApp>
       </ConfigProvider>
     </AntdRegistry>

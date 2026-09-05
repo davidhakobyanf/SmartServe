@@ -75,3 +75,17 @@ export interface RelationalOrder {
   createdAt: string;
   items: OrderItemRecord[];
 }
+
+export interface VenueSettingsRecord {
+  id?: number;
+  venueName: string;
+  currency: string;
+  timezone: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export type PublicVenueSettingsRecord = Pick<
+  VenueSettingsRecord,
+  'venueName' | 'currency'
+>;

@@ -7,8 +7,10 @@ import type {
   CategoryRecord,
   OrderStatus,
   ProductRecord,
+  PublicVenueSettingsRecord,
   RelationalOrder,
   SauceRecord,
+  VenueSettingsRecord,
 } from '@/types/restaurant';
 import type { AuthenticatedStaff } from '@/types/staff';
 import type { LocalizedText } from '@/types/localization';
@@ -47,6 +49,22 @@ export const apiClient = instance;
 
 
 class DataApi {
+  static async getPublicVenueSettings(): Promise<
+    AxiosResponse<PublicVenueSettingsRecord>
+  > {
+    return instance.get('/api/venue-settings/public');
+  }
+
+  static async getVenueSettings(): Promise<AxiosResponse<VenueSettingsRecord>> {
+    return instance.get('/api/venue-settings');
+  }
+
+  static async updateVenueSettings(
+    payload: Pick<VenueSettingsRecord, 'venueName' | 'currency' | 'timezone'>,
+  ): Promise<AxiosResponse<VenueSettingsRecord>> {
+    return instance.patch('/api/venue-settings', payload);
+  }
+
   static async getCategories(): Promise<AxiosResponse<CategoryRecord[]>> {
     return instance.get('/api/categories');
   }

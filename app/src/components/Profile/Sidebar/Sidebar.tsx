@@ -18,6 +18,7 @@ import type { IconType } from 'react-icons';
 import { useProfileData } from '@/context/ProfileDataContext';
 import { useWaiterCalls } from '@/context/WaiterCallsContext';
 import { useOrders } from '@/context/OrdersContext';
+import { useVenueSettings } from '@/context/VenueSettingsContext';
 import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
 import css from './Sidebar.module.css';
 import type { Permission } from '@/types/staff';
@@ -48,6 +49,7 @@ export default function Sidebar() {
   const { profileDataList, permissions } = useProfileData();
   const { calls } = useWaiterCalls();
   const { newCount } = useOrders();
+  const { settings } = useVenueSettings();
 
   const fullName = [profileDataList.name, profileDataList.surname]
     .filter(Boolean)
@@ -67,7 +69,7 @@ export default function Sidebar() {
         <span className={css.logo}>
           <TbChefHat />
         </span>
-        <span className={css.brandText}>SmartServe</span>
+        <span className={css.brandText}>{settings.venueName}</span>
       </div>
 
       <nav className={css.nav}>

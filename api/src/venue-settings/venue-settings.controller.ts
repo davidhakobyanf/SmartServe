@@ -2,7 +2,6 @@ import { Body, Controller, Get, Patch, UseGuards } from "@nestjs/common";
 import { Permission } from "src/common/auth/permission";
 import { RequirePermissions } from "src/common/auth/permissions.decorator";
 import { JwtAuthGuard } from "src/common/guards/jwt-auth.guard";
-import { OpenSessionGuard } from "src/common/guards/open-session.guard";
 import { PermissionsGuard } from "src/common/guards/permissions.guard";
 import { UpdateVenueSettingsDto } from "./dto/update-venue-settings.dto";
 import { VenueSettingsService } from "./venue-settings.service";
@@ -29,7 +28,6 @@ export class PublicVenueSettingsController {
   constructor(private readonly settingsService: VenueSettingsService) {}
 
   @Get()
-  @UseGuards(OpenSessionGuard)
   get() {
     return this.settingsService.getPublic();
   }

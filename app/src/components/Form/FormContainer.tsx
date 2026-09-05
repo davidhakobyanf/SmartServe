@@ -14,6 +14,7 @@ import css from './FormContainer.module.css';
 import Registration from './Registration/Registration';
 import Login from './Login/Login';
 import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
+import { useVenueSettings } from '@/context/VenueSettingsContext';
 
 const FEATURES = [
   { icon: TbRefresh, key: 'realtimeOrders' },
@@ -26,6 +27,7 @@ export default function FormContainer() {
   const t = useTranslations('auth');
   const [form] = AntdForm.useForm();
   const [check, setCheck] = useState(false);
+  const { settings } = useVenueSettings();
 
   const handleCreate = () => {
     form.validateFields().catch(() => undefined);
@@ -39,7 +41,7 @@ export default function FormContainer() {
             <span className={css.logo}>
               <TbChefHat />
             </span>
-            <span className={css.brandName}>SmartServe</span>
+            <span className={css.brandName}>{settings.venueName}</span>
             <span className={css.langSwitcher}>
               <LanguageSwitcher />
             </span>

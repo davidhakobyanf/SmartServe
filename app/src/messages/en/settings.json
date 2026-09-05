@@ -1,4 +1,24 @@
 {
   "pageTitle": "Settings",
-  "pageSubtitle": "Configure your restaurant preferences"
+  "pageSubtitle": "Configure your restaurant preferences",
+  "restaurantTitle": "Restaurant details",
+  "restaurantSubtitle": "This information is displayed across the admin and guest experience.",
+  "venueName": {
+    "label": "Restaurant name",
+    "placeholder": "Enter the restaurant name",
+    "required": "Enter the restaurant name",
+    "maxLength": "The name must not exceed 160 characters"
+  },
+  "currency": {
+    "label": "Currency",
+    "required": "Select a currency"
+  },
+  "timezone": {
+    "label": "Timezone",
+    "required": "Select a timezone"
+  },
+  "save": "Save changes",
+  "saveSuccess": "Restaurant settings saved",
+  "saveError": "Could not save restaurant settings",
+  "loadError": "Could not load restaurant settings"
 }

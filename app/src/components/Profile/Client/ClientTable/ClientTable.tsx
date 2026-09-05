@@ -2,10 +2,12 @@
 
 import { useTranslations } from 'next-intl';
 import { TbToolsKitchen2, TbQrcode } from 'react-icons/tb';
+import { useVenueSettings } from '@/context/VenueSettingsContext';
 import css from './ClientTable.module.css';
 
 export default function ClientTable() {
   const t = useTranslations('client');
+  const { settings } = useVenueSettings();
 
   return (
     <div className={css.page}>
@@ -14,7 +16,7 @@ export default function ClientTable() {
           <TbToolsKitchen2 />
         </span>
         <div>
-          <h1 className={css.title}>SmartServe</h1>
+          <h1 className={css.title}>{settings.venueName}</h1>
           <p className={css.subtitle}>{t('table.subtitle')}</p>
         </div>
       </div>
