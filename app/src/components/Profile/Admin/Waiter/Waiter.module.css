@@ -130,6 +130,7 @@
 }
 .resolveBtn:hover {
   background: var(--primary-hover);
+  color: #fff;
 }
 .resolveBtn svg {
   font-size: 16px;

@@ -68,6 +68,7 @@
 }
 .callBtn:hover {
   background: var(--primary-hover);
+  color: #fff;
 }
 .callBtn svg {
   font-size: 18px;
@@ -445,6 +446,7 @@
 }
 .addBtn:hover:not(:disabled) {
   background: var(--primary-hover);
+  color: #fff;
 }
 .addBtn svg {
   font-size: 16px;
@@ -670,6 +672,7 @@
 }
 .placeBtn:hover:not(:disabled) {
   background: var(--primary-hover);
+  color: #fff;
 }
 .placeBtn:disabled {
   opacity: 0.5;

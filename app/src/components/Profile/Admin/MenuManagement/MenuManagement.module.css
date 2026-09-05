@@ -64,6 +64,8 @@
 }
 .btnPrimary:hover {
   background: var(--primary-hover);
+  border-color: var(--primary-hover);
+  color: #fff;
 }
 
 .btnGhost svg,
@@ -97,6 +99,11 @@
 .tabActive {
   background: var(--primary);
   border-color: var(--primary);
+  color: #fff;
+}
+.tabActive:hover {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
   color: #fff;
 }
 
