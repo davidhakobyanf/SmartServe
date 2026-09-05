@@ -6,6 +6,7 @@ import {
   Avatar,
   Button,
   Form,
+  Image,
   InputNumber,
   List,
   Modal,
@@ -17,7 +18,7 @@ import type { UploadFile } from 'antd/es/upload/interface';
 import { useTranslations } from 'next-intl';
 import clientAPI from '@/api/api';
 import type { CategoryRecord } from '@/types/restaurant';
-import { fileToImagePayload } from '@/lib/fileToImagePayload';
+import { fileToDataUrl, fileToImagePayload } from '@/lib/fileToImagePayload';
 import { categoryImageApiUrl } from '@/lib/entityImages';
 import css from './AssetManagementModal.module.css';
 import LocalizedTextFields from '@/components/Common/LocalizedTextFields';
@@ -40,7 +41,7 @@ interface CategoryFormValues {
 }
 
 export default function CategoryManagementModal({ open, onClose, onChanged }: Props) {
-  const { message } = App.useApp();
+  const { message, modal } = App.useApp();
   const t = useTranslations('menu.categoriesManagement');
   const commonT = useTranslations('common');
   const [form] = Form.useForm<CategoryFormValues>();
@@ -48,6 +49,8 @@ export default function CategoryManagementModal({ open, onClose, onChanged }: Pr
   const [editing, setEditing] = useState<CategoryRecord | null>(null);
   const [loading, setLoading] = useState(false);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewImage, setPreviewImage] = useState('');
 
   const load = useCallback(async () => {
     const { data } = await clientAPI.getCategories();
@@ -63,7 +66,33 @@ export default function CategoryManagementModal({ open, onClose, onChanged }: Pr
     form.setFieldValue('sortOrder', 0);
     setEditing(null);
     setFileList([]);
+    setPreviewOpen(false);
+    setPreviewImage('');
   };
+
+  const previewFile = async (file: UploadFile) => {
+    let source = file.url ?? file.preview;
+    if (!source && file.originFileObj) {
+      source = await fileToDataUrl(file.originFileObj as File);
+      file.preview = source;
+    }
+    if (source) {
+      setPreviewImage(source);
+      setPreviewOpen(true);
+    }
+  };
+
+  const confirmImageRemoval = () =>
+    new Promise<boolean>((resolve) => {
+      modal.confirm({
+        title: commonT('imageDeleteConfirm'),
+        okText: commonT('delete'),
+        cancelText: commonT('cancel'),
+        okType: 'danger',
+        onOk: () => resolve(true),
+        onCancel: () => resolve(false),
+      });
+    });
 
   const save = async () => {
     const values = await form.validateFields();
@@ -174,7 +203,9 @@ export default function CategoryManagementModal({ open, onClose, onChanged }: Pr
             }}
             maxCount={1}
             accept="image/*"
-            showUploadList={{ showPreviewIcon: false }}
+            onPreview={(file) => void previewFile(file)}
+            onRemove={confirmImageRemoval}
+            showUploadList={{ showPreviewIcon: true }}
           >
             {fileList.length === 0 && (
               <button type="button" className={css.uploadTrigger}>
@@ -183,6 +214,15 @@ export default function CategoryManagementModal({ open, onClose, onChanged }: Pr
               </button>
             )}
           </Upload>
+          <Image
+            alt={t('imageLabel')}
+            src={previewImage}
+            wrapperStyle={{ display: 'none' }}
+            preview={{
+              visible: previewOpen,
+              onVisibleChange: setPreviewOpen,
+            }}
+          />
         </Form.Item>
         <Button type="primary" loading={loading} onClick={() => void save()}>
           {editing ? t('save') : t('add')}

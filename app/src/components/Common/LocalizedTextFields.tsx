@@ -41,9 +41,17 @@ export default function LocalizedTextFields({
         destroyOnHidden={false}
         items={CONTENT_LOCALES.map((locale) => ({
           key: locale,
+          // Keep every language field mounted. File uploads and other sibling
+          // state updates re-render the form; lazily mounted tab panes can then
+          // lose the displayed value for inactive locales.
+          forceRender: true,
           label: `${t(LANGUAGE_KEYS[locale])}${locale === 'en' ? ' ★' : ''}`,
           children: (
-            <Form.Item name={[name, locale]} style={{ marginBottom: 0 }}>
+            <Form.Item
+              name={[name, locale]}
+              preserve
+              style={{ marginBottom: 0 }}
+            >
               {multiline ? (
                 <TextArea
                   rows={4}

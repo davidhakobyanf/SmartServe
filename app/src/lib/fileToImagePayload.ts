@@ -4,7 +4,7 @@ export interface ImagePayload {
   data: string;
 }
 
-export function fileToImagePayload(file: File): Promise<ImagePayload> {
+export function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
@@ -13,18 +13,22 @@ export function fileToImagePayload(file: File): Promise<ImagePayload> {
         reject(new Error('Failed to read image'));
         return;
       }
-      const match = /^data:([^;]+);base64,(.+)$/.exec(result);
-      if (!match) {
-        reject(new Error('Invalid image data'));
-        return;
-      }
-      resolve({
-        name: file.name,
-        mimeType: match[1],
-        data: match[2],
-      });
+      resolve(result);
     };
     reader.onerror = () => reject(reader.error ?? new Error('Failed to read image'));
     reader.readAsDataURL(file);
   });
+}
+
+export async function fileToImagePayload(file: File): Promise<ImagePayload> {
+  const dataUrl = await fileToDataUrl(file);
+  const match = /^data:([^;]+);base64,(.+)$/.exec(dataUrl);
+  if (!match) {
+    throw new Error('Invalid image data');
+  }
+  return {
+    name: file.name,
+    mimeType: match[1],
+    data: match[2],
+  };
 }

@@ -14,11 +14,6 @@ Enum order_status_enum {
   cancelled
 }
 
-Enum dining_session_status {
-  open
-  closed
-}
-
 Table roles {
   id uuid [pk]
   name varchar(100) [not null]
@@ -27,8 +22,8 @@ Table roles {
   permissions jsonb [not null, default: `[]`, note: 'Permission[]']
   isSystem boolean [not null, default: false]
   isActive boolean [not null, default: true]
-  createdAt timestamptz [not null]
-  updatedAt timestamptz [not null]
+  createdAt timestamp [not null]
+  updatedAt timestamp [not null]
 }
 
 Table users {
@@ -45,8 +40,8 @@ Table users {
   approvedAt timestamptz [null]
   rejectionReason text [null]
   lastLoginAt timestamptz [null]
-  createdAt timestamptz [not null]
-  updatedAt timestamptz [not null]
+  createdAt timestamp [not null]
+  updatedAt timestamp [not null]
 }
 
 Table categories {
@@ -55,6 +50,9 @@ Table categories {
   nameTranslations jsonb [not null, default: `{}`, note: 'LocalizedText {en,am,ru}']
   sortOrder int [not null, default: 0]
   isActive boolean [not null, default: true]
+  imageName varchar(255) [null]
+  imageMimeType varchar(100) [null]
+  imageData bytea [null, note: 'select:false; served via GET /api/category-images/:id']
   createdAt timestamptz [not null]
   updatedAt timestamptz [not null]
 }
@@ -70,7 +68,7 @@ Table products {
   isActive boolean [not null, default: true]
   imageName varchar(255) [null]
   imageMimeType varchar(100) [null]
-  imageData bytea [null, note: 'select:false; served via GET /api/products/:id/image']
+  imageData bytea [null, note: 'select:false; served via GET /api/product-images/:id']
   createdAt timestamptz [not null]
   updatedAt timestamptz [not null]
 }
@@ -81,6 +79,9 @@ Table sauces {
   nameTranslations jsonb [not null, default: `{}`, note: 'LocalizedText {en,am,ru}']
   price numeric(10,2) [not null]
   isActive boolean [not null, default: true]
+  imageName varchar(255) [null]
+  imageMimeType varchar(100) [null]
+  imageData bytea [null, note: 'select:false; served via GET /api/sauce-images/:id']
   createdAt timestamptz [not null]
   updatedAt timestamptz [not null]
 }
@@ -110,8 +111,8 @@ Table tables {
 Table dining_sessions {
   id uuid [pk]
   tableId uuid [not null, ref: > tables.id, note: 'ON DELETE RESTRICT']
-  status dining_session_status [not null, default: 'open']
-  createdAt timestamptz [not null]
+  status varchar [not null, default: 'open', note: 'open | closed']
+  createdAt timestamp [not null]
   closedAt timestamptz [null]
 
   indexes {
