@@ -6,7 +6,8 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Category } from "src/entities/category.entity";
-import { Repository } from "typeorm";
+import { Product } from "src/entities/product.entity";
+import { QueryFailedError, Repository } from "typeorm";
 import { CreateCategoryDto } from "./dto/create-category.dto";
 import { UpdateCategoryDto } from "./dto/update-category.dto";
 import {
@@ -21,6 +22,9 @@ export class CategoriesService {
   constructor(
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
+
+    @InjectRepository(Product)
+    private readonly productsRepository: Repository<Product>,
   ) {}
 
   findAll(): Promise<Category[]> {
@@ -138,5 +142,40 @@ export class CategoriesService {
     }
 
     return this.categoryRepository.save(category);
+  }
+
+  async remove(id: string): Promise<{ success: true }> {
+    const category = await this.categoryRepository.findOne({ where: { id } });
+    if (!category) {
+      throw new NotFoundException("Category not found");
+    }
+
+    const productsCount = await this.productsRepository.count({
+      where: { categoryId: id },
+    });
+    if (productsCount > 0) {
+      throw new ConflictException(
+        "Category cannot be deleted while it contains products",
+      );
+    }
+
+    try {
+      const result = await this.categoryRepository.delete(id);
+      if (!result.affected) {
+        throw new NotFoundException("Category not found");
+      }
+    } catch (error) {
+      if (
+        error instanceof QueryFailedError &&
+        (error.driverError as { code?: string } | undefined)?.code === "23503"
+      ) {
+        throw new ConflictException(
+          "Category cannot be deleted while it contains products",
+        );
+      }
+      throw error;
+    }
+
+    return { success: true };
   }
 }

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Headers,
   Param,
@@ -50,5 +51,11 @@ export class ProductsController {
       false,
       locale,
     );
+  }
+
+  @Delete(":id")
+  @RequirePermissions(Permission.PRODUCTS_MANAGE)
+  remove(@Param("id", new ParseUUIDPipe()) id: string) {
+    return this.productsService.remove(id);
   }
 }

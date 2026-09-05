@@ -1,11 +1,13 @@
-import { BadRequestException } from "@nestjs/common";
+import { BadRequestException, ConflictException } from "@nestjs/common";
 import { ProductsService } from "./products.service";
 
 describe("ProductsService", () => {
   const productsRepo = {
     create: jest.fn(),
     save: jest.fn(),
+    findOne: jest.fn(),
     findOneOrFail: jest.fn(),
+    delete: jest.fn(),
   };
   const categoriesRepo = { findOne: jest.fn() };
   const productSaucesRepo = {
@@ -14,6 +16,7 @@ describe("ProductsService", () => {
     save: jest.fn(),
   };
   const saucesRepo = { findBy: jest.fn() };
+  const basketItemsRepo = { count: jest.fn() };
 
   let service: ProductsService;
 
@@ -24,6 +27,7 @@ describe("ProductsService", () => {
       categoriesRepo as never,
       productSaucesRepo as never,
       saucesRepo as never,
+      basketItemsRepo as never,
     );
   });
 
@@ -82,5 +86,26 @@ describe("ProductsService", () => {
       }),
     ).rejects.toBeInstanceOf(BadRequestException);
     expect(productsRepo.save).not.toHaveBeenCalled();
+  });
+
+  it("does not delete a product that is still in a guest basket", async () => {
+    productsRepo.findOne.mockResolvedValue({ id: "product-1" });
+    basketItemsRepo.count.mockResolvedValue(1);
+
+    await expect(service.remove("product-1")).rejects.toBeInstanceOf(
+      ConflictException,
+    );
+    expect(productsRepo.delete).not.toHaveBeenCalled();
+  });
+
+  it("deletes a product that is not in a guest basket", async () => {
+    productsRepo.findOne.mockResolvedValue({ id: "product-1" });
+    basketItemsRepo.count.mockResolvedValue(0);
+    productsRepo.delete.mockResolvedValue({ affected: 1 });
+
+    await expect(service.remove("product-1")).resolves.toEqual({
+      success: true,
+    });
+    expect(productsRepo.delete).toHaveBeenCalledWith("product-1");
   });
 });

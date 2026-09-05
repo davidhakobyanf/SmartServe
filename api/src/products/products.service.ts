@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
@@ -7,10 +8,11 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { CreateProductDto } from "./dto/create-product.dto";
 import { Category } from "src/entities/category.entity";
 import { Product } from "src/entities/product.entity";
-import { In, Repository } from "typeorm";
+import { In, QueryFailedError, Repository } from "typeorm";
 import { UpdateProductDto } from "./dto/update-product.dto";
 import { ProductSauce } from "src/entities/product-sauce.entity";
 import { Sauce } from "src/entities/sauce.entity";
+import { BasketItem } from "src/entities/basket-item.entity";
 import { decodeImage } from "src/common/utils/image-upload.util";
 import {
   cleanLocalizedText,
@@ -32,6 +34,9 @@ export class ProductsService {
 
     @InjectRepository(Sauce)
     private readonly saucesRepo: Repository<Sauce>,
+
+    @InjectRepository(BasketItem)
+    private readonly basketItemsRepo: Repository<BasketItem>,
   ) {}
 
   private normalizeSauceIds(sauceIds: string[] = []): string[] {
@@ -263,5 +268,40 @@ export class ProductsService {
       await this.replaceSauceLinks(id, sauceIds);
     }
     return this.findOneWithDetails(id);
+  }
+
+  async remove(id: string): Promise<{ success: true }> {
+    const product = await this.productsRepo.findOne({ where: { id } });
+    if (!product) {
+      throw new NotFoundException("Product not found");
+    }
+
+    const basketItemsCount = await this.basketItemsRepo.count({
+      where: { productId: id },
+    });
+    if (basketItemsCount > 0) {
+      throw new ConflictException(
+        "Product cannot be deleted while it is in a guest basket",
+      );
+    }
+
+    try {
+      const result = await this.productsRepo.delete(id);
+      if (!result.affected) {
+        throw new NotFoundException("Product not found");
+      }
+    } catch (error) {
+      if (
+        error instanceof QueryFailedError &&
+        (error.driverError as { code?: string } | undefined)?.code === "23503"
+      ) {
+        throw new ConflictException(
+          "Product cannot be deleted while it is in a guest basket",
+        );
+      }
+      throw error;
+    }
+
+    return { success: true };
   }
 }

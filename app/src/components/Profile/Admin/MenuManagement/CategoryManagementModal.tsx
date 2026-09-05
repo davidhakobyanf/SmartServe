@@ -1,7 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import axios from 'axios';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  Alert,
   App,
   Avatar,
   Button,
@@ -51,6 +53,7 @@ export default function CategoryManagementModal({ open, onClose, onChanged }: Pr
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
+  const formSectionRef = useRef<HTMLDivElement>(null);
 
   const load = useCallback(async () => {
     const { data } = await clientAPI.getCategories();
@@ -101,6 +104,7 @@ export default function CategoryManagementModal({ open, onClose, onChanged }: Pr
       return;
     }
     const nameTranslations = cleanLocalizedText(values.nameTranslations);
+    const wasEditing = Boolean(editing);
     try {
       setLoading(true);
       const uploadFile = fileList[0]?.originFileObj as File | undefined;
@@ -122,6 +126,7 @@ export default function CategoryManagementModal({ open, onClose, onChanged }: Pr
           ...(image ? { image } : {}),
         });
       }
+      message.success(t(wasEditing ? 'updateSuccess' : 'createSuccess'));
       const missing = missingContentLocales(nameTranslations);
       if (missing.length > 0) {
         message.warning(
@@ -160,6 +165,12 @@ export default function CategoryManagementModal({ open, onClose, onChanged }: Pr
           ]
         : [],
     );
+    requestAnimationFrame(() => {
+      formSectionRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    });
   };
 
   const toggle = async (category: CategoryRecord, isActive: boolean) => {
@@ -172,9 +183,48 @@ export default function CategoryManagementModal({ open, onClose, onChanged }: Pr
     }
   };
 
+  const removeCategory = (category: CategoryRecord) => {
+    modal.confirm({
+      title: t('deleteConfirm', { name: category.name }),
+      okText: commonT('delete'),
+      cancelText: commonT('cancel'),
+      okType: 'danger',
+      onOk: async () => {
+        try {
+          await clientAPI.deleteCategory(category.id);
+          if (editing?.id === category.id) resetForm();
+          await load();
+          onChanged();
+          message.success(t('deleteSuccess'));
+        } catch (error) {
+          if (axios.isAxiosError(error) && error.response?.status === 409) {
+            message.error(t('deleteBlocked'));
+          } else {
+            message.error(t('deleteError'));
+          }
+        }
+      },
+    });
+  };
+
   return (
     <Modal title={t('title')} open={open} onCancel={onClose} footer={null}>
-      <Form form={form} layout="vertical" initialValues={{ sortOrder: 0 }}>
+      <div ref={formSectionRef}>
+        {editing && (
+          <Alert
+            type="info"
+            showIcon
+            message={t('editingBanner', { name: editing.name })}
+            description={t('editingHint')}
+            action={
+              <Button size="small" onClick={resetForm}>
+                {t('cancelEdit')}
+              </Button>
+            }
+            style={{ marginBottom: 16 }}
+          />
+        )}
+        <Form form={form} layout="vertical" initialValues={{ sortOrder: 0 }}>
         <LocalizedTextFields
           name="nameTranslations"
           label={t('name')}
@@ -227,12 +277,8 @@ export default function CategoryManagementModal({ open, onClose, onChanged }: Pr
         <Button type="primary" loading={loading} onClick={() => void save()}>
           {editing ? t('save') : t('add')}
         </Button>
-      </Form>
-      {editing && (
-        <Button type="link" onClick={resetForm} style={{ marginBottom: 12 }}>
-          {t('cancelEdit')}
-        </Button>
-      )}
+        </Form>
+      </div>
       <List
         dataSource={categories}
         locale={{ emptyText: t('empty') }}
@@ -242,9 +288,18 @@ export default function CategoryManagementModal({ open, onClose, onChanged }: Pr
               <Button
                 key="edit"
                 type="link"
+                disabled={editing?.id === category.id}
                 onClick={() => startEditing(category)}
               >
-                {t('edit')}
+                {editing?.id === category.id ? t('editingNow') : t('edit')}
+              </Button>,
+              <Button
+                key="delete"
+                type="link"
+                danger
+                onClick={() => removeCategory(category)}
+              >
+                {commonT('delete')}
               </Button>,
               <Switch
                 key="active"

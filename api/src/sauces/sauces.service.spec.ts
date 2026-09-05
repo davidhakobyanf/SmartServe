@@ -11,6 +11,7 @@ describe("SaucesService", () => {
     findOne: jest.fn(),
     create: jest.fn(),
     save: jest.fn(),
+    delete: jest.fn(),
   };
 
   let service: SaucesService;
@@ -69,5 +70,14 @@ describe("SaucesService", () => {
     await expect(
       service.update("missing", { price: 500 }),
     ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it("deletes a sauce and its product links", async () => {
+    saucesRepo.delete.mockResolvedValue({ affected: 1 });
+
+    await expect(service.remove("sauce-1")).resolves.toEqual({
+      success: true,
+    });
+    expect(saucesRepo.delete).toHaveBeenCalledWith("sauce-1");
   });
 });

@@ -139,4 +139,12 @@ export class SaucesService {
 
     return this.saucesRepo.save(sauce);
   }
+
+  async remove(id: string): Promise<{ success: true }> {
+    const result = await this.saucesRepo.delete(id);
+    if (!result.affected) {
+      throw new NotFoundException("Sauce not found");
+    }
+    return { success: true };
+  }
 }

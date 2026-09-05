@@ -36,6 +36,9 @@
     "totalAmount": "Total amount <b>{total}</b> dram",
     "deleteConfirm": "Do you really want to delete the {title} card?",
     "deleteOk": "Delete",
-    "deleteCancel": "Cancel"
+    "deleteCancel": "Cancel",
+    "deleteBlocked": "Remove the product from active guest baskets first.",
+    "deleteSuccess": "Product deleted",
+    "deleteError": "Failed to delete product"
   }
 }

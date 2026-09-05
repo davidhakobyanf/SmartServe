@@ -1,7 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import axios from 'axios';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  Alert,
   App,
   Avatar,
   Button,
@@ -51,6 +53,7 @@ export default function SauceManagementModal({ open, onClose, onChanged }: Props
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
+  const formSectionRef = useRef<HTMLDivElement>(null);
 
   const load = useCallback(async () => {
     try {
@@ -105,6 +108,7 @@ export default function SauceManagementModal({ open, onClose, onChanged }: Props
       return;
     }
     const nameTranslations = cleanLocalizedText(values.nameTranslations);
+    const wasEditing = Boolean(editing);
     try {
       setLoading(true);
       const uploadFile = fileList[0]?.originFileObj as File | undefined;
@@ -126,6 +130,7 @@ export default function SauceManagementModal({ open, onClose, onChanged }: Props
           ...(image ? { image } : {}),
         });
       }
+      message.success(t(wasEditing ? 'updateSuccess' : 'createSuccess'));
       const missing = missingContentLocales(nameTranslations);
       if (missing.length > 0) {
         message.warning(
@@ -164,6 +169,12 @@ export default function SauceManagementModal({ open, onClose, onChanged }: Props
           ]
         : [],
     );
+    requestAnimationFrame(() => {
+      formSectionRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    });
   };
 
   const toggle = async (sauce: SauceRecord, isActive: boolean) => {
@@ -176,6 +187,26 @@ export default function SauceManagementModal({ open, onClose, onChanged }: Props
     }
   };
 
+  const removeSauce = (sauce: SauceRecord) => {
+    modal.confirm({
+      title: t('deleteConfirm', { name: sauce.name }),
+      okText: commonT('delete'),
+      cancelText: commonT('cancel'),
+      okType: 'danger',
+      onOk: async () => {
+        try {
+          await clientAPI.deleteSauce(sauce.id);
+          if (editing?.id === sauce.id) resetForm();
+          await load();
+          onChanged();
+          message.success(t('deleteSuccess'));
+        } catch {
+          message.error(t('deleteError'));
+        }
+      },
+    });
+  };
+
   return (
     <Modal
       title={t('title')}
@@ -184,7 +215,22 @@ export default function SauceManagementModal({ open, onClose, onChanged }: Props
       afterClose={resetForm}
       footer={null}
     >
-      <Form form={form} layout="vertical" initialValues={{ price: 0 }}>
+      <div ref={formSectionRef}>
+        {editing && (
+          <Alert
+            type="info"
+            showIcon
+            message={t('editingBanner', { name: editing.name })}
+            description={t('editingHint')}
+            action={
+              <Button size="small" onClick={resetForm}>
+                {t('cancelEdit')}
+              </Button>
+            }
+            style={{ marginBottom: 16 }}
+          />
+        )}
+        <Form form={form} layout="vertical" initialValues={{ price: 0 }}>
         <LocalizedTextFields
           name="nameTranslations"
           label={t('nameLabel')}
@@ -241,20 +287,29 @@ export default function SauceManagementModal({ open, onClose, onChanged }: Props
         <Button type="primary" loading={loading} onClick={() => void save()}>
           {editing ? t('save') : t('add')}
         </Button>
-      </Form>
-      {editing && (
-        <Button type="link" onClick={resetForm} style={{ marginBottom: 12 }}>
-          {t('cancelEdit')}
-        </Button>
-      )}
+        </Form>
+      </div>
       <List
         dataSource={sauces}
         locale={{ emptyText: t('empty') }}
         renderItem={(sauce) => (
           <List.Item
             actions={[
-              <Button key="edit" type="link" onClick={() => startEditing(sauce)}>
-                {t('edit')}
+              <Button
+                key="edit"
+                type="link"
+                disabled={editing?.id === sauce.id}
+                onClick={() => startEditing(sauce)}
+              >
+                {editing?.id === sauce.id ? t('editingNow') : t('edit')}
+              </Button>,
+              <Button
+                key="delete"
+                type="link"
+                danger
+                onClick={() => removeSauce(sauce)}
+              >
+                {commonT('delete')}
               </Button>,
               <Switch
                 key="active"

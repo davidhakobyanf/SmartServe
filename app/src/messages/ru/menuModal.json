@@ -36,6 +36,9 @@
     "totalAmount": "Общая сумма <b>{total}</b> драм",
     "deleteConfirm": "Вы действительно хотите удалить карточку {title}?",
     "deleteOk": "Удалить",
-    "deleteCancel": "Отмена"
+    "deleteCancel": "Отмена",
+    "deleteBlocked": "Сначала удалите продукт из активных корзин гостей.",
+    "deleteSuccess": "Продукт удалён",
+    "deleteError": "Не удалось удалить продукт"
   }
 }

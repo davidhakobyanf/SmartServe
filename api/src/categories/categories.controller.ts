@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Headers,
   Param,
@@ -56,6 +57,12 @@ export class CategoriesController {
       await this.categoriesService.update(id, dto),
       locale,
     );
+  }
+
+  @Delete(":id")
+  @RequirePermissions(Permission.CATEGORIES_MANAGE)
+  remove(@Param("id", new ParseUUIDPipe()) id: string) {
+    return this.categoriesService.remove(id);
   }
 }
 

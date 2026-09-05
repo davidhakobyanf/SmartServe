@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Headers,
   Param,
@@ -53,6 +54,12 @@ export class SaucesController {
       await this.saucesService.update(id, dto),
       locale,
     );
+  }
+
+  @Delete(":id")
+  @RequirePermissions(Permission.PRODUCTS_MANAGE)
+  remove(@Param("id", new ParseUUIDPipe()) id: string) {
+    return this.saucesService.remove(id);
   }
 }
 

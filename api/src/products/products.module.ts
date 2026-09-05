@@ -10,10 +10,17 @@ import { SessionsModule } from "src/sessions/sessions.module";
 import { ProductImagesController } from "./product-images.controller";
 import { ProductSauce } from "src/entities/product-sauce.entity";
 import { Sauce } from "src/entities/sauce.entity";
+import { BasketItem } from "src/entities/basket-item.entity";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Product, Category, ProductSauce, Sauce]),
+    TypeOrmModule.forFeature([
+      Product,
+      Category,
+      ProductSauce,
+      Sauce,
+      BasketItem,
+    ]),
     UsersModule,
     SessionsModule,
   ],

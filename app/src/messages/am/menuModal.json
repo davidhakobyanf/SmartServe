@@ -36,6 +36,9 @@
     "totalAmount": "Ընդհանուր գումար <b>{total}</b> դրամ",
     "deleteConfirm": "Դուք իրոք ցանկանում եք ջնջել այս {title} քարտը?",
     "deleteOk": "Ջնջել",
-    "deleteCancel": "Չեղարկել"
+    "deleteCancel": "Չեղարկել",
+    "deleteBlocked": "Նախ հեռացրեք ուտեստը հյուրերի ակտիվ զամբյուղներից։",
+    "deleteSuccess": "Ուտեստը ջնջված է",
+    "deleteError": "Չհաջողվեց ջնջել ուտեստը"
   }
 }

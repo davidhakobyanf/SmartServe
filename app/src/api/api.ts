@@ -89,6 +89,12 @@ class DataApi {
     return instance.patch(`/api/categories/${id}`, payload);
   }
 
+  static async deleteCategory(
+    id: string,
+  ): Promise<AxiosResponse<{ success: true }>> {
+    return instance.delete(`/api/categories/${id}`);
+  }
+
   static async getSauces(): Promise<AxiosResponse<SauceRecord[]>> {
     return instance.get('/api/sauces');
   }
@@ -112,6 +118,12 @@ class DataApi {
     return instance.patch(`/api/sauces/${id}`, payload);
   }
 
+  static async deleteSauce(
+    id: string,
+  ): Promise<AxiosResponse<{ success: true }>> {
+    return instance.delete(`/api/sauces/${id}`);
+  }
+
   static async getProducts(): Promise<AxiosResponse<ProductRecord[]>> {
     return instance.get('/api/products');
   }
@@ -129,6 +141,12 @@ class DataApi {
     payload: Record<string, unknown>,
   ): Promise<AxiosResponse<ProductRecord>> {
     return instance.patch(`/api/products/${id}`, payload);
+  }
+
+  static async deleteProduct(
+    id: string,
+  ): Promise<AxiosResponse<{ success: true }>> {
+    return instance.delete(`/api/products/${id}`);
   }
 
   static async getBasketItems(): Promise<AxiosResponse<BasketItemRecord[]>> {
