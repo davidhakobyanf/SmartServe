@@ -93,7 +93,7 @@ export default function Registration({ form, setCheck }: RegistrationProps) {
             { min: 6, message: t('fields.password.minLength') },
             {
               pattern:
-                /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]+$/,
+                /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).+$/,
               message: t('fields.password.pattern'),
             },
           ]}
