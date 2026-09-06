@@ -1,11 +1,11 @@
 'use client';
 
-import axios from 'axios';
 import { App, Modal } from 'antd';
 import { useTranslations } from 'next-intl';
 import clientAPI from '@/api/api';
 import { useFetching } from '@/hoc/fetchingHook';
 import type { MenuCard } from '@/types';
+import { getApiErrorStatus } from '@/lib/apiError';
 
 interface DeleteCardModalProps {
   title: string;
@@ -40,7 +40,7 @@ export default function DeleteCardModal({
       setCardModalOpen(false);
       message.success(t('deleteSuccess'));
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response?.status === 409) {
+      if (getApiErrorStatus(error) === 409) {
         message.error(t('deleteBlocked'));
       } else {
         message.error(t('deleteError'));

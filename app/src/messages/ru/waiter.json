@@ -6,6 +6,10 @@
   "new": "Новый",
   "needsAssistance": "Клиенту нужна помощь",
   "table": "Стол {n}",
+  "notification": {
+    "title": "Вызов официанта",
+    "description": "Стол {table} вызывает официанта"
+  },
   "empty": {
     "title": "Всё спокойно",
     "subtitle": "Активных вызовов сейчас нет."

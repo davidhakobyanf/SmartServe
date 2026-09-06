@@ -6,6 +6,10 @@
   "new": "New",
   "needsAssistance": "Customer needs assistance",
   "table": "Table {n}",
+  "notification": {
+    "title": "Waiter call",
+    "description": "Table {table} is requesting a waiter"
+  },
   "empty": {
     "title": "All quiet",
     "subtitle": "No active calls right now."

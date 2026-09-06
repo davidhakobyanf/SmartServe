@@ -8,22 +8,13 @@ import {
   TbUser,
   TbBell,
   TbShoppingCart,
-  TbPlus,
-  TbMinus,
-  TbTrash,
-  TbX,
   TbSearch,
   TbLayoutGrid,
   TbSoup,
   TbMeat,
   TbCake,
   TbGlassFull,
-  TbFlame,
-  TbStar,
-  TbChevronDown,
   TbSun,
-  TbLock,
-  TbArrowRight,
 } from 'react-icons/tb';
 import css from './ClientDashboard.module.css';
 import { useProfileData } from '@/context/ProfileDataContext';
@@ -41,24 +32,13 @@ import type { BasketItemRecord, ProductRecord } from '@/types/restaurant';
 import { useWaiterClient } from '@/hooks/useWaiterClient';
 import { useSessionLock } from '@/hooks/useSessionLock';
 import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
+import { getMenuLineTotal, type MenuBadge } from '@/lib/clientMenu';
+import ClientMenuGrid from './ClientMenuGrid';
+import ClientOrderPanel from './ClientOrderPanel';
 
 const PAGE_SIZE = 8;
 
 const CATEGORY_ICONS = [TbSoup, TbMeat, TbCake, TbGlassFull];
-
-// Purely cosmetic ribbon that mirrors the reference design.
-const badgeFor = (index: number): 'popular' | 'chef' | null => {
-  if (index % 4 === 0) return 'popular';
-  if (index % 4 === 1) return 'chef';
-  return null;
-};
-
-const lineTotal = (item: MenuCard) =>
-  (item.price +
-    (item.sauces ?? []).reduce((sum, sauce) => sum + sauce.price, 0)) *
-  (item.count ?? 1);
-
-const fmt = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
 export default function ClientDashboard() {
   const t = useTranslations('client');
@@ -163,14 +143,12 @@ export default function ClientDashboard() {
 
   useEffect(() => {
     void fetchBasket();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionId]);
+  }, [fetchBasket, sessionId]);
 
   // refresh basket whenever the detail modal closes (it may have added an item)
   useEffect(() => {
     if (!cardModalOpen) void fetchBasket();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cardModalOpen]);
+  }, [cardModalOpen, fetchBasket]);
 
   const handleCallWaiter = useCallback(async () => {
     const result = await callWaiter();
@@ -214,7 +192,7 @@ export default function ClientDashboard() {
 
   const openDetail = (
     item: MenuCard,
-    badge: 'popular' | 'chef' | null = null,
+    badge: MenuBadge = null,
   ) => {
     const idx = menuCards.findIndex((c) => c.id === item.id);
     setSelectedItem(item);
@@ -233,7 +211,7 @@ export default function ClientDashboard() {
 
   const quickAdd = async (
     item: MenuCard,
-    badge: 'popular' | 'chef' | null = null,
+    badge: MenuBadge = null,
   ) => {
     if (item.sauces?.length) {
       openDetail(item, badge);
@@ -251,10 +229,6 @@ export default function ClientDashboard() {
       message.error(t('dashboard.serverError'));
     }
   };
-
-  // A basket line is unique per (id + sauces), never by id alone.
-  const lineKey = (it: MenuCard) =>
-    `${it.id}|${JSON.stringify((it.sauces ?? []).map((sauce) => sauce.id))}`;
 
   const changeCount = async (line: MenuCard, next: number) => {
     if (!line.basketItemId) return;
@@ -274,7 +248,7 @@ export default function ClientDashboard() {
     }
   };
 
-  const total = basket.reduce((sum, it) => sum + lineTotal(it), 0);
+  const total = basket.reduce((sum, item) => sum + getMenuLineTotal(item), 0);
   const count = basket.reduce((n, it) => n + (it.count ?? 1), 0);
   const avatarInitial = (profileDataList.name?.[0] ?? 'N').toUpperCase();
 
@@ -405,194 +379,26 @@ export default function ClientDashboard() {
               ))}
             </div>
 
-            <div className={css.grid}>
-              {shown.map((item, i) => {
-                const src = images.find((im) => im.id === item.id)?.src;
-                const badge = badgeFor(i);
-                const unavailable = !item.active;
-                return (
-                  <article
-                    key={item.id}
-                    className={`${css.card} ${
-                      unavailable ? css.cardDisabled : ''
-                    }`}
-                  >
-                    <div
-                      className={css.imgWrap}
-                      onClick={() => !unavailable && openDetail(item, badge)}
-                    >
-                      {src ? (
-                        <img
-                          src={src}
-                          alt={item.title}
-                          loading="lazy"
-                          className={css.img}
-                        />
-                      ) : (
-                        <div className={css.imgFallback} />
-                      )}
-                      {unavailable && (
-                        <span className={css.unavailBadge}>{t('dashboard.outOfStock')}</span>
-                      )}
-                      {!unavailable && badge === 'popular' && (
-                        <span className={`${css.badge} ${css.badgePopular}`}>
-                          <TbFlame /> {t('dashboard.badgePopular')}
-                        </span>
-                      )}
-                      {!unavailable && badge === 'chef' && (
-                        <span className={`${css.badge} ${css.badgeChef}`}>
-                          <TbStar /> {t('dashboard.badgeChef')}
-                        </span>
-                      )}
-                    </div>
-                    <div className={css.cardBody}>
-                      <h3
-                        className={css.cardTitle}
-                        onClick={() => !unavailable && openDetail(item, badge)}
-                      >
-                        {item.title}
-                      </h3>
-                      <p className={css.cardDesc}>{item.description}</p>
-                      <div className={css.cardFoot}>
-                        <span className={css.price}>{fmt(item.price)} ֏</span>
-                        {unavailable ? (
-                          <button
-                            type="button"
-                            className={css.addBtn}
-                            disabled
-                          >
-                            {t('dashboard.outOfStock')}
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            className={css.addBtn}
-                            onClick={() => void quickAdd(item, badge)}
-                          >
-                            <TbPlus /> {t('dashboard.add')}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-
-            {hasMore && (
-              <div className={css.loadMoreWrap}>
-                <button
-                  type="button"
-                  className={css.loadMore}
-                  onClick={() => setVisible((v) => v + PAGE_SIZE)}
-                >
-                  <TbChevronDown /> {t('dashboard.loadMore')}
-                </button>
-              </div>
-            )}
+            <ClientMenuGrid
+              items={shown}
+              images={images}
+              hasMore={hasMore}
+              onOpen={openDetail}
+              onQuickAdd={quickAdd}
+              onLoadMore={() => setVisible((value) => value + PAGE_SIZE)}
+            />
           </main>
-
-          <aside className={`${css.order} ${cartOpen ? css.orderOpen : ''}`}>
-            <div className={css.orderHead}>
-              <h3>{t('order.title')}</h3>
-              <button
-                type="button"
-                className={css.orderClose}
-                onClick={() => setCartOpen(false)}
-              >
-                <TbX />
-              </button>
-            </div>
-
-            <div className={`${css.orderList} ss-scroll`}>
-              {basket.length === 0 ? (
-                <div className={css.orderEmpty}>
-                  <TbShoppingCart />
-                  <p>{t('order.empty')}</p>
-                </div>
-              ) : (
-                basket.map((it) => {
-                  const src = images.find((im) => im.id === it.id)?.src;
-                  return (
-                    <div key={lineKey(it)} className={css.orderItem}>
-                      {src ? (
-                        <img
-                          src={src}
-                          alt={it.title}
-                          className={css.orderThumb}
-                          onClick={() => openCartLine(it)}
-                        />
-                      ) : (
-                        <div
-                          className={css.orderThumbFallback}
-                          onClick={() => openCartLine(it)}
-                        />
-                      )}
-                      <div className={css.orderItemInfo}>
-                        <div className={css.orderItemTop}>
-                          <span
-                            className={css.orderItemName}
-                            onClick={() => openCartLine(it)}
-                          >
-                            {it.title}
-                          </span>
-                          <button
-                            type="button"
-                            className={css.removeBtn}
-                            onClick={() => void removeItem(it)}
-                          >
-                            <TbTrash />
-                          </button>
-                        </div>
-                        <span className={css.orderItemPrice}>
-                          {fmt(lineTotal(it))} ֏
-                        </span>
-                        <div className={css.stepper}>
-                          <button
-                            type="button"
-                            onClick={() => void changeCount(it, (it.count ?? 1) - 1)}
-                          >
-                            <TbMinus />
-                          </button>
-                          <span>{it.count ?? 1}</span>
-                          <button
-                            type="button"
-                            onClick={() => void changeCount(it, (it.count ?? 1) + 1)}
-                          >
-                            <TbPlus />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-
-            <div className={css.orderFooter}>
-              <div className={css.totalRow}>
-                <span>{t('order.total')}</span>
-                <span className={css.totalValue}>{fmt(total)} ֏</span>
-              </div>
-              <button
-                type="button"
-                className={css.placeBtn}
-                disabled={basket.length === 0}
-                onClick={() => void placeOrder()}
-              >
-                <TbLock className={css.placeLock} />
-                {t('order.placeOrder')}
-                <TbArrowRight className={css.placeArrow} />
-              </button>
-              <p className={css.kitchenNote}>
-                <TbLock /> {t('order.kitchenNote')}
-              </p>
-            </div>
-          </aside>
-
-          {cartOpen && (
-            <div className={css.backdrop} onClick={() => setCartOpen(false)} />
-          )}
+          <ClientOrderPanel
+            open={cartOpen}
+            basket={basket}
+            images={images}
+            total={total}
+            onClose={() => setCartOpen(false)}
+            onOpenItem={openCartLine}
+            onChangeCount={changeCount}
+            onRemove={removeItem}
+            onPlaceOrder={placeOrder}
+          />
         </div>
       </div>
 

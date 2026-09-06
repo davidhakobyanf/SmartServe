@@ -54,6 +54,7 @@
     "cancelEdit": "Cancel editing",
     "empty": "No categories yet",
     "edit": "Edit",
+    "loadError": "Could not load categories",
     "saveError": "Could not save the category",
     "toggleError": "Could not update the category"
   },

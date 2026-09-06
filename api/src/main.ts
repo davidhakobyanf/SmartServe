@@ -1,4 +1,4 @@
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { json, urlencoded } from 'express';
@@ -25,7 +25,7 @@ async function bootstrap() {
 
   const port = config.get<number>('PORT', 8000);
   await app.listen(port);
-  console.log(`SmartServe API listening on http://localhost:${port}`);
+  Logger.log(`SmartServe API listening on http://localhost:${port}`, 'Bootstrap');
 }
 
-bootstrap();
+void bootstrap();

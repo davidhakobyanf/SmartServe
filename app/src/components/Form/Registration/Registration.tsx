@@ -36,8 +36,7 @@ export default function Registration({ form, setCheck }: RegistrationProps) {
       form.resetFields();
       setCheck(false);
       success();
-    } catch (err) {
-      console.error('Error:', err);
+    } catch {
       showError();
     }
   };

@@ -30,7 +30,9 @@ import clientAPI from '@/api/api';
 import { useProfileData } from '@/context/ProfileDataContext';
 import { profileImageApiUrl } from '@/lib/entityImages';
 import { fileToImagePayload } from '@/lib/fileToImagePayload';
-import { toIntlLocale } from '@/lib/intlLocale';
+import PageHeader from '@/components/Common/PageHeader/PageHeader';
+import { IMAGE_ACCEPT, validateImageFile } from '@/lib/imageValidation';
+import { formatDateTime } from '@/lib/formatters';
 import css from './AccountPage.module.css';
 
 interface PersonalFormValues {
@@ -46,9 +48,6 @@ interface PasswordFormValues {
 }
 
 const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{6,}$/;
-const MAX_AVATAR_SIZE = 5 * 1024 * 1024;
-const AVATAR_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
-
 export default function AccountPage() {
   const t = useTranslations('account');
   const permissionT = useTranslations('staff.permissionLabels');
@@ -80,20 +79,13 @@ export default function AccountPage() {
       ? profileImageApiUrl(profileDataList.id, profileDataList.updatedAt)
       : undefined;
 
-  const formatDate = (value?: string | null) => {
-    if (!value) return t('never');
-    return new Intl.DateTimeFormat(toIntlLocale(locale), {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    }).format(new Date(value));
-  };
-
   const validateAvatar: NonNullable<UploadProps['beforeUpload']> = (file) => {
-    if (!AVATAR_MIME_TYPES.has(file.type)) {
+    const validationError = validateImageFile(file);
+    if (validationError === 'invalidType') {
       message.error(t('avatar.invalid'));
       return false;
     }
-    if (file.size > MAX_AVATAR_SIZE) {
+    if (validationError === 'tooLarge') {
       message.error(t('avatar.tooLarge'));
       return false;
     }
@@ -265,12 +257,12 @@ export default function AccountPage() {
 
   return (
     <div className={css.wrap}>
-      <header><h1 className={css.title}>{t('pageTitle')}</h1><p className={css.subtitle}>{t('pageSubtitle')}</p></header>
+      <PageHeader title={t('pageTitle')} subtitle={t('pageSubtitle')} />
 
       <section className={css.identityCard}>
         <div className={css.avatarColumn}>
           <ImgCrop aspect={1} cropShape="round" showGrid={false} zoomSlider rotationSlider showReset quality={0.9} beforeCrop={validateAvatar} modalTitle={t('avatar.editorTitle')} modalOk={t('avatar.apply')} modalCancel={t('cancel')} resetText={t('avatar.reset')} modalProps={{ centered: true }}>
-            <Upload accept="image/jpeg,image/png,image/webp" showUploadList={false} beforeUpload={uploadAvatar} disabled={savingAvatar}>
+            <Upload accept={IMAGE_ACCEPT} showUploadList={false} beforeUpload={uploadAvatar} disabled={savingAvatar}>
               <button type="button" className={css.avatarButton} disabled={savingAvatar}>
                 <Avatar size={126} src={avatarSrc}>{initials}</Avatar>
                 <span className={css.camera}><TbCamera /></span>
@@ -289,8 +281,8 @@ export default function AccountPage() {
           <p>{profileDataList.email}</p>
           <span className={css.role}>{profileDataList.role?.name ?? t('access.noRole')}</span>
           <div className={css.meta}>
-            <span><strong>{t('registered')}</strong>{formatDate(profileDataList.createdAt)}</span>
-            <span><strong>{t('lastLogin')}</strong>{formatDate(profileDataList.lastLoginAt)}</span>
+            <span><strong>{t('registered')}</strong>{formatDateTime(profileDataList.createdAt, locale, t('never'))}</span>
+            <span><strong>{t('lastLogin')}</strong>{formatDateTime(profileDataList.lastLoginAt, locale, t('never'))}</span>
           </div>
         </div>
       </section>

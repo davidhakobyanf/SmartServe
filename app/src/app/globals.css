@@ -10,9 +10,12 @@
   --primary-50: #f3f1ff;
   --primary-100: #e9e6ff;
   --primary-200: #d5cffb;
+  --on-primary: #ffffff;
 
   /* Accent lavender */
   --lavender: #c9c3f5;
+  --accent-violet: #7a5af5;
+  --accent-violet-bg: #ede9ff;
 
   /* Status */
   --success: #16a34a;
@@ -31,6 +34,7 @@
   --bg: #f6f7fb;
   --surface: #ffffff;
   --surface-muted: #f8fafc;
+  --overlay: rgba(15, 23, 42, 0.44);
 
   /* Elevation */
   --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
@@ -43,6 +47,15 @@
   --radius: 12px;
   --radius-lg: 16px;
   --radius-xl: 20px;
+
+  /* Spacing rhythm */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
 
   --sidebar-width: 264px;
   --topbar-height: 72px;
@@ -71,6 +84,36 @@ body {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+button,
+[role='button'],
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+img,
+svg {
+  max-width: 100%;
+}
+
+.ant-modal {
+  max-width: calc(100vw - 24px);
+}
+
+@media (max-width: 640px) {
+  .ant-modal { top: 12px; margin: 0 auto; padding-bottom: 12px; }
+  .ant-modal-content { max-height: calc(100dvh - 24px); display: flex; flex-direction: column; }
+  .ant-modal-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  .ant-modal-footer { flex: 0 0 auto; }
+  .ant-btn { min-height: 40px; }
 }
 
 /* Waiter-call toast: on close, slide out to the right and fade to transparent.

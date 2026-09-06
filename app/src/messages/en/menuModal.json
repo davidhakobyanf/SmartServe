@@ -20,7 +20,9 @@
     "title": "Please input title!",
     "description": "Please input Description!",
     "price": "Please input price!",
-    "image": "Select an image"
+    "image": "Select an image",
+    "invalidType": "Choose a JPG, PNG, or WebP image",
+    "tooLarge": "The image must be smaller than 5 MB"
   },
   "add": {
     "title": "Create Menu Item",
@@ -28,7 +30,8 @@
   },
   "edit": {
     "title": "Edit Menu Item",
-    "submit": "Save"
+    "submit": "Save",
+    "error": "Failed to save the menu item"
   },
   "card": {
     "saucesColumn": "Sauces",

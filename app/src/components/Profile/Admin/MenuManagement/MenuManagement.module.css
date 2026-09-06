@@ -4,39 +4,17 @@
   gap: 20px;
 }
 
-/* Header */
-.header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.title {
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--text);
-}
-
-.subtitle {
-  margin-top: 4px;
-  font-size: 14px;
-  color: var(--text-muted);
-}
-
-.headerActions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
 .sectionTabs {
   display: flex;
   gap: 28px;
   overflow-x: auto;
+  overflow-y: hidden;
   border-bottom: 1px solid var(--border);
+  scrollbar-width: none;
+}
+
+.sectionTabs::-webkit-scrollbar {
+  display: none;
 }
 
 .sectionTab {

@@ -88,8 +88,7 @@ export function ProfileDataProvider({ children }: { children: ReactNode }) {
           setProfileDataList(profile);
           setPermissions(cachedPermissions);
         }
-      } catch (error) {
-        console.error('Error fetching profile:', error);
+      } catch {
         cachedPermissions = [];
         setPermissions([]);
       } finally {

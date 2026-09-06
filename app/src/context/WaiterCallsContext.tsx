@@ -5,6 +5,7 @@ import type { WaiterCall } from "@/types/waiter";
 import { createSocket } from "@/lib/ws/socket";
 import { App } from "antd";
 import { useProfileData } from "@/context/ProfileDataContext";
+import { useTranslations } from 'next-intl';
 
 
 
@@ -19,6 +20,7 @@ interface WaiterCallsContextValue {
 const WaiterCallsContext = createContext<WaiterCallsContextValue | null>(null);
 
 export function WaiterCallsProvider({ children }: { children: ReactNode }) {
+    const t = useTranslations('waiter');
     const { notification } = App.useApp();
     const { permissions, isLoading } = useProfileData();
     const canViewCalls = permissions.includes('waiter_calls.view');
@@ -56,8 +58,8 @@ export function WaiterCallsProvider({ children }: { children: ReactNode }) {
             // fade-out. The dashboard entry (in `calls`) stays until the admin
             // resolves it manually, so intentionally no `onClose`/dismiss here.
             notification.info({
-                message:'Մատուցողի կանչ',
-                description: `Սեղան ${payload.table} - խնդրում են մատուցող`,
+                message: t('notification.title'),
+                description: t('notification.description', { table: payload.table }),
                 placement:'topRight',
                 duration: 2,
                 key: payload.id,
@@ -69,7 +71,7 @@ export function WaiterCallsProvider({ children }: { children: ReactNode }) {
             socket.removeAllListeners();
             socket.disconnect();
         };
-    }, [canViewCalls, isLoading, notification]);
+    }, [canViewCalls, isLoading, notification, t]);
 
     return (
         <WaiterCallsContext.Provider value={{ calls, dismissCall, clearAll }}>

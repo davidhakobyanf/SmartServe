@@ -1,4 +1,6 @@
 {
+  "openMenu": "Open navigation menu",
+  "closeMenu": "Close navigation menu",
   "dashboard": "Dashboard",
   "menu": "Menu Management",
   "orders": "Orders",

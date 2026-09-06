@@ -12,6 +12,18 @@
   "empty": "No orders yet",
   "table": "Table {n}",
   "statusPlaced": "Placed",
+  "statusUpdateSuccess": "Order status updated",
+  "statusUpdateError": "Failed to update order status",
+  "statuses": {
+    "placed": "Accepted",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
+  "notification": {
+    "title": "New order",
+    "table": "Table {table}",
+    "withTotal": "Table {table} — {total} AMD"
+  },
   "dram": "dram",
   "dramShort": "AMD",
   "time": {

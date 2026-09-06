@@ -72,8 +72,7 @@ export default function Login({ form, setCheck }: LoginProps) {
         }
         message.error(t("login.toast.error"));
       }
-    } catch (err) {
-      console.error("Error:", err);
+    } catch {
       message.error(t("login.toast.error"));
     }
   };

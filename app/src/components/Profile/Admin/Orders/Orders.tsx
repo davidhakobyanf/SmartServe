@@ -16,6 +16,8 @@ import clientAPI from '@/api/api';
 import type { OrderRecord } from '@/types/orders';
 import css from './Orders.module.css';
 import { useProfileData } from '@/context/ProfileDataContext';
+import PageHeader from '@/components/Common/PageHeader/PageHeader';
+import { formatAmount } from '@/lib/formatters';
 
 function timeAgo(
   t: ReturnType<typeof useTranslations>,
@@ -80,9 +82,9 @@ export default function Orders() {
     try {
       await clientAPI.updateOrderStatus(id, status);
       await refreshOrders();
-      message.success('Статус заказа обновлён');
+      message.success(t('statusUpdateSuccess'));
     } catch {
-      message.error('Не удалось обновить статус');
+      message.error(t('statusUpdateError'));
     }
   };
 
@@ -92,7 +94,7 @@ export default function Orders() {
     { label: t('tiles.tablesServed'), value: stats.tables, icon: TbTable, tone: 'green' },
     ...(canViewRevenue ? [{
       label: t('tiles.revenue'),
-      value: `${stats.revenue.toLocaleString()} ֏`,
+      value: `${formatAmount(stats.revenue)} ֏`,
       icon: TbCurrencyDram,
       tone: 'violet',
     } as const] : []),
@@ -100,12 +102,10 @@ export default function Orders() {
 
   return (
     <div className={css.page}>
-      <header className={css.header}>
-        <div>
-          <h1 className={css.title}>{t('title')}</h1>
-          <p className={css.subtitle}>{t('subtitle')}</p>
-        </div>
-        <div className={css.headerActions}>
+      <PageHeader
+        title={t('title')}
+        subtitle={t('subtitle')}
+        actions={
           <button
             type="button"
             className={css.btnGhost}
@@ -113,8 +113,8 @@ export default function Orders() {
           >
             <TbRefresh /> {t('refresh')}
           </button>
-        </div>
-      </header>
+        }
+      />
 
       <div className={css.stats}>
         {tiles.map(({ label, value, icon: Icon, tone }) => (
@@ -167,13 +167,13 @@ export default function Orders() {
               ) : (
                 filtered.map((o, i) => (
                   <tr key={o._id || i}>
-                    <td className={css.mono}>{orderId(o, i)}</td>
-                    <td>{t('table', { n: o.table })}</td>
-                    <td className={css.items}>
+                    <td data-label={t('columns.orderId')} className={css.mono}>{orderId(o, i)}</td>
+                    <td data-label={t('columns.table')}>{t('table', { n: o.table })}</td>
+                    <td data-label={t('columns.items')} className={css.items}>
                       {o.items.map((it) => it.title).join(', ') || '—'}
                     </td>
-                    <td className={css.muted}>{timeAgo(t, o.createdAt)}</td>
-                    <td>
+                    <td data-label={t('columns.time')} className={css.muted}>{timeAgo(t, o.createdAt)}</td>
+                    <td data-label={t('columns.status')}>
                       {canManageOrders ? (
                         <Select
                           size="small"
@@ -182,18 +182,18 @@ export default function Orders() {
                             void changeStatus(o._id, status)
                           }
                           options={[
-                            { value: 'placed', label: 'Принят' },
-                            { value: 'completed', label: 'Завершён' },
-                            { value: 'cancelled', label: 'Отменён' },
+                            { value: 'placed', label: t('statuses.placed') },
+                            { value: 'completed', label: t('statuses.completed') },
+                            { value: 'cancelled', label: t('statuses.cancelled') },
                           ]}
                         />
                       ) : (
-                        o.status ?? 'placed'
+                        t(`statuses.${o.status ?? 'placed'}`)
                       )}
                     </td>
                     {canViewRevenue && (
-                      <td className={`${css.right} ${css.total}`}>
-                        {o.allPrice} {t('dramShort')}
+                      <td data-label={t('columns.total')} className={`${css.right} ${css.total}`}>
+                        {formatAmount(o.allPrice)} {t('dramShort')}
                       </td>
                     )}
                   </tr>

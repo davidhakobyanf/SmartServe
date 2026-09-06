@@ -15,11 +15,11 @@ import { createSocket } from '@/lib/ws/socket';
 import clientAPI from '@/api/api';
 import { useProfileData } from '@/context/ProfileDataContext';
 import type { RelationalOrder } from '@/types/restaurant';
+import { formatAmount } from '@/lib/formatters';
+import { useTranslations } from 'next-intl';
 
 const NAMESPACE = '/orders';
 const EVT = { JOIN: 'join', UPDATED: 'orders:updated' } as const;
-
-const fmt = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
 let ordersRequest: Promise<void> | null = null;
 
@@ -39,6 +39,7 @@ function normalizeList(raw: unknown): OrderRecord[] {
 }
 
 export function OrdersProvider({ children }: { children: React.ReactNode }) {
+  const t = useTranslations('orders');
   const { notification } = App.useApp();
   const { permissions, isLoading: profileLoading } = useProfileData();
   const canViewOrders = permissions.includes('orders.view');
@@ -59,10 +60,13 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
         added.forEach((o) =>
           notification.open({
             type: 'info',
-            message: 'Նոր պատվեր',
+            message: t('notification.title'),
             description: canViewRevenue
-              ? `Սեղան ${o.table} — ${fmt(o.allPrice)} ֏`
-              : `Սեղան ${o.table}`,
+              ? t('notification.withTotal', {
+                  table: o.table,
+                  total: formatAmount(o.allPrice),
+                })
+              : t('notification.table', { table: o.table }),
             placement: 'topRight',
             duration: 6,
             key: o._id,
@@ -73,7 +77,7 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
     seenIdsRef.current = new Set(list.map((o) => o._id));
     initializedRef.current = true;
     setOrders(list);
-  }, [canViewRevenue, notification]);
+  }, [canViewRevenue, notification, t]);
 
   const markSeen = useCallback(() => setNewCount(0), []);
 

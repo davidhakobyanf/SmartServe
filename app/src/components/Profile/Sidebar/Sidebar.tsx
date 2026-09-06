@@ -13,6 +13,7 @@ import {
   TbLogout,
   TbChefHat,
   TbUsers,
+  TbX,
 } from 'react-icons/tb';
 import type { IconType } from 'react-icons';
 import { useProfileData } from '@/context/ProfileDataContext';
@@ -32,6 +33,11 @@ type NavItem = {
   permissions?: Permission[];
 };
 
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
 const NAV: NavItem[] = [
   { href: '/profile/dashboard', labelKey: 'dashboard', icon: TbLayoutDashboard, permissions: ['dashboard.view'] },
   { href: '/profile/menu', labelKey: 'menu', icon: TbToolsKitchen2, permissions: ['menu.view'] },
@@ -43,7 +49,7 @@ const NAV: NavItem[] = [
   { href: '/profile/settings', labelKey: 'settings', icon: TbSettings, permissions: ['venue.settings.manage'] },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const t = useTranslations('nav');
   const pathname = usePathname();
   const router = useRouter();
@@ -65,16 +71,28 @@ export default function Sidebar() {
 
   const logout = () => {
     localStorage.removeItem('accessToken');
+    onClose();
     router.push('/');
   };
 
   return (
-    <aside className={css.sidebar}>
+    <aside
+      id="profile-navigation"
+      className={`${css.sidebar} ${isOpen ? css.sidebarOpen : ''}`}
+    >
       <div className={css.brand}>
         <span className={css.logo}>
           <TbChefHat />
         </span>
         <span className={css.brandText}>{settings.venueName}</span>
+        <button
+          type="button"
+          className={css.closeButton}
+          onClick={onClose}
+          aria-label={t('closeMenu')}
+        >
+          <TbX />
+        </button>
       </div>
 
       <nav className={css.nav}>
@@ -95,6 +113,7 @@ export default function Sidebar() {
               key={href}
               href={href}
               className={`${css.navItem} ${active ? css.active : ''}`}
+              onClick={onClose}
             >
               <Icon className={css.navIcon} />
               <span>{t(labelKey)}</span>
@@ -115,7 +134,7 @@ export default function Sidebar() {
         <span>{t('logout')}</span>
       </button>
 
-      <Link href="/profile/account" className={css.userCard}>
+      <Link href="/profile/account" className={css.userCard} onClick={onClose}>
         <span className={css.avatar}>
           {initials.toUpperCase()}
           {avatarSrc && (

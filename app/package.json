@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint src --ext .ts,.tsx --max-warnings=0",
     "api:legacy": "nodemon ./src/api_node/api.js",
     "api": "npm run start:dev --prefix ../api"
   },

@@ -14,6 +14,7 @@ import AddModal from '../Modal/AddModal';
 import CardModal from '../Modal/CardModal/CardModal';
 import CategoryManagementPanel from './CategoryManagementModal';
 import SauceManagementPanel from './SauceManagementModal';
+import PageHeader from '@/components/Common/PageHeader/PageHeader';
 import css from './MenuManagement.module.css';
 
 type MenuSection = 'products' | 'categories' | 'sauces';
@@ -130,13 +131,11 @@ export default function MenuManagement() {
 
   return (
     <div className={css.page}>
-      <header className={css.header}>
-        <div>
-          <h1 className={css.title}>{t('title')}</h1>
-          <p className={css.subtitle}>{t('subtitle')}</p>
-        </div>
-        <div className={css.headerActions}>
-          {canManageProducts && activeSection === 'products' && (
+      <PageHeader
+        title={t('title')}
+        subtitle={t('subtitle')}
+        actions={
+          canManageProducts && activeSection === 'products' ? (
             <button
               type="button"
               className={css.btnPrimary}
@@ -144,9 +143,9 @@ export default function MenuManagement() {
             >
               <TbPlus /> {t('addNewItem')}
             </button>
-          )}
-        </div>
-      </header>
+          ) : null
+        }
+      />
 
       <div className={css.sectionTabs} role="tablist" aria-label={t('title')}>
         <button

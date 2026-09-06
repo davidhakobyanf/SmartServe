@@ -8,6 +8,7 @@ import type { UploadFile } from 'antd/es/upload/interface';
 import { useFetching } from '@/hoc/fetchingHook';
 import clientAPI from '@/api/api';
 import { fileToImagePayload } from '@/lib/fileToImagePayload';
+import { IMAGE_ACCEPT, validateImageFile } from '@/lib/imageValidation';
 import { resolveMenuImageSrc } from '@/lib/menuImages';
 import type { MenuCard } from '@/types';
 import type { CategoryRecord, SauceRecord } from '@/types/restaurant';
@@ -61,24 +62,20 @@ export default function EditCardModal({
   }, []);
 
   const [editCard] = useFetching(async (card: Partial<MenuCard>) => {
-    try {
-      if (!card.id) return;
-      await clientAPI.updateProduct(card.id, {
-        categoryId: card.categoryId,
-        titleTranslations: card.titleTranslations,
-        descriptionTranslations: card.descriptionTranslations,
-        price: card.price,
-        sauceIds:
-          card.sauceIds ?? (card.sauces ?? []).map((sauce) => sauce.id),
-        isActive: card.active,
-        image: card.image,
-      });
-      await fetchProfile({ force: true });
-      setShowEditConfirmation(false);
-      setCardModalOpen(false);
-    } catch (err) {
-      console.error('Error editing card:', err);
-    }
+    if (!card.id) return;
+    await clientAPI.updateProduct(card.id, {
+      categoryId: card.categoryId,
+      titleTranslations: card.titleTranslations,
+      descriptionTranslations: card.descriptionTranslations,
+      price: card.price,
+      sauceIds:
+        card.sauceIds ?? (card.sauces ?? []).map((sauce) => sauce.id),
+      isActive: card.active,
+      image: card.image,
+    });
+    await fetchProfile({ force: true });
+    setShowEditConfirmation(false);
+    setCardModalOpen(false);
   });
 
   useEffect(() => {
@@ -132,7 +129,11 @@ export default function EditCardModal({
       active: item.active,
       id: item.id,
     };
-    void editCard(updatedValues as Partial<MenuCard>);
+    const succeeded = await editCard(updatedValues as Partial<MenuCard>);
+    if (!succeeded) {
+      message.error(t('edit.error'));
+      return;
+    }
     const missing = new Set([
       ...missingContentLocales(values.titleTranslations),
       ...missingContentLocales(values.descriptionTranslations),
@@ -146,6 +147,14 @@ export default function EditCardModal({
         }),
       );
     }
+  };
+
+  const beforeImageUpload = (file: File) => {
+    const validationError = validateImageFile(file);
+    if (!validationError) return false;
+
+    message.error(t(`validation.${validationError}`));
+    return Upload.LIST_IGNORE;
   };
 
   return (
@@ -201,9 +210,9 @@ export default function EditCardModal({
           <Upload
             fileList={fileList}
             onChange={({ fileList: fl }) => setFileList(fl)}
-            beforeUpload={() => false}
+            beforeUpload={beforeImageUpload}
             maxCount={1}
-            accept="image/*"
+            accept={IMAGE_ACCEPT}
           >
             <Button icon={<UploadOutlined />}>{t('fields.selectImage')}</Button>
           </Upload>

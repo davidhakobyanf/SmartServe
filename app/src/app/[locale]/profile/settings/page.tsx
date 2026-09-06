@@ -6,6 +6,7 @@ import { App, Button, Form, Input, Select } from 'antd';
 import { TbBuildingStore, TbDeviceFloppy } from 'react-icons/tb';
 import { useVenueSettings } from '@/context/VenueSettingsContext';
 import type { VenueSettingsRecord } from '@/types/restaurant';
+import PageHeader from '@/components/Common/PageHeader/PageHeader';
 import css from './SettingsPage.module.css';
 
 type SettingsFormValues = Pick<
@@ -56,10 +57,7 @@ export default function SettingsPage() {
 
   return (
     <div className={css.wrap}>
-      <header>
-        <h1 className={css.title}>{t('pageTitle')}</h1>
-        <p className={css.subtitle}>{t('pageSubtitle')}</p>
-      </header>
+      <PageHeader title={t('pageTitle')} subtitle={t('pageSubtitle')} />
 
       <section className={css.card}>
         <div className={css.cardHeader}>

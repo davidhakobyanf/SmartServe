@@ -7,7 +7,6 @@ import {
   Button,
   Empty,
   Form,
-  Input,
   InputNumber,
   Modal,
   Popconfirm,
@@ -37,6 +36,7 @@ import {
   missingContentLocales,
   type LocalizedText,
 } from '@/types/localization';
+import PageHeader from '@/components/Common/PageHeader/PageHeader';
 
 interface TableFormValues {
   number: number;
@@ -176,12 +176,11 @@ export default function TablesManagement() {
 
   return (
     <div className={css.page}>
-      <header className={css.header}>
-        <div>
-          <h1 className={css.title}>{t('pageTitle')}</h1>
-          <p className={css.subtitle}>{t('pageSubtitle')}</p>
-        </div>
-        <div className={css.headerActions}>
+      <PageHeader
+        title={t('pageTitle')}
+        subtitle={t('pageSubtitle')}
+        actions={
+          <>
           <Button icon={<TbRefresh />} onClick={() => void loadTables()}>
             {t('actions.refresh')}
           </Button>
@@ -190,8 +189,9 @@ export default function TablesManagement() {
               {t('actions.add')}
             </Button>
           )}
-        </div>
-      </header>
+          </>
+        }
+      />
 
       <div className={css.stats}>
         {(
@@ -239,11 +239,11 @@ export default function TablesManagement() {
               <tbody>
                 {tables.map((table) => (
                   <tr key={table.id}>
-                    <td>
+                    <td data-label={t('columns.table')}>
                       <div className={css.tableName}>{t('tableNumber', { number: table.number })}</div>
                       {table.name && <div className={css.tableNote}>{table.name}</div>}
                     </td>
-                    <td>
+                    <td data-label={t('columns.status')}>
                       {!table.isActive ? (
                         <Tag>{t('status.inactive')}</Tag>
                       ) : table.activeSession ? (
@@ -252,7 +252,7 @@ export default function TablesManagement() {
                         <Tag color="blue">{t('status.available')}</Tag>
                       )}
                     </td>
-                    <td>
+                    <td data-label={t('columns.session')}>
                       {table.activeSession ? (
                         <span className={css.sessionId} title={table.activeSession.id}>
                           {table.activeSession.id.slice(0, 8)}…
@@ -261,7 +261,7 @@ export default function TablesManagement() {
                         <span className={css.muted}>—</span>
                       )}
                     </td>
-                    <td>
+                    <td data-label={t('columns.qr')}>
                       {canManageQr && table.publicToken ? (
                         <Button icon={<TbQrcode />} onClick={() => setQrTable(table)}>
                           {t('actions.showQr')}
@@ -270,7 +270,7 @@ export default function TablesManagement() {
                         <span className={css.muted}>—</span>
                       )}
                     </td>
-                    <td>
+                    <td data-label={t('columns.actions')}>
                       <div className={css.rowActions}>
                         {canManageTables && (
                           <Button icon={<TbEdit />} onClick={() => openEdit(table)}>

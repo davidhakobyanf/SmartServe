@@ -12,6 +12,18 @@
   "empty": "Դեռ պատվերներ չկան",
   "table": "Սեղան {n}",
   "statusPlaced": "Ընդունված",
+  "statusUpdateSuccess": "Պատվերի կարգավիճակը թարմացվել է",
+  "statusUpdateError": "Չհաջողվեց թարմացնել պատվերի կարգավիճակը",
+  "statuses": {
+    "placed": "Ընդունված",
+    "completed": "Ավարտված",
+    "cancelled": "Չեղարկված"
+  },
+  "notification": {
+    "title": "Նոր պատվեր",
+    "table": "Սեղան {table}",
+    "withTotal": "Սեղան {table} — {total} ֏"
+  },
   "dram": "դրամ",
   "dramShort": "դր.",
   "time": {

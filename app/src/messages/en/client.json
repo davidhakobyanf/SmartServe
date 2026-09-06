@@ -37,7 +37,10 @@
     "empty": "Your basket is empty",
     "total": "Total",
     "placeOrder": "Place Order",
-    "kitchenNote": "Your order is sent to the kitchen"
+    "kitchenNote": "Your order is sent to the kitchen",
+    "removeItem": "Remove {name}",
+    "decrease": "Decrease quantity",
+    "increase": "Increase quantity"
   },
   "closed": {
     "title": "The table is closed",

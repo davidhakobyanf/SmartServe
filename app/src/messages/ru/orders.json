@@ -12,6 +12,18 @@
   "empty": "Заказов пока нет",
   "table": "Стол {n}",
   "statusPlaced": "Оформлен",
+  "statusUpdateSuccess": "Статус заказа обновлён",
+  "statusUpdateError": "Не удалось обновить статус заказа",
+  "statuses": {
+    "placed": "Принят",
+    "completed": "Завершён",
+    "cancelled": "Отменён"
+  },
+  "notification": {
+    "title": "Новый заказ",
+    "table": "Стол {table}",
+    "withTotal": "Стол {table} — {total} ֏"
+  },
   "dram": "драм",
   "dramShort": "др.",
   "time": {

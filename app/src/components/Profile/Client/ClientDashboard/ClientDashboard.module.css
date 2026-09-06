@@ -302,6 +302,10 @@
 }
 .imgWrap {
   position: relative;
+  display: block;
+  width: calc(100% - 20px);
+  padding: 0;
+  border: 0;
   margin: 10px 10px 0;
   aspect-ratio: 1 / 1;
   cursor: pointer;
@@ -404,6 +408,20 @@
 .cardTitle:hover {
   color: var(--primary);
 }
+.cardTitleButton,
+.orderItemNameButton,
+.orderThumbButton {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+.cardTitleButton { width: 100%; }
+.cardTitleButton:disabled,
+.imgWrap:disabled { cursor: default; }
 .cardDesc {
   font-size: 13px;
   line-height: 1.45;
@@ -563,8 +581,10 @@
   cursor: pointer;
 }
 .orderThumbFallback {
+  display: block;
   background: linear-gradient(135deg, var(--primary-50), var(--primary-100));
 }
+.orderThumbButton { flex: 0 0 52px; }
 .orderItemInfo {
   flex: 1;
   min-width: 0;
@@ -578,18 +598,14 @@
   justify-content: space-between;
   gap: 8px;
 }
-.orderItemName {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
+.orderItemNameButton {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
 }
-.orderItemName:hover {
-  color: var(--primary);
-}
+.orderItemNameButton:hover { color: var(--primary); }
 .removeBtn {
   border: none;
   background: transparent;
@@ -700,6 +716,7 @@
 
 .backdrop {
   display: none;
+  border: 0;
 }
 
 /* Closed session */
@@ -772,7 +789,7 @@
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, 0.45);
+    background: var(--overlay);
     z-index: 1000;
   }
 }

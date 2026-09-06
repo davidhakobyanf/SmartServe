@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { TbBell, TbBellRinging, TbCheck, TbChecks } from 'react-icons/tb';
 import { useWaiterCalls } from '@/context/WaiterCallsContext';
 import type { WaiterCall } from '@/types/waiter';
+import PageHeader from '@/components/Common/PageHeader/PageHeader';
 import css from './Waiter.module.css';
 
 function timeAgo(
@@ -25,17 +26,15 @@ export default function Waiter() {
 
   return (
     <div className={css.page}>
-      <header className={css.header}>
-        <div>
-          <h1 className={css.title}>{t('title')}</h1>
-          <p className={css.subtitle}>{t('subtitle')}</p>
-        </div>
-        {calls.length > 0 && (
+      <PageHeader
+        title={t('title')}
+        subtitle={t('subtitle')}
+        actions={calls.length > 0 ? (
           <button type="button" className={css.clearBtn} onClick={clearAll}>
             <TbChecks /> {t('resolveAll')}
           </button>
-        )}
-      </header>
+        ) : null}
+      />
 
       {calls.length === 0 ? (
         <div className={css.empty}>

@@ -6,6 +6,7 @@ import { App, Button, InputNumber, Modal, Select, Form, Upload } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
 import { fileToImagePayload } from '@/lib/fileToImagePayload';
+import { IMAGE_ACCEPT, validateImageFile } from '@/lib/imageValidation';
 import type { MenuCard } from '@/types';
 import type { CategoryRecord, SauceRecord } from '@/types/restaurant';
 import clientAPI from '@/api/api';
@@ -62,6 +63,14 @@ export default function AddModal({
 
   const onChange = ({ fileList: newFileList }: { fileList: UploadFile[] }) => {
     setFileList(newFileList);
+  };
+
+  const beforeImageUpload = (file: File) => {
+    const validationError = validateImageFile(file);
+    if (!validationError) return false;
+
+    message.error(t(`validation.${validationError}`));
+    return Upload.LIST_IGNORE;
   };
 
   const onFinish = async (values: ProductFormValues) => {
@@ -167,9 +176,9 @@ export default function AddModal({
           <Upload
             fileList={fileList}
             onChange={onChange}
-            beforeUpload={() => false}
+            beforeUpload={beforeImageUpload}
             maxCount={1}
-            accept="image/*"
+            accept={IMAGE_ACCEPT}
           >
             <Button icon={<UploadOutlined />}>{t('fields.selectImage')}</Button>
           </Upload>

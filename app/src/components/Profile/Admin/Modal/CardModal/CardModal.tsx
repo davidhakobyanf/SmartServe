@@ -111,7 +111,7 @@ export default function CardModal({
     },
   ];
 
-  const data = plainOptions?.map((option, i) => ({
+  const data = plainOptions?.map((option) => ({
     key: option.option.id,
     option: option.option,
     total: option.total,

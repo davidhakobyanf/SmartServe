@@ -8,8 +8,7 @@ import css from './ClientCardModal.module.css';
 import { useFetching } from '@/hoc/fetchingHook';
 import clientAPI from '@/api/api';
 import type { MenuCard, MenuImage } from '@/types';
-
-const fmt = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+import { formatAmount } from '@/lib/formatters';
 
 interface ClientCardModalProps {
   setCardModalOpen: (open: boolean) => void;
@@ -35,23 +34,19 @@ export default function ClientCardModal({
   const [quantity, setQuantity] = useState(1);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
 
-  const [fetchAddCard, addCardLoading, addCardError] = useFetching(
+  const [fetchAddCard] = useFetching(
     async (modifiedItem: MenuCard) => {
-      try {
-        if (editItem?.basketItemId) {
-          await clientAPI.updateBasketItem(editItem.basketItemId, {
-            quantity,
-            sauceIds: modifiedItem.sauces.map((sauce) => sauce.id),
-          });
-        } else {
-          await clientAPI.addBasketItem({
-            productId: modifiedItem.id,
-            quantity,
-            sauceIds: modifiedItem.sauces.map((sauce) => sauce.id),
-          });
-        }
-      } catch (err) {
-        console.error('Error adding to basket:', err);
+      if (editItem?.basketItemId) {
+        await clientAPI.updateBasketItem(editItem.basketItemId, {
+          quantity,
+          sauceIds: modifiedItem.sauces.map((sauce) => sauce.id),
+        });
+      } else {
+        await clientAPI.addBasketItem({
+          productId: modifiedItem.id,
+          quantity,
+          sauceIds: modifiedItem.sauces.map((sauce) => sauce.id),
+        });
       }
     },
   );
@@ -70,8 +65,7 @@ export default function ClientCardModal({
       setQuantity(1);
       setSelected({});
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cardModalOpen, item?.id, editItem?.id]);
+  }, [cardModalOpen, item?.id, editItem]);
 
   useEffect(() => {
     if (cardModalOpen && (!item || !item.active)) {
@@ -104,12 +98,13 @@ export default function ClientCardModal({
       sauces: selectedSauces,
       count: quantity,
     };
-    await fetchAddCard(modifiedItem);
-    if (!addCardLoading) {
-      if (addCardError) message.error(t('card.serverError'));
-      else if (editItem) message.success(t('card.updated'));
-      else message.success(t('card.added'));
+    const succeeded = await fetchAddCard(modifiedItem);
+    if (!succeeded) {
+      message.error(t('card.serverError'));
+      return;
     }
+    if (editItem) message.success(t('card.updated'));
+    else message.success(t('card.added'));
     setCardModalOpen(false);
   };
 
@@ -163,7 +158,7 @@ export default function ClientCardModal({
                 <p className={css.desc}>{item.description}</p>
               )}
 
-              <div className={css.unitPrice}>{fmt(item.price)} ֏</div>
+              <div className={css.unitPrice}>{formatAmount(item.price)} ֏</div>
 
               <div className={css.stepper}>
                 <button
@@ -208,7 +203,7 @@ export default function ClientCardModal({
                       </span>
                       <span className={css.sauceName}>{sauce.name}</span>
                       <span className={css.saucePrice}>
-                        {fmt(sauce.price)} ֏
+                        {formatAmount(sauce.price)} ֏
                       </span>
                     </button>
                   );
@@ -226,7 +221,7 @@ export default function ClientCardModal({
               />
               <div className={css.totalText}>
                 <span className={css.totalLabel}>{t('card.totalAmount')}</span>
-                <span className={css.totalValue}>{fmt(total)} ֏</span>
+                <span className={css.totalValue}>{formatAmount(total)} ֏</span>
               </div>
             </div>
             <button
