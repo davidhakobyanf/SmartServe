@@ -41,11 +41,12 @@ export default async function LocaleLayout({
 
   // Enable static rendering
   setRequestLocale(locale);
+  const documentLanguage = locale === 'am' ? 'hy' : locale;
 
   return (
-    <html lang={locale} className={inter.variable}>
+    <html lang={documentLanguage} className={inter.variable}>
       <body>
-        <NextIntlClientProvider>
+        <NextIntlClientProvider locale={locale}>
           <Providers locale={locale as Locale}>{children}</Providers>
         </NextIntlClientProvider>
       </body>
