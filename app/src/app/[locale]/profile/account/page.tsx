@@ -29,6 +29,7 @@ import clientAPI from '@/api/api';
 import { useProfileData } from '@/context/ProfileDataContext';
 import { profileImageApiUrl } from '@/lib/entityImages';
 import { fileToImagePayload } from '@/lib/fileToImagePayload';
+import { toIntlLocale } from '@/lib/intlLocale';
 import css from './AccountPage.module.css';
 
 interface PersonalFormValues {
@@ -80,7 +81,7 @@ export default function AccountPage() {
 
   const formatDate = (value?: string | null) => {
     if (!value) return t('never');
-    return new Intl.DateTimeFormat(locale, {
+    return new Intl.DateTimeFormat(toIntlLocale(locale), {
       dateStyle: 'medium',
       timeStyle: 'short',
     }).format(new Date(value));

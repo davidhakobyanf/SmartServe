@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import {
   App,
   Button,
@@ -42,6 +42,7 @@ import {
   missingContentLocales,
   type LocalizedText,
 } from '@/types/localization';
+import { toIntlLocale } from '@/lib/intlLocale';
 
 type View = 'users' | 'roles';
 type RoleAction = 'approve' | 'change';
@@ -114,15 +115,18 @@ function getApiError(error: unknown, fallback: string): string {
   return Array.isArray(detail) ? detail.join(', ') : detail || fallback;
 }
 
-function formatDate(value: string | null): string {
+function formatDate(value: string | null, locale: string): string {
   if (!value) return '—';
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString();
+  return Number.isNaN(date.getTime())
+    ? '—'
+    : date.toLocaleDateString(toIntlLocale(locale));
 }
 
 export default function StaffManagement() {
   const t = useTranslations('staff');
   const commonT = useTranslations('common');
+  const locale = useLocale();
   const { message } = App.useApp();
   const { permissions } = useProfileData();
   const canViewUsers = permissions.includes('users.view');
@@ -455,7 +459,7 @@ export default function StaffManagement() {
                         </td>
                         <td><Tag color={statusColor[user.status]}>{t(`statuses.${user.status}`)}</Tag></td>
                         <td>{user.role?.name ?? <span className={css.muted}>{t('noRole')}</span>}</td>
-                        <td className={css.muted}>{formatDate(user.createdAt)}</td>
+                        <td className={css.muted}>{formatDate(user.createdAt, locale)}</td>
                         <td>
                           <div className={css.actions}>
                             {canApproveUsers && user.status === 'pending' && (
