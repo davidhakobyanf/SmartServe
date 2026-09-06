@@ -14,7 +14,8 @@ import {
   type UploadProps,
 } from 'antd';
 import ImgCrop from 'antd-img-crop';
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
+import { useParams } from 'next/navigation';
 import {
   TbCamera,
   TbDeviceFloppy,
@@ -51,7 +52,7 @@ const AVATAR_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 export default function AccountPage() {
   const t = useTranslations('account');
   const permissionT = useTranslations('staff.permissionLabels');
-  const locale = useLocale();
+  const { locale } = useParams<{ locale: string }>();
   const { message, modal } = App.useApp();
   const { profileDataList, permissions, fetchProfile, isLoading } = useProfileData();
   const [personalForm] = Form.useForm<PersonalFormValues>();

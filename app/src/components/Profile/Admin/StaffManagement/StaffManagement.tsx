@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
+import { useParams } from 'next/navigation';
 import {
   App,
   Button,
@@ -126,7 +127,7 @@ function formatDate(value: string | null, locale: string): string {
 export default function StaffManagement() {
   const t = useTranslations('staff');
   const commonT = useTranslations('common');
-  const locale = useLocale();
+  const { locale } = useParams<{ locale: string }>();
   const { message } = App.useApp();
   const { permissions } = useProfileData();
   const canViewUsers = permissions.includes('users.view');
