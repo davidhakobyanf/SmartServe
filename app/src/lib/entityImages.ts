@@ -12,3 +12,7 @@ export function categoryImageApiUrl(id: string, updatedAt?: string): string {
 export function sauceImageApiUrl(id: string, updatedAt?: string): string {
   return versionedUrl(`/api/sauce-images/${id}`, updatedAt);
 }
+
+export function profileImageApiUrl(id: string, updatedAt?: string): string {
+  return versionedUrl(`/api/profile-images/${id}`, updatedAt);
+}

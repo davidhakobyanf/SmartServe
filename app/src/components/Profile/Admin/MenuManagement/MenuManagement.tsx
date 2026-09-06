@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { Input, Select, Dropdown, Empty } from 'antd';
-import { TbPlus, TbSearch, TbDotsVertical, TbCategory } from 'react-icons/tb';
+import { TbPlus, TbSearch, TbDotsVertical } from 'react-icons/tb';
 import clientAPI from '@/api/api';
 import { useFetching } from '@/hoc/fetchingHook';
 import { useProfileData } from '@/context/ProfileDataContext';
@@ -12,10 +12,11 @@ import type { MenuCard, MenuImage } from '@/types';
 import type { CategoryRecord } from '@/types/restaurant';
 import AddModal from '../Modal/AddModal';
 import CardModal from '../Modal/CardModal/CardModal';
-import MenuAssetsManagementModal, {
-  type MenuAssetsTab,
-} from './MenuAssetsManagementModal';
+import CategoryManagementPanel from './CategoryManagementModal';
+import SauceManagementPanel from './SauceManagementModal';
 import css from './MenuManagement.module.css';
+
+type MenuSection = 'products' | 'categories' | 'sauces';
 
 export default function MenuManagement() {
   const t = useTranslations('menu');
@@ -27,8 +28,7 @@ export default function MenuManagement() {
   const [sort, setSort] = useState('newest');
   const [category, setCategory] = useState('all');
   const [categories, setCategories] = useState<CategoryRecord[]>([]);
-  const [assetsOpen, setAssetsOpen] = useState(false);
-  const [assetsTab, setAssetsTab] = useState<MenuAssetsTab>('categories');
+  const [activeSection, setActiveSection] = useState<MenuSection>('products');
   const [addOpen, setAddOpen] = useState(false);
   const [cardOpen, setCardOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuCard | null>(null);
@@ -121,11 +121,6 @@ export default function MenuManagement() {
     void editCard({ id: item.id, active: !item.active });
   };
 
-  const openAssets = (tab: MenuAssetsTab) => {
-    setAssetsTab(tab);
-    setAssetsOpen(true);
-  };
-
   const SORT_OPTIONS = [
     { value: 'newest', label: t('sort.newest') },
     { value: 'price-asc', label: t('sort.priceAsc') },
@@ -141,25 +136,7 @@ export default function MenuManagement() {
           <p className={css.subtitle}>{t('subtitle')}</p>
         </div>
         <div className={css.headerActions}>
-          {canManageProducts && (
-            <button
-              type="button"
-              className={css.btnGhost}
-              onClick={() => openAssets('sauces')}
-            >
-              {t('saucesButton')}
-            </button>
-          )}
-          {canManageCategories && (
-            <button
-              type="button"
-              className={css.btnGhost}
-              onClick={() => openAssets('categories')}
-            >
-              <TbCategory /> {t('categoriesButton')}
-            </button>
-          )}
-          {canManageProducts && (
+          {canManageProducts && activeSection === 'products' && (
             <button
               type="button"
               className={css.btnPrimary}
@@ -171,111 +148,184 @@ export default function MenuManagement() {
         </div>
       </header>
 
-      <div className={css.tabs}>
-        {[{ id: 'all', name: t('categories.all') }, ...categories].map((cat) => (
+      <div className={css.sectionTabs} role="tablist" aria-label={t('title')}>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeSection === 'products'}
+          className={`${css.sectionTab} ${
+            activeSection === 'products' ? css.sectionTabActive : ''
+          }`}
+          onClick={() => setActiveSection('products')}
+        >
+          {t('productsButton')}
+        </button>
+        {canManageCategories && (
           <button
-            key={cat.id}
             type="button"
-            className={`${css.tab} ${category === cat.id ? css.tabActive : ''}`}
-            onClick={() => setCategory(cat.id)}
+            role="tab"
+            aria-selected={activeSection === 'categories'}
+            className={`${css.sectionTab} ${
+              activeSection === 'categories' ? css.sectionTabActive : ''
+            }`}
+            onClick={() => setActiveSection('categories')}
           >
-            {cat.name}
+            {t('categoriesButton')}
           </button>
-        ))}
+        )}
+        {canManageProducts && (
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeSection === 'sauces'}
+            className={`${css.sectionTab} ${
+              activeSection === 'sauces' ? css.sectionTabActive : ''
+            }`}
+            onClick={() => setActiveSection('sauces')}
+          >
+            {t('saucesButton')}
+          </button>
+        )}
       </div>
 
-      <div className={css.toolbar}>
-        <Input
-          className={css.searchInput}
-          size="large"
-          allowClear
-          prefix={<TbSearch className={css.searchIcon} />}
-          placeholder={t('searchPlaceholder')}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <Select
-          size="large"
-          className={css.sortSelect}
-          value={sort}
-          onChange={setSort}
-          options={SORT_OPTIONS}
-        />
-      </div>
-
-      {cards.length === 0 ? (
-        <div className={css.empty}>
-          <Empty description={t('empty')} />
-        </div>
-      ) : (
-        <div className={css.grid}>
-          {cards.map((item, index) => {
-            const src = images.find((im) => im.id === item.id)?.src;
-            return (
-              <article key={item.id} className={css.card}>
-                <div
-                  className={css.imgWrap}
-                  onClick={() => canManageProducts && openCard(item, index)}
+      {activeSection === 'products' && (
+        <div className={css.sectionContent} role="tabpanel">
+          <div className={css.tabs}>
+            {[{ id: 'all', name: t('categories.all') }, ...categories].map(
+              (cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  className={`${css.tab} ${
+                    category === cat.id ? css.tabActive : ''
+                  }`}
+                  onClick={() => setCategory(cat.id)}
                 >
-                  {src ? (
-                    <img
-                      src={src}
-                      alt={item.title}
-                      loading="lazy"
-                      className={css.img}
-                    />
-                  ) : (
-                    <div className={css.imgFallback} />
-                  )}
-                </div>
-                <div className={css.body}>
-                  <div className={css.topRow}>
-                    <h3
-                      className={css.cardTitle}
+                  {cat.name}
+                </button>
+              ),
+            )}
+          </div>
+
+          <div className={css.toolbar}>
+            <Input
+              className={css.searchInput}
+              size="large"
+              allowClear
+              prefix={<TbSearch className={css.searchIcon} />}
+              placeholder={t('searchPlaceholder')}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <Select
+              size="large"
+              className={css.sortSelect}
+              value={sort}
+              onChange={setSort}
+              options={SORT_OPTIONS}
+            />
+          </div>
+
+          {cards.length === 0 ? (
+            <div className={css.empty}>
+              <Empty description={t('empty')} />
+            </div>
+          ) : (
+            <div className={css.grid}>
+              {cards.map((item, index) => {
+                const src = images.find((im) => im.id === item.id)?.src;
+                return (
+                  <article key={item.id} className={css.card}>
+                    <div
+                      className={css.imgWrap}
                       onClick={() => canManageProducts && openCard(item, index)}
                     >
-                      {item.title}
-                    </h3>
-                    {canManageProducts && <Dropdown
-                      trigger={['click']}
-                      menu={{
-                        items: [
-                          {
-                            key: 'edit',
-                            label: t('edit'),
-                            onClick: () => openCard(item, index),
-                          },
-                          {
-                            key: 'toggle',
-                            label: item.active
-                              ? t('markUnavailable')
-                              : t('markAvailable'),
-                            onClick: () => toggleActive(item),
-                          },
-                        ],
-                      }}
-                    >
-                      <button type="button" className={css.dots}>
-                        <TbDotsVertical />
+                      {src ? (
+                        <img
+                          src={src}
+                          alt={item.title}
+                          loading="lazy"
+                          className={css.img}
+                        />
+                      ) : (
+                        <div className={css.imgFallback} />
+                      )}
+                    </div>
+                    <div className={css.body}>
+                      <div className={css.topRow}>
+                        <h3
+                          className={css.cardTitle}
+                          onClick={() =>
+                            canManageProducts && openCard(item, index)
+                          }
+                        >
+                          {item.title}
+                        </h3>
+                        {canManageProducts && (
+                          <Dropdown
+                            trigger={['click']}
+                            menu={{
+                              items: [
+                                {
+                                  key: 'edit',
+                                  label: t('edit'),
+                                  onClick: () => openCard(item, index),
+                                },
+                                {
+                                  key: 'toggle',
+                                  label: item.active
+                                    ? t('markUnavailable')
+                                    : t('markAvailable'),
+                                  onClick: () => toggleActive(item),
+                                },
+                              ],
+                            }}
+                          >
+                            <button type="button" className={css.dots}>
+                              <TbDotsVertical />
+                            </button>
+                          </Dropdown>
+                        )}
+                      </div>
+                      <div className={css.price}>
+                        {t('price', { price: item.price })}
+                      </div>
+                      <p className={css.desc}>{item.description}</p>
+                      <button
+                        type="button"
+                        className={`${css.tag} ${
+                          item.active ? css.tagOn : css.tagOff
+                        }`}
+                        onClick={() => canManageProducts && toggleActive(item)}
+                        disabled={!canManageProducts}
+                      >
+                        {item.active ? t('available') : t('unavailable')}
                       </button>
-                    </Dropdown>}
-                  </div>
-                  <div className={css.price}>{t('price', { price: item.price })}</div>
-                  <p className={css.desc}>{item.description}</p>
-                  <button
-                    type="button"
-                    className={`${css.tag} ${
-                      item.active ? css.tagOn : css.tagOff
-                    }`}
-                    onClick={() => canManageProducts && toggleActive(item)}
-                    disabled={!canManageProducts}
-                  >
-                    {item.active ? t('available') : t('unavailable')}
-                  </button>
-                </div>
-              </article>
-            );
-          })}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeSection === 'categories' && canManageCategories && (
+        <div className={css.sectionContent} role="tabpanel">
+          <CategoryManagementPanel
+            onChanged={() => {
+              void loadCategories();
+              void fetchProfile({ force: true });
+            }}
+          />
+        </div>
+      )}
+
+      {activeSection === 'sauces' && canManageProducts && (
+        <div className={css.sectionContent} role="tabpanel">
+          <SauceManagementPanel
+            onChanged={() => void fetchProfile({ force: true })}
+          />
         </div>
       )}
 
@@ -295,18 +345,6 @@ export default function MenuManagement() {
             fetchProfile={fetchProfile}
           />
         </>
-      )}
-      {(canManageCategories || canManageProducts) && (
-        <MenuAssetsManagementModal
-          open={assetsOpen}
-          activeTab={assetsTab}
-          canManageCategories={canManageCategories}
-          canManageSauces={canManageProducts}
-          onTabChange={setAssetsTab}
-          onClose={() => setAssetsOpen(false)}
-          onCategoriesChanged={() => void loadCategories()}
-          onSaucesChanged={() => void fetchProfile({ force: true })}
-        />
       )}
     </div>
   );

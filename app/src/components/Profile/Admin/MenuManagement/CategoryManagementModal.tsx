@@ -205,8 +205,11 @@ export default function CategoryManagementPanel({ onChanged }: Props) {
   };
 
   return (
-    <>
-      <div ref={formSectionRef}>
+    <div className={css.assetWorkspace}>
+      <section ref={formSectionRef} className={css.editorCard}>
+        <h2 className={css.panelHeading}>
+          {editing ? t('editFormTitle') : t('formTitle')}
+        </h2>
         {editing && (
           <Alert
             type="info"
@@ -275,55 +278,60 @@ export default function CategoryManagementPanel({ onChanged }: Props) {
           {editing ? t('save') : t('add')}
         </Button>
         </Form>
-      </div>
-      <List
-        dataSource={categories}
-        locale={{ emptyText: t('empty') }}
-        renderItem={(category) => (
-          <List.Item
-            actions={[
-              <Button
-                key="edit"
-                type="link"
-                disabled={editing?.id === category.id}
-                onClick={() => startEditing(category)}
-              >
-                {editing?.id === category.id ? t('editingNow') : t('edit')}
-              </Button>,
-              <Button
-                key="delete"
-                type="link"
-                danger
-                onClick={() => removeCategory(category)}
-              >
-                {commonT('delete')}
-              </Button>,
-              <Switch
-                key="active"
-                checked={category.isActive}
-                onChange={(checked) => void toggle(category, checked)}
-              />,
-            ]}
-          >
-            <List.Item.Meta
-              avatar={
-                <Avatar
-                  shape="square"
-                  size={48}
-                  src={
-                    category.imageName
-                      ? categoryImageApiUrl(category.id, category.updatedAt)
-                      : undefined
-                  }
-                  icon={<PictureOutlined />}
-                />
-              }
-              title={category.name}
-              description={t('sortOrderValue', { value: category.sortOrder })}
-            />
-          </List.Item>
-        )}
-      />
-    </>
+      </section>
+      <section className={css.listCard}>
+        <h2 className={css.panelHeading}>{t('listTitle')}</h2>
+        <List
+          dataSource={categories}
+          locale={{ emptyText: t('empty') }}
+          renderItem={(category) => (
+            <List.Item
+              actions={[
+                <Button
+                  key="edit"
+                  type="link"
+                  disabled={editing?.id === category.id}
+                  onClick={() => startEditing(category)}
+                >
+                  {editing?.id === category.id ? t('editingNow') : t('edit')}
+                </Button>,
+                <Button
+                  key="delete"
+                  type="link"
+                  danger
+                  onClick={() => removeCategory(category)}
+                >
+                  {commonT('delete')}
+                </Button>,
+                <Switch
+                  key="active"
+                  checked={category.isActive}
+                  onChange={(checked) => void toggle(category, checked)}
+                />,
+              ]}
+            >
+              <List.Item.Meta
+                avatar={
+                  <Avatar
+                    shape="square"
+                    size={48}
+                    src={
+                      category.imageName
+                        ? categoryImageApiUrl(category.id, category.updatedAt)
+                        : undefined
+                    }
+                    icon={<PictureOutlined />}
+                  />
+                }
+                title={category.name}
+                description={t('sortOrderValue', {
+                  value: category.sortOrder,
+                })}
+              />
+            </List.Item>
+          )}
+        />
+      </section>
+    </div>
   );
 }

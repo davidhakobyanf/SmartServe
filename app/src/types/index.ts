@@ -1,3 +1,10 @@
+import type { LocalizedText } from './localization';
+import type {
+  Permission,
+  StaffRoleSummary,
+  StaffUserStatus,
+} from './staff';
+
 export interface MenuCardImage {
   name: string;
   mimeType?: string;
@@ -42,9 +49,17 @@ export type {
 } from './restaurant';
 
 export interface Profile {
+  id?: string;
   name: string;
   surname: string;
   email?: string;
+  status?: StaffUserStatus;
+  role?: StaffRoleSummary | null;
+  permissions?: Permission[];
+  avatarName?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  lastLoginAt?: string | null;
   card: MenuCard[];
 }
 
@@ -64,4 +79,3 @@ export interface RegisterFormValues {
   email: string;
   password: string;
 }
-import type { LocalizedText } from './localization';

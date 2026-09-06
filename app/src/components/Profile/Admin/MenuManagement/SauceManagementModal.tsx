@@ -205,8 +205,11 @@ export default function SauceManagementPanel({ onChanged }: Props) {
   };
 
   return (
-    <>
-      <div ref={formSectionRef}>
+    <div className={css.assetWorkspace}>
+      <section ref={formSectionRef} className={css.editorCard}>
+        <h2 className={css.panelHeading}>
+          {editing ? t('editFormTitle') : t('formTitle')}
+        </h2>
         {editing && (
           <Alert
             type="info"
@@ -279,55 +282,58 @@ export default function SauceManagementPanel({ onChanged }: Props) {
           {editing ? t('save') : t('add')}
         </Button>
         </Form>
-      </div>
-      <List
-        dataSource={sauces}
-        locale={{ emptyText: t('empty') }}
-        renderItem={(sauce) => (
-          <List.Item
-            actions={[
-              <Button
-                key="edit"
-                type="link"
-                disabled={editing?.id === sauce.id}
-                onClick={() => startEditing(sauce)}
-              >
-                {editing?.id === sauce.id ? t('editingNow') : t('edit')}
-              </Button>,
-              <Button
-                key="delete"
-                type="link"
-                danger
-                onClick={() => removeSauce(sauce)}
-              >
-                {commonT('delete')}
-              </Button>,
-              <Switch
-                key="active"
-                checked={sauce.isActive}
-                onChange={(checked) => void toggle(sauce, checked)}
-              />,
-            ]}
-          >
-            <List.Item.Meta
-              avatar={
-                <Avatar
-                  shape="square"
-                  size={48}
-                  src={
-                    sauce.imageName
-                      ? sauceImageApiUrl(sauce.id, sauce.updatedAt)
-                      : undefined
-                  }
-                  icon={<PictureOutlined />}
-                />
-              }
-              title={sauce.name}
-              description={`${Number(sauce.price)} ֏`}
-            />
-          </List.Item>
-        )}
-      />
-    </>
+      </section>
+      <section className={css.listCard}>
+        <h2 className={css.panelHeading}>{t('listTitle')}</h2>
+        <List
+          dataSource={sauces}
+          locale={{ emptyText: t('empty') }}
+          renderItem={(sauce) => (
+            <List.Item
+              actions={[
+                <Button
+                  key="edit"
+                  type="link"
+                  disabled={editing?.id === sauce.id}
+                  onClick={() => startEditing(sauce)}
+                >
+                  {editing?.id === sauce.id ? t('editingNow') : t('edit')}
+                </Button>,
+                <Button
+                  key="delete"
+                  type="link"
+                  danger
+                  onClick={() => removeSauce(sauce)}
+                >
+                  {commonT('delete')}
+                </Button>,
+                <Switch
+                  key="active"
+                  checked={sauce.isActive}
+                  onChange={(checked) => void toggle(sauce, checked)}
+                />,
+              ]}
+            >
+              <List.Item.Meta
+                avatar={
+                  <Avatar
+                    shape="square"
+                    size={48}
+                    src={
+                      sauce.imageName
+                        ? sauceImageApiUrl(sauce.id, sauce.updatedAt)
+                        : undefined
+                    }
+                    icon={<PictureOutlined />}
+                  />
+                }
+                title={sauce.name}
+                description={`${Number(sauce.price)} ֏`}
+              />
+            </List.Item>
+          )}
+        />
+      </section>
+    </div>
   );
 }

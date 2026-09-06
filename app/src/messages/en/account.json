@@ -1,6 +1,76 @@
 {
-  "pageTitle": "Profile",
-  "pageSubtitle": "Your account details",
-  "loading": "Loading...",
-  "notFound": "User not found"
+  "pageTitle": "My profile",
+  "pageSubtitle": "Personal details, security, and access permissions",
+  "loading": "Loading profile...",
+  "notFound": "User not found",
+  "save": "Save",
+  "delete": "Delete",
+  "cancel": "Cancel",
+  "never": "No data",
+  "registered": "Registered",
+  "lastLogin": "Last login",
+  "tabs": {
+    "personal": "Personal details",
+    "security": "Security",
+    "access": "Access permissions"
+  },
+  "statuses": {
+    "pending": "Pending approval",
+    "active": "Active",
+    "rejected": "Rejected",
+    "disabled": "Disabled"
+  },
+  "avatar": {
+    "hint": "Click the photo. You can move and zoom it in the editor.",
+    "editorTitle": "Adjust your photo",
+    "apply": "Apply",
+    "reset": "Reset",
+    "invalid": "Select an image file",
+    "tooLarge": "The image must be smaller than 5 MB",
+    "saved": "Avatar updated",
+    "saveError": "Failed to save the avatar",
+    "delete": "Remove photo",
+    "deleteConfirm": "Remove your profile photo?",
+    "deleteHint": "Your initials will be shown instead.",
+    "deleted": "Avatar removed",
+    "deleteError": "Failed to remove the avatar"
+  },
+  "personal": {
+    "title": "Basic information",
+    "subtitle": "Change your first name, last name, or email address",
+    "name": "First name",
+    "surname": "Last name",
+    "email": "Email",
+    "nameRequired": "Enter your first name",
+    "surnameRequired": "Enter your last name",
+    "nameLength": "First name must contain 2 to 100 characters",
+    "surnameLength": "Last name must contain 2 to 100 characters",
+    "emailRequired": "Enter your email",
+    "emailInvalid": "Enter a valid email",
+    "saved": "Profile details saved",
+    "saveError": "Could not save the details. The email may already be in use."
+  },
+  "security": {
+    "title": "Change password",
+    "subtitle": "Enter your current password first for security",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm new password",
+    "currentRequired": "Enter your current password",
+    "newRequired": "Enter a new password",
+    "confirmRequired": "Repeat the new password",
+    "passwordHint": "At least 6 characters with uppercase, lowercase, a number, and a special character.",
+    "passwordInvalid": "The new password does not meet the requirements",
+    "passwordMismatch": "Passwords do not match",
+    "changePassword": "Change password",
+    "saved": "Password changed successfully",
+    "saveError": "Could not change the password. Check your current password."
+  },
+  "access": {
+    "title": "Role and permissions",
+    "subtitle": "Your access is assigned by the owner or manager",
+    "role": "Role",
+    "status": "Status",
+    "noRole": "No role"
+  }
 }

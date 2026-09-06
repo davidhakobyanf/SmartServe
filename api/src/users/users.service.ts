@@ -9,7 +9,7 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
-import { Repository } from "typeorm";
+import { ILike, Repository } from "typeorm";
 import { User } from "../entities/user.entity";
 import { isValidPassword } from "../common/utils/password.util";
 import { RegisterDto } from "./dto/register.dto";
@@ -120,7 +120,15 @@ export class UsersService {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.usersRepo.findOne({ where: { email } });
+    return this.usersRepo.findOne({ where: { email: ILike(email) } });
+  }
+
+  async findAvatarById(id: string): Promise<User | null> {
+    return this.usersRepo
+      .createQueryBuilder("user")
+      .addSelect("user.avatarData")
+      .where("user.id = :id", { id })
+      .getOne();
   }
 
   async findAll(): Promise<User[]> {

@@ -29,6 +29,15 @@ export class User {
   @Column()
   password!: string;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  avatarName!: string | null;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  avatarMimeType!: string | null;
+
+  @Column({ type: 'bytea', nullable: true, select: false })
+  avatarData!: Buffer | null;
+
   @Column({
     type: 'uuid',
     nullable: true,

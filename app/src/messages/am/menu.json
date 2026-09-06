@@ -1,9 +1,9 @@
 {
   "title": "Մենյուի կառավարում",
   "subtitle": "Կառավարեք ձեր ռեստորանի մենյուն և ուտեստները",
+  "productsButton": "Ուտեստներ",
   "categoriesButton": "Կատեգորիաներ",
   "saucesButton": "Սոուսներ",
-  "assetsManagementTitle": "Կատեգորիաներ և սոուսներ",
   "addNewItem": "Ավելացնել նոր ուտեստ",
   "categories": {
     "all": "Բոլոր ուտեստները",
@@ -28,6 +28,9 @@
   "unavailable": "Անհասանելի է",
   "categoriesManagement": {
     "title": "Կատեգորիաներ",
+    "formTitle": "Ավելացնել կատեգորիա",
+    "editFormTitle": "Փոփոխել կատեգորիան",
+    "listTitle": "Բոլոր կատեգորիաները",
     "name": "Կատեգորիայի անվանում",
     "namePlaceholder": "Օրինակ՝ Հիմնական ուտեստներ",
     "sortOrder": "Ցուցադրման հերթականություն",
@@ -56,6 +59,9 @@
   },
   "sauces": {
     "title": "Սոուսներ",
+    "formTitle": "Ավելացնել սոուս",
+    "editFormTitle": "Փոփոխել սոուսը",
+    "listTitle": "Բոլոր սոուսները",
     "nameLabel": "Սոուսի անվանում",
     "namePlaceholder": "Սոուսի անվանում",
     "priceLabel": "Սոուսի գին",

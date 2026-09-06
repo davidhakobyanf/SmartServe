@@ -1,9 +1,9 @@
 {
   "title": "Menu Management",
   "subtitle": "Manage your restaurant menu and menu items",
+  "productsButton": "Products",
   "categoriesButton": "Categories",
   "saucesButton": "Sauces",
-  "assetsManagementTitle": "Categories and sauces",
   "addNewItem": "Add New Item",
   "categories": {
     "all": "All Items",
@@ -28,6 +28,9 @@
   "unavailable": "Unavailable",
   "categoriesManagement": {
     "title": "Categories",
+    "formTitle": "Add category",
+    "editFormTitle": "Edit category",
+    "listTitle": "All categories",
     "name": "Category name",
     "namePlaceholder": "For example: Main courses",
     "sortOrder": "Display order",
@@ -56,6 +59,9 @@
   },
   "sauces": {
     "title": "Sauces",
+    "formTitle": "Add sauce",
+    "editFormTitle": "Edit sauce",
+    "listTitle": "All sauces",
     "nameLabel": "Sauce name",
     "namePlaceholder": "Sauce name",
     "priceLabel": "Sauce price",

@@ -187,6 +187,33 @@ class DataApi {
     return instance.get<Profile>('/api/profile');
   }
 
+  static async updateProfile(payload: {
+    name?: string;
+    surname?: string;
+    email?: string;
+  }): Promise<AxiosResponse<Profile>> {
+    return instance.patch<Profile>('/api/profile', payload);
+  }
+
+  static async changePassword(payload: {
+    currentPassword: string;
+    newPassword: string;
+  }): Promise<AxiosResponse<{ success: true }>> {
+    return instance.patch('/api/profile/password', payload);
+  }
+
+  static async updateAvatar(
+    image: ImageUploadPayload,
+  ): Promise<AxiosResponse<{ avatarName: string; updatedAt: string }>> {
+    return instance.put('/api/profile/avatar', { image });
+  }
+
+  static async removeAvatar(): Promise<
+    AxiosResponse<{ success: true; updatedAt: string }>
+  > {
+    return instance.delete('/api/profile/avatar');
+  }
+
   static async getMe(): Promise<AxiosResponse<AuthenticatedStaff>> {
     return instance.get<AuthenticatedStaff>('/api/auth/me');
   }

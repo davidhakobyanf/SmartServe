@@ -22,6 +22,7 @@ import { useVenueSettings } from '@/context/VenueSettingsContext';
 import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
 import css from './Sidebar.module.css';
 import type { Permission } from '@/types/staff';
+import { profileImageApiUrl } from '@/lib/entityImages';
 
 type NavItem = {
   href: string;
@@ -57,6 +58,10 @@ export default function Sidebar() {
   const initials =
     (profileDataList.name?.[0] ?? '') + (profileDataList.surname?.[0] ?? '') ||
     'RO';
+  const avatarSrc =
+    profileDataList.id && profileDataList.avatarName
+      ? profileImageApiUrl(profileDataList.id, profileDataList.updatedAt)
+      : null;
 
   const logout = () => {
     localStorage.removeItem('accessToken');
@@ -110,8 +115,20 @@ export default function Sidebar() {
         <span>{t('logout')}</span>
       </button>
 
-      <div className={css.userCard}>
-        <span className={css.avatar}>{initials.toUpperCase()}</span>
+      <Link href="/profile/account" className={css.userCard}>
+        <span className={css.avatar}>
+          {initials.toUpperCase()}
+          {avatarSrc && (
+            <img
+              src={avatarSrc}
+              alt={fullName}
+              className={css.avatarImage}
+              onError={(event) => {
+                event.currentTarget.style.display = 'none';
+              }}
+            />
+          )}
+        </span>
         <div className={css.userMeta}>
           <span className={css.userName}>
             {fullName || t('ownerFallback')}
@@ -120,7 +137,7 @@ export default function Sidebar() {
             <span className={css.dot} /> {t('online')}
           </span>
         </div>
-      </div>
+      </Link>
     </aside>
   );
 }

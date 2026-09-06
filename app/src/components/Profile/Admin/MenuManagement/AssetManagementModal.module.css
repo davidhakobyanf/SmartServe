@@ -19,3 +19,44 @@
   color: var(--primary);
   font-size: 20px;
 }
+
+.assetWorkspace {
+  display: grid;
+  grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+  align-items: start;
+  gap: 20px;
+}
+
+.editorCard,
+.listCard {
+  min-width: 0;
+  padding: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.panelHeading {
+  margin: 0 0 20px;
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.listCard :global(.ant-list-item:last-child) {
+  border-block-end: 0;
+}
+
+@media screen and (max-width: 960px) {
+  .assetWorkspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media screen and (max-width: 640px) {
+  .editorCard,
+  .listCard {
+    padding: 18px;
+  }
+}

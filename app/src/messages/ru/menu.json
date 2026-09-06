@@ -1,9 +1,9 @@
 {
   "title": "Управление меню",
   "subtitle": "Управляйте меню вашего ресторана и его позициями",
+  "productsButton": "Продукты",
   "categoriesButton": "Категории",
   "saucesButton": "Соусы",
-  "assetsManagementTitle": "Категории и соусы",
   "addNewItem": "Добавить позицию",
   "categories": {
     "all": "Все позиции",
@@ -28,6 +28,9 @@
   "unavailable": "Недоступно",
   "categoriesManagement": {
     "title": "Категории",
+    "formTitle": "Добавить категорию",
+    "editFormTitle": "Изменить категорию",
+    "listTitle": "Все категории",
     "name": "Название категории",
     "namePlaceholder": "Например: Основные блюда",
     "sortOrder": "Порядок отображения",
@@ -56,6 +59,9 @@
   },
   "sauces": {
     "title": "Соусы",
+    "formTitle": "Добавить соус",
+    "editFormTitle": "Изменить соус",
+    "listTitle": "Все соусы",
     "nameLabel": "Название соуса",
     "namePlaceholder": "Название соуса",
     "priceLabel": "Цена соуса",
