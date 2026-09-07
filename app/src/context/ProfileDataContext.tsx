@@ -6,9 +6,11 @@ import {
   useContext,
   useEffect,
   useCallback,
+  useRef,
   type ReactNode,
 } from 'react';
 import { usePathname } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import clientAPI from '@/api/api';
 import type { Profile } from '@/types';
 import type { Permission } from '@/types/staff';
@@ -16,10 +18,15 @@ import { productToMenuCard } from '@/lib/normalizeMenuCard';
 
 const emptyProfile: Profile = { name: '', surname: '', card: [] };
 
-let profileRequest: Promise<void> | null = null;
+let profileRequest: {
+  key: string;
+  id: symbol;
+  promise: Promise<void>;
+} | null = null;
 let cachedProfile: Profile | null = null;
 let cachedForAuthenticatedUser = false;
 let cachedPermissions: Permission[] = [];
+let cachedProfileLocale: string | null = null;
 
 interface ProfileDataContextValue {
   profileDataList: Profile;
@@ -33,6 +40,9 @@ const ProfileDataContext = createContext<ProfileDataContextValue | null>(null);
 
 export function ProfileDataProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const locale = useLocale();
+  const currentLocaleRef = useRef(locale);
+  currentLocaleRef.current = locale;
   const [profileDataList, setProfileDataList] = useState<Profile>(emptyProfile);
   const [isLoading, setIsLoading] = useState(true);
   const [permissions, setPermissions] = useState<Permission[]>([]);
@@ -46,7 +56,8 @@ export function ProfileDataProvider({ children }: { children: ReactNode }) {
     if (
       !force &&
       cachedProfile &&
-      cachedForAuthenticatedUser === hasAccessToken
+      cachedForAuthenticatedUser === hasAccessToken &&
+      cachedProfileLocale === locale
     ) {
       setProfileDataList(cachedProfile);
       setPermissions(cachedPermissions);
@@ -58,18 +69,21 @@ export function ProfileDataProvider({ children }: { children: ReactNode }) {
       cachedProfile = emptyProfile;
       cachedPermissions = [];
       cachedForAuthenticatedUser = false;
+      cachedProfileLocale = locale;
       setProfileDataList(emptyProfile);
       setPermissions([]);
       setIsLoading(false);
       return;
     }
 
-    if (profileRequest) {
-      await profileRequest;
+    const requestKey = `${hasAccessToken}:${locale}`;
+    if (profileRequest?.key === requestKey) {
+      await profileRequest.promise;
       return;
     }
 
-    profileRequest = (async () => {
+    const requestId = Symbol(requestKey);
+    const request = (async () => {
       try {
         setIsLoading(true);
         const { data: currentUser } = await clientAPI.getMe();
@@ -79,26 +93,34 @@ export function ProfileDataProvider({ children }: { children: ReactNode }) {
             ? clientAPI.getProducts()
             : Promise.resolve({ data: [] }),
         ]);
-        if (res) {
-          const cards = productsResponse.data.map(productToMenuCard);
+        if (res && currentLocaleRef.current === locale) {
+          const cards = productsResponse.data.map((product) =>
+            productToMenuCard(product, locale),
+          );
           const profile = { ...res, card: cards };
           cachedProfile = profile;
           cachedPermissions = currentUser.permissions ?? [];
           cachedForAuthenticatedUser = true;
+          cachedProfileLocale = locale;
           setProfileDataList(profile);
           setPermissions(cachedPermissions);
         }
       } catch {
-        cachedPermissions = [];
-        setPermissions([]);
+        if (currentLocaleRef.current === locale) {
+          cachedPermissions = [];
+          setPermissions([]);
+        }
       } finally {
-        setIsLoading(false);
-        profileRequest = null;
+        if (profileRequest?.id === requestId) {
+          setIsLoading(false);
+          profileRequest = null;
+        }
       }
     })();
+    profileRequest = { key: requestKey, id: requestId, promise: request };
 
-    await profileRequest;
-  }, []); 
+    await request;
+  }, [locale]);
 
   useEffect(() => {
     void fetchProfile();

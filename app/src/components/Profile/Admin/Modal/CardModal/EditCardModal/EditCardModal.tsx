@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import {
   App,
   Button,
@@ -26,6 +26,7 @@ import {
   cleanLocalizedText,
   hasLocalizedText,
   missingContentLocales,
+  localizeNamedRecord,
   type LocalizedText,
 } from '@/types/localization';
 import formCss from '../../ProductForm.module.css';
@@ -57,6 +58,7 @@ export default function EditCardModal({
   setCardModalOpen,
 }: EditCardModalProps) {
   const t = useTranslations('menuModal');
+  const locale = useLocale();
   const commonT = useTranslations('common');
   const { message } = App.useApp();
   const [form] = Form.useForm<ProductFormValues>();
@@ -67,11 +69,19 @@ export default function EditCardModal({
   useEffect(() => {
     void Promise.all([clientAPI.getCategories(), clientAPI.getSauces()]).then(
       ([categoriesResponse, saucesResponse]) => {
-        setCategories(categoriesResponse.data ?? []);
-        setSauces(saucesResponse.data ?? []);
+        setCategories(
+          (categoriesResponse.data ?? []).map((category) =>
+            localizeNamedRecord(category, locale),
+          ),
+        );
+        setSauces(
+          (saucesResponse.data ?? []).map((sauce) =>
+            localizeNamedRecord(sauce, locale),
+          ),
+        );
       },
     );
-  }, []);
+  }, [locale]);
 
   const [editCard] = useFetching(async (card: Partial<MenuCard>) => {
     if (!card.id) return;
@@ -181,7 +191,7 @@ export default function EditCardModal({
         form.resetFields();
         setShowEditConfirmation(false);
       }}
-      width={900}
+      width={960}
       footer={null}
       forceRender
       centered
@@ -218,6 +228,7 @@ export default function EditCardModal({
                 maxLength={2000}
                 multiline
                 rows={3}
+                showHint={false}
                 required
               />
               <Form.Item name="sauceIds" label={t('fields.sauces')}>
@@ -297,15 +308,15 @@ export default function EditCardModal({
               </div>
             </section>
 
-            <div className={formCss.actions}>
-              <Button onClick={() => setShowEditConfirmation(false)}>
-                {t('actions.cancel')}
-              </Button>
-              <Button type="primary" htmlType="submit">
-                {t('edit.submit')}
-              </Button>
-            </div>
           </aside>
+        </div>
+        <div className={formCss.actions}>
+          <Button onClick={() => setShowEditConfirmation(false)}>
+            {t('actions.cancel')}
+          </Button>
+          <Button type="primary" htmlType="submit">
+            {t('edit.submit')}
+          </Button>
         </div>
       </Form>
     </Modal>

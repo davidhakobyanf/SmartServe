@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { App, Input, Select, ConfigProvider } from 'antd';
 import {
   TbUser,
@@ -32,7 +32,7 @@ import type { BasketItemRecord, ProductRecord } from '@/types/restaurant';
 import { useWaiterClient } from '@/hooks/useWaiterClient';
 import { useSessionLock } from '@/hooks/useSessionLock';
 import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
-import { getMenuLineTotal, type MenuBadge } from '@/lib/clientMenu';
+import { getMenuLineTotal } from '@/lib/clientMenu';
 import { createSocket } from '@/lib/ws/socket';
 import ClientMenuGrid from './ClientMenuGrid';
 import ClientOrderPanel from './ClientOrderPanel';
@@ -45,6 +45,7 @@ const CATEGORY_ICONS = [TbSoup, TbMeat, TbCake, TbGlassFull];
 
 export default function ClientDashboard() {
   const t = useTranslations('client');
+  const locale = useLocale();
   const { message } = App.useApp();
   const params = useParams();
   const sessionId = params?.clientId as string;
@@ -58,7 +59,7 @@ export default function ClientDashboard() {
 
   const SORT_OPTIONS = useMemo(
     () => [
-      { value: 'popular', label: t('sort.popular') },
+      { value: 'default', label: t('sort.default') },
       { value: 'price-asc', label: t('sort.priceAsc') },
       { value: 'price-desc', label: t('sort.priceDesc') },
       { value: 'name', label: t('sort.name') },
@@ -67,13 +68,16 @@ export default function ClientDashboard() {
   );
 
   const menuCategories = useMemo(() => {
-    const names = Array.from(
-      new Set(menuCards.map((card) => card.categoryName).filter(Boolean)),
-    ) as string[];
+    const categories = new Map<string, string>();
+    menuCards.forEach((card) => {
+      if (card.categoryId && card.categoryName) {
+        categories.set(card.categoryId, card.categoryName);
+      }
+    });
     return [
-      { key: 'All Items', label: t('categories.allItems'), icon: TbLayoutGrid },
-      ...names.map((name, index) => ({
-        key: name,
+      { key: 'all', label: t('categories.allItems'), icon: TbLayoutGrid },
+      ...Array.from(categories.entries()).map(([id, name], index) => ({
+        key: id,
         label: name,
         icon: CATEGORY_ICONS[index % CATEGORY_ICONS.length],
       })),
@@ -86,17 +90,10 @@ export default function ClientDashboard() {
     setSessionUnavailable(false);
     setSessionLoading(true);
     if (sessionId) {
-      Promise.all([
-        clientAPI.getCurrentSession(sessionId),
-        clientAPI.getPublicMenu(),
-      ])
-        .then(([sessionResponse, menuResponse]) => {
+      clientAPI
+        .getCurrentSession(sessionId)
+        .then((sessionResponse) => {
           setSession(sessionResponse.data);
-          setMenuCards(
-            (menuResponse.data ?? []).map((product: ProductRecord) =>
-              productToMenuCard(product),
-            ),
-          );
         })
         .catch(() => setSessionUnavailable(true))
         .finally(() => setSessionLoading(false));
@@ -111,6 +108,29 @@ export default function ClientDashboard() {
     if (!sessionId) return;
 
     let active = true;
+    void clientAPI
+      .getPublicMenu()
+      .then(({ data }) => {
+        if (!active) return;
+        setMenuCards(
+          (data ?? []).map((product: ProductRecord) =>
+            productToMenuCard(product, locale),
+          ),
+        );
+      })
+      .catch(() => {
+        // Keep the last valid menu while a localized refresh is unavailable.
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [locale, sessionId]);
+
+  useEffect(() => {
+    if (!sessionId) return;
+
+    let active = true;
     const socket = createSocket(MENU_NAMESPACE, { sessionToken: sessionId });
     const refreshMenu = async () => {
       try {
@@ -118,7 +138,7 @@ export default function ClientDashboard() {
         if (active) {
           setMenuCards(
             (data ?? []).map((product: ProductRecord) =>
-              productToMenuCard(product),
+              productToMenuCard(product, locale),
             ),
           );
         }
@@ -135,15 +155,15 @@ export default function ClientDashboard() {
       socket.removeAllListeners();
       socket.disconnect();
     };
-  }, [sessionId]);
+  }, [locale, sessionId]);
 
   const { callWaiter } = useWaiterClient(sessionId);
   const { profileDataList } = useProfileData();
 
   const [images, setImages] = useState<MenuImage[]>([]);
-  const [category, setCategory] = useState('All Items');
+  const [category, setCategory] = useState('all');
   const [search, setSearch] = useState('');
-  const [sort, setSort] = useState('popular');
+  const [sort, setSort] = useState('default');
   const [columnCount, setColumnCount] = useState(1);
   const pageSize = Math.ceil(MIN_PAGE_SIZE / columnCount) * columnCount;
   const [visible, setVisible] = useState(MIN_PAGE_SIZE);
@@ -151,9 +171,6 @@ export default function ClientDashboard() {
   const [cartOpen, setCartOpen] = useState(false);
   const [cardModalOpen, setCardModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuCard | null>(null);
-  const [selectedBadge, setSelectedBadge] = useState<'popular' | 'chef' | null>(
-    null,
-  );
   const [editingLine, setEditingLine] = useState<MenuCard | null>(null);
   const selectedItemId = selectedItem?.id;
 
@@ -173,9 +190,11 @@ export default function ClientDashboard() {
 
   useEffect(() => {
     if (liveBasketItems) {
-      setBasket(liveBasketItems.map(basketItemToMenuCard));
+      setBasket(
+        liveBasketItems.map((item) => basketItemToMenuCard(item, locale)),
+      );
     }
-  }, [liveBasketItems]);
+  }, [liveBasketItems, locale]);
 
   useEffect(() => {
     setImages(loadMenuImages(menuCards));
@@ -185,14 +204,14 @@ export default function ClientDashboard() {
     const { data: raw } = await clientAPI.getBasketItems();
     setBasket(
       (raw ?? []).map((item: BasketItemRecord) =>
-        basketItemToMenuCard(item),
+        basketItemToMenuCard(item, locale),
       ),
     );
   });
 
   useEffect(() => {
     void fetchBasket();
-  }, [fetchBasket, sessionId]);
+  }, [fetchBasket, locale, sessionId]);
 
   // refresh basket whenever the detail modal closes (it may have added an item)
   useEffect(() => {
@@ -207,8 +226,8 @@ export default function ClientDashboard() {
 
   const cards = useMemo(() => {
     let list = [...menuCards];
-    if (category !== 'All Items') {
-      list = list.filter((card) => card.categoryName === category);
+    if (category !== 'all') {
+      list = list.filter((card) => card.categoryId === category);
     }
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -239,12 +258,8 @@ export default function ClientDashboard() {
   const shown = cards.slice(0, visible);
   const hasMore = cards.length > visible;
 
-  const openDetail = (
-    item: MenuCard,
-    badge: MenuBadge = null,
-  ) => {
+  const openDetail = (item: MenuCard) => {
     setSelectedItem(item);
-    setSelectedBadge(badge);
     setEditingLine(null);
     setCardModalOpen(true);
   };
@@ -252,16 +267,13 @@ export default function ClientDashboard() {
   // Open the popup to EDIT an existing cart line (pre-fills its sauces & qty).
   const openCartLine = (line: MenuCard) => {
     const menuCard = menuCards.find((c) => c.id === line.id) ?? line;
-    openDetail(menuCard, null);
+    openDetail(menuCard);
     setEditingLine(line);
   };
 
-  const quickAdd = async (
-    item: MenuCard,
-    badge: MenuBadge = null,
-  ) => {
+  const quickAdd = async (item: MenuCard) => {
     if (item.sauces?.length) {
-      openDetail(item, badge);
+      openDetail(item);
       return;
     }
     try {
@@ -459,7 +471,6 @@ export default function ClientDashboard() {
             : null
         }
         images={images}
-        badge={selectedBadge}
         editItem={editingLine}
       />
     </div>

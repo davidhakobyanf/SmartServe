@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { App, Modal } from 'antd';
-import { TbX, TbMinus, TbPlus, TbCheck, TbStar, TbFlame } from 'react-icons/tb';
+import { TbX, TbMinus, TbPlus, TbCheck } from 'react-icons/tb';
 import css from './ClientCardModal.module.css';
 import { useFetching } from '@/hoc/fetchingHook';
 import clientAPI from '@/api/api';
@@ -15,7 +15,6 @@ interface ClientCardModalProps {
   cardModalOpen: boolean;
   item: MenuCard | null;
   images: MenuImage[];
-  badge?: 'popular' | 'chef' | null;
   editItem?: MenuCard | null;
 }
 
@@ -24,7 +23,6 @@ export default function ClientCardModal({
   cardModalOpen,
   item,
   images,
-  badge = null,
   editItem = null,
 }: ClientCardModalProps) {
   const t = useTranslations('client');
@@ -137,17 +135,6 @@ export default function ClientCardModal({
 
             <div className={css.info}>
               <h2 className={css.title}>{item.title}</h2>
-
-              {badge === 'popular' && (
-                <span className={`${css.badge} ${css.badgePopular}`}>
-                  <TbFlame /> {t('card.badgePopular')}
-                </span>
-              )}
-              {badge === 'chef' && (
-                <span className={`${css.badge} ${css.badgeChef}`}>
-                  <TbStar /> {t('card.badgeChef')}
-                </span>
-              )}
 
               {item.description && (
                 <p className={css.desc}>{item.description}</p>

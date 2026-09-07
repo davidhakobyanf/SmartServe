@@ -16,12 +16,16 @@ import clientAPI from '@/api/api';
 import { useProfileData } from '@/context/ProfileDataContext';
 import type { RelationalOrder } from '@/types/restaurant';
 import { formatAmount } from '@/lib/formatters';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 const NAMESPACE = '/orders';
 const EVT = { JOIN: 'join', UPDATED: 'orders:updated' } as const;
 
-let ordersRequest: Promise<void> | null = null;
+let ordersRequest: {
+  key: string;
+  id: symbol;
+  promise: Promise<void>;
+} | null = null;
 
 interface OrdersContextValue {
   orders: OrderRecord[];
@@ -33,13 +37,18 @@ interface OrdersContextValue {
 
 const OrdersContext = createContext<OrdersContextValue | null>(null);
 
-function normalizeList(raw: unknown): OrderRecord[] {
+function normalizeList(raw: unknown, locale: string): OrderRecord[] {
   if (!Array.isArray(raw)) return [];
-  return raw.map((item) => normalizeOrderRecord(item as RelationalOrder));
+  return raw.map((item) =>
+    normalizeOrderRecord(item as RelationalOrder, locale),
+  );
 }
 
 export function OrdersProvider({ children }: { children: React.ReactNode }) {
   const t = useTranslations('orders');
+  const locale = useLocale();
+  const currentLocaleRef = useRef(locale);
+  currentLocaleRef.current = locale;
   const { notification } = App.useApp();
   const { permissions, isLoading: profileLoading } = useProfileData();
   const canViewOrders = permissions.includes('orders.view');
@@ -84,22 +93,26 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
   const refreshOrders = useCallback(async () => {
     if (!canViewOrders) return;
 
-    if (ordersRequest) {
-      await ordersRequest;
+    if (ordersRequest?.key === locale) {
+      await ordersRequest.promise;
       return;
     }
 
-    ordersRequest = (async () => {
+    const requestId = Symbol(locale);
+    const request = (async () => {
       try {
         const { data } = await clientAPI.getOrders();
-        applyOrders(normalizeList(data));
+        if (currentLocaleRef.current === locale) {
+          applyOrders(normalizeList(data, locale));
+        }
       } finally {
-        ordersRequest = null;
+        if (ordersRequest?.id === requestId) ordersRequest = null;
       }
     })();
+    ordersRequest = { key: locale, id: requestId, promise: request };
 
-    await ordersRequest;
-  }, [applyOrders, canViewOrders]);
+    await request;
+  }, [applyOrders, canViewOrders, locale]);
 
   useEffect(() => {
     if (profileLoading || !canViewOrders) {
@@ -118,7 +131,7 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
     });
 
     socket.on(EVT.UPDATED, (payload: unknown) => {
-      applyOrders(normalizeList(payload));
+      applyOrders(normalizeList(payload, locale));
     });
 
     socket.on('disconnect', () => setIsConnected(false));
@@ -127,7 +140,7 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
       socket.removeAllListeners();
       socket.disconnect();
     };
-  }, [refreshOrders, applyOrders, canViewOrders, profileLoading]);
+  }, [refreshOrders, applyOrders, canViewOrders, locale, profileLoading]);
 
   return (
     <OrdersContext.Provider

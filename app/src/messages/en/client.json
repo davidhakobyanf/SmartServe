@@ -9,8 +9,6 @@
     "add": "Add",
     "outOfStock": "Out of stock",
     "loadMore": "Load More",
-    "badgePopular": "Popular",
-    "badgeChef": "Chef's Choice",
     "waiterCalled": "Great, please wait for the waiter.",
     "waiterFailed": "Couldn't reach the server",
     "addedToBasket": "Added to your basket",
@@ -27,7 +25,7 @@
     "drinks": "Drinks"
   },
   "sort": {
-    "popular": "Sort by: Popular",
+    "default": "Sort by: Default",
     "priceAsc": "Price: Low to High",
     "priceDesc": "Price: High to Low",
     "name": "Name: A–Z"
@@ -48,8 +46,6 @@
   },
   "card": {
     "close": "close",
-    "badgePopular": "Popular",
-    "badgeChef": "Chef's Choice",
     "addExtras": "Add extras",
     "optional": "Optional",
     "totalAmount": "Total amount",

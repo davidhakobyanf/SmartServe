@@ -30,6 +30,7 @@ export default function CardModal({
   const t = useTranslations('menuModal');
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [showEditConfirmation, setShowEditConfirmation] = useState(false);
+  const [openEditAfterClose, setOpenEditAfterClose] = useState(false);
   const [switching, setSwitching] = useState(false);
   const imageSrc = item
     ? images.find((image) => image.id === item.id)?.src
@@ -45,12 +46,23 @@ export default function CardModal({
     }
   };
 
+  const handleEdit = () => {
+    setOpenEditAfterClose(true);
+    setCardModalOpen(false);
+  };
+
   return (
     <>
       <Modal
         title={t('card.detailsTitle')}
         open={cardModalOpen}
         onCancel={() => setCardModalOpen(false)}
+        afterOpenChange={(open) => {
+          if (!open && openEditAfterClose) {
+            setOpenEditAfterClose(false);
+            setShowEditConfirmation(true);
+          }
+        }}
         width={820}
         footer={null}
         centered
@@ -133,7 +145,7 @@ export default function CardModal({
               <Button
                 type="primary"
                 icon={<EditOutlined />}
-                onClick={() => setShowEditConfirmation(true)}
+                onClick={handleEdit}
               >
                 {t('card.edit')}
               </Button>

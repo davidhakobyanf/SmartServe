@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import { Input, Select, Dropdown, Empty, Switch } from 'antd';
 import { TbPlus, TbSearch, TbDotsVertical } from 'react-icons/tb';
 import clientAPI from '@/api/api';
@@ -16,11 +16,13 @@ import CategoryManagementPanel from './CategoryManagementModal';
 import SauceManagementPanel from './SauceManagementModal';
 import PageHeader from '@/components/Common/PageHeader/PageHeader';
 import css from './MenuManagement.module.css';
+import { localizeNamedRecord } from '@/types/localization';
 
 type MenuSection = 'products' | 'categories' | 'sauces';
 
 export default function MenuManagement() {
   const t = useTranslations('menu');
+  const locale = useLocale();
   const { profileDataList, fetchProfile, permissions } = useProfileData();
   const canManageCategories = permissions.includes('categories.manage');
   const canManageProducts = permissions.includes('products.manage');
@@ -77,20 +79,30 @@ export default function MenuManagement() {
     await fetchProfile({ force: true });
   });
 
-  const loadCategories = async () => {
+  const loadCategories = useCallback(async () => {
     const { data } = await clientAPI.getCategories();
-    setCategories(data ?? []);
-  };
+    setCategories(
+      (data ?? []).map((item) => localizeNamedRecord(item, locale)),
+    );
+  }, [locale]);
 
   useEffect(() => {
     void loadCategories();
-  }, []);
+  }, [loadCategories]);
 
   useEffect(() => {
     if (profileDataList.card.length > 0) {
       setImages(loadMenuImages(profileDataList.card));
     }
   }, [profileDataList.card]);
+
+  useEffect(() => {
+    if (!selectedItem) return;
+    const localizedItem = profileDataList.card.find(
+      (item) => item.id === selectedItem.id,
+    );
+    if (localizedItem) setSelectedItem(localizedItem);
+  }, [profileDataList.card, selectedItem]);
 
   const cards = useMemo(() => {
     let list = [...(profileDataList.card ?? [])];

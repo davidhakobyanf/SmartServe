@@ -77,28 +77,6 @@
   letter-spacing: -0.02em;
   color: var(--text);
 }
-.badge {
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 12px;
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 600;
-}
-.badgePopular {
-  background: #fde4e6;
-  color: var(--red);
-}
-.badgeChef {
-  background: #fde4e6;
-  color: var(--red);
-}
-.badge svg {
-  font-size: 15px;
-}
 .desc {
   margin-top: 14px;
   font-size: 16px;

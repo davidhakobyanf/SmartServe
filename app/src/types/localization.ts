@@ -41,3 +41,16 @@ export function resolveLocalizedText(
 
   return cleaned[locale] ?? cleaned.en ?? cleaned.am ?? cleaned.ru ?? fallback;
 }
+
+export function localizeNamedRecord<
+  T extends { name: string; nameTranslations?: LocalizedText },
+>(record: T, requestedLocale?: string): T {
+  return {
+    ...record,
+    name: resolveLocalizedText(
+      record.nameTranslations,
+      record.name,
+      requestedLocale,
+    ),
+  };
+}

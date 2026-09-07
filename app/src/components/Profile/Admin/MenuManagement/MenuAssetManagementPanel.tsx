@@ -12,7 +12,7 @@ import {
 } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import clientAPI from '@/api/api';
 import { fileToDataUrl, fileToImagePayload } from '@/lib/fileToImagePayload';
 import LocalizedTextFields from '@/components/Common/LocalizedTextFields';
@@ -20,6 +20,7 @@ import {
   cleanLocalizedText,
   hasLocalizedText,
   missingContentLocales,
+  localizeNamedRecord,
   type LocalizedText,
 } from '@/types/localization';
 import css from './AssetManagementModal.module.css';
@@ -52,6 +53,7 @@ export default function MenuAssetManagementPanel({
     isCategory ? 'menu.categoriesManagement' : 'menu.sauces',
   );
   const commonT = useTranslations('common');
+  const locale = useLocale();
   const { message, modal } = App.useApp();
   const [form] = Form.useForm<AssetFormValues>();
   const [assets, setAssets] = useState<MenuAssetRecord[]>([]);
@@ -67,11 +69,13 @@ export default function MenuAssetManagementPanel({
       const { data } = isCategory
         ? await clientAPI.getCategories()
         : await clientAPI.getSauces();
-      setAssets(data ?? []);
+      setAssets(
+        (data ?? []).map((asset) => localizeNamedRecord(asset, locale)),
+      );
     } catch {
       message.error(t('loadError'));
     }
-  }, [isCategory, message, t]);
+  }, [isCategory, locale, message, t]);
 
   useEffect(() => {
     void loadAssets();

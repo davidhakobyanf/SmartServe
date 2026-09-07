@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import {
   App,
   Button,
@@ -24,6 +24,7 @@ import {
   cleanLocalizedText,
   hasLocalizedText,
   missingContentLocales,
+  localizeNamedRecord,
   type LocalizedText,
 } from '@/types/localization';
 import formCss from './ProductForm.module.css';
@@ -51,6 +52,7 @@ export default function AddModal({
   fetchAddCard,
 }: AddModalProps) {
   const t = useTranslations('menuModal');
+  const locale = useLocale();
   const commonT = useTranslations('common');
   const { message } = App.useApp();
   const [form] = Form.useForm<ProductFormValues>();
@@ -69,15 +71,19 @@ export default function AddModal({
       void Promise.all([clientAPI.getCategories(), clientAPI.getSauces()]).then(
         ([categoriesResponse, saucesResponse]) => {
           setCategories(
-            (categoriesResponse.data ?? []).filter((category) => category.isActive),
+            (categoriesResponse.data ?? [])
+              .filter((category) => category.isActive)
+              .map((category) => localizeNamedRecord(category, locale)),
           );
           setSauces(
-            (saucesResponse.data ?? []).filter((sauce) => sauce.isActive),
+            (saucesResponse.data ?? [])
+              .filter((sauce) => sauce.isActive)
+              .map((sauce) => localizeNamedRecord(sauce, locale)),
           );
         },
       );
     }
-  }, [modalOpen]);
+  }, [locale, modalOpen]);
 
   const onChange = ({ fileList: newFileList }: { fileList: UploadFile[] }) => {
     setFileList(newFileList);
@@ -145,7 +151,7 @@ export default function AddModal({
       open={modalOpen}
       onOk={() => form.submit()}
       onCancel={closeModal}
-      width={900}
+      width={960}
       footer={null}
       forceRender
       centered
@@ -188,6 +194,7 @@ export default function AddModal({
                 maxLength={2000}
                 multiline
                 rows={3}
+                showHint={false}
                 required
               />
               <Form.Item name="sauceIds" label={t('fields.sauces')}>
@@ -268,15 +275,13 @@ export default function AddModal({
               </div>
             </section>
 
-            <div className={formCss.actions}>
-              <Button onClick={closeModal}>
-                {t('actions.cancel')}
-              </Button>
-              <Button type="primary" htmlType="submit">
-                {t('add.submit')}
-              </Button>
-            </div>
           </aside>
+        </div>
+        <div className={formCss.actions}>
+          <Button onClick={closeModal}>{t('actions.cancel')}</Button>
+          <Button type="primary" htmlType="submit">
+            {t('add.submit')}
+          </Button>
         </div>
       </Form>
     </Modal>

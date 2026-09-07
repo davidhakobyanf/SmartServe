@@ -13,6 +13,7 @@ interface LocalizedTextFieldsProps {
   maxLength: number;
   required?: boolean;
   rows?: number;
+  showHint?: boolean;
 }
 
 const LANGUAGE_KEYS: Record<ContentLocale, 'lang_en' | 'lang_am' | 'lang_ru'> = {
@@ -29,6 +30,7 @@ export default function LocalizedTextFields({
   maxLength,
   required = false,
   rows = 4,
+  showHint = true,
 }: LocalizedTextFieldsProps) {
   const t = useTranslations('common');
 
@@ -68,9 +70,11 @@ export default function LocalizedTextFields({
           ),
         }))}
       />
-      <div style={{ marginTop: 6, color: '#8c8c8c', fontSize: 12 }}>
-        {t('translationHint')}
-      </div>
+      {showHint && (
+        <div style={{ marginTop: 6, color: '#8c8c8c', fontSize: 12 }}>
+          {t('translationHint')}
+        </div>
+      )}
     </div>
   );
 }

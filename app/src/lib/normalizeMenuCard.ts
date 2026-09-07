@@ -7,7 +7,10 @@ import type {
 } from '@/types/restaurant';
 import { resolveLocalizedText } from '@/types/localization';
 
-export function productToMenuCard(product: ProductRecord): MenuCard {
+export function productToMenuCard(
+  product: ProductRecord,
+  requestedLocale?: string,
+): MenuCard {
   return {
     id: product.id,
     categoryId: product.categoryId,
@@ -15,13 +18,19 @@ export function productToMenuCard(product: ProductRecord): MenuCard {
       ? resolveLocalizedText(
           product.category.nameTranslations,
           product.category.name,
+          requestedLocale,
         )
       : undefined,
-    title: resolveLocalizedText(product.titleTranslations, product.title),
+    title: resolveLocalizedText(
+      product.titleTranslations,
+      product.title,
+      requestedLocale,
+    ),
     titleTranslations: product.titleTranslations,
     description: resolveLocalizedText(
       product.descriptionTranslations,
       product.description,
+      requestedLocale,
     ),
     descriptionTranslations: product.descriptionTranslations,
     price: Number(product.price) || 0,
@@ -32,7 +41,11 @@ export function productToMenuCard(product: ProductRecord): MenuCard {
     sauces: Array.isArray(product.sauces)
       ? product.sauces.map((sauce) => ({
           ...sauce,
-          name: resolveLocalizedText(sauce.nameTranslations, sauce.name),
+          name: resolveLocalizedText(
+            sauce.nameTranslations,
+            sauce.name,
+            requestedLocale,
+          ),
           price: Number(sauce.price) || 0,
         }))
       : [],
@@ -48,8 +61,11 @@ export function productToMenuCard(product: ProductRecord): MenuCard {
   };
 }
 
-export function basketItemToMenuCard(item: BasketItemRecord): MenuCard {
-  const card = productToMenuCard(item.product);
+export function basketItemToMenuCard(
+  item: BasketItemRecord,
+  requestedLocale?: string,
+): MenuCard {
+  const card = productToMenuCard(item.product, requestedLocale);
   return {
     ...card,
     basketItemId: item.id,
@@ -57,7 +73,11 @@ export function basketItemToMenuCard(item: BasketItemRecord): MenuCard {
     sauces: Array.isArray(item.sauces)
       ? item.sauces.map((sauce) => ({
           id: sauce.id,
-          name: resolveLocalizedText(sauce.nameTranslations, sauce.name),
+          name: resolveLocalizedText(
+            sauce.nameTranslations,
+            sauce.name,
+            requestedLocale,
+          ),
           nameTranslations: sauce.nameTranslations,
           price: Number(sauce.unitPrice) || 0,
         }))
@@ -66,7 +86,10 @@ export function basketItemToMenuCard(item: BasketItemRecord): MenuCard {
   };
 }
 
-export function relationalOrderToOrderRecord(order: RelationalOrder): OrderRecord {
+export function relationalOrderToOrderRecord(
+  order: RelationalOrder,
+  requestedLocale?: string,
+): OrderRecord {
   return {
     _id: order.id,
     table: order.table?.number ?? '',
@@ -78,16 +101,22 @@ export function relationalOrderToOrderRecord(order: RelationalOrder): OrderRecor
       title: resolveLocalizedText(
         item.product?.titleTranslations,
         item.titleSnapshot,
+        requestedLocale,
       ),
       description: resolveLocalizedText(
         item.product?.descriptionTranslations,
         item.descriptionSnapshot,
+        requestedLocale,
       ),
       price: Number(item.unitPrice) || 0,
       sauces: Array.isArray(item.sauces)
         ? item.sauces.map((sauce) => ({
             id: sauce.id,
-            name: resolveLocalizedText(sauce.nameTranslations, sauce.name),
+            name: resolveLocalizedText(
+              sauce.nameTranslations,
+              sauce.name,
+              requestedLocale,
+            ),
             nameTranslations: sauce.nameTranslations,
             price: Number(sauce.unitPrice) || 0,
           }))
@@ -101,6 +130,7 @@ export function relationalOrderToOrderRecord(order: RelationalOrder): OrderRecor
 
 export function normalizeOrderRecord(
   raw: RelationalOrder,
+  requestedLocale?: string,
 ): OrderRecord {
-  return relationalOrderToOrderRecord(raw);
+  return relationalOrderToOrderRecord(raw, requestedLocale);
 }
