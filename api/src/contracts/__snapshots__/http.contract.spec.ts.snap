@@ -339,6 +339,7 @@ exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization)
           "price": 300,
         },
       ],
+      "stockQuantity": 12,
       "title": "Бургер",
       "titleTranslations": {
         "en": "Burger",
@@ -387,6 +388,7 @@ exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization)
           "price": 300,
         },
       ],
+      "stockQuantity": 12,
       "title": "Бургер",
       "titleTranslations": {
         "en": "Burger",

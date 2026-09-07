@@ -9,6 +9,8 @@ import { decodeImage } from "../common/utils/image-upload.util";
 import { ProductsRepository } from "./products.repository";
 import { ProductSaucesService } from "./product-sauces.service";
 import { ProductImagesService } from "./product-images.service";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { PRODUCT_DOMAIN_EVENTS, ProductChangedPayload } from "./product.events";
 
 @Injectable()
 export class ProductsService {
@@ -16,7 +18,12 @@ export class ProductsService {
     private readonly products: ProductsRepository,
     private readonly productSauces: ProductSaucesService,
     private readonly images: ProductImagesService,
+    private readonly events: EventEmitter2,
   ) {}
+
+  private emitChanged(payload: ProductChangedPayload): void {
+    this.events.emit(PRODUCT_DOMAIN_EVENTS.CHANGED, payload);
+  }
 
   private async findCategory(id: string): Promise<Category> {
     const category = await this.products.findCategory(id);
@@ -35,8 +42,8 @@ export class ProductsService {
     return this.products.findAll();
   }
 
-  findActiveMenu(): Promise<Product[]> {
-    return this.products.findActiveMenu();
+  findPublicMenu(): Promise<Product[]> {
+    return this.products.findPublicMenu();
   }
 
   async create(dto: CreateProductDto): Promise<Product> {
@@ -67,6 +74,7 @@ export class ProductsService {
       description: primaryLocalizedText(descriptionTranslations),
       descriptionTranslations,
       price: dto.price,
+      stockQuantity: dto.stockQuantity ?? null,
       isActive: dto.isActive ?? true,
       imageName: dto.image?.name?.trim() || null,
       imageMimeType: dto.image?.mimeType?.trim() || null,
@@ -75,7 +83,9 @@ export class ProductsService {
     });
     const saved = await this.products.save(product);
     await this.productSauces.replaceLinks(saved.id, sauceIds);
-    return this.products.findOneWithDetails(saved.id);
+    const created = await this.products.findOneWithDetails(saved.id);
+    this.emitChanged({ action: "created", productId: created.id });
+    return created;
   }
 
   async update(id: string, dto: UpdateProductDto): Promise<Product> {
@@ -113,6 +123,9 @@ export class ProductsService {
     if (dto.price !== undefined) {
       product.price = dto.price;
     }
+    if (dto.stockQuantity !== undefined) {
+      product.stockQuantity = dto.stockQuantity;
+    }
 
     if (dto.isActive !== undefined) {
       product.isActive = dto.isActive;
@@ -125,7 +138,9 @@ export class ProductsService {
       const sauceIds = await this.productSauces.validateIds(dto.sauceIds);
       await this.productSauces.replaceLinks(id, sauceIds);
     }
-    return this.products.findOneWithDetails(id);
+    const updated = await this.products.findOneWithDetails(id);
+    this.emitChanged({ action: "updated", productId: updated.id });
+    return updated;
   }
 
   async remove(id: string): Promise<{ success: true }> {
@@ -155,6 +170,7 @@ export class ProductsService {
       throw error;
     }
 
+    this.emitChanged({ action: "deleted", productId: id });
     return { success: true };
   }
 }

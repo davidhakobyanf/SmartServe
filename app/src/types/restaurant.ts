@@ -46,10 +46,13 @@ export interface ProductRecord {
   description: string;
   descriptionTranslations: LocalizedText;
   price: number;
+  stockQuantity: number | null;
   sauces: SauceRecord[];
   isActive: boolean;
   imageName: string | null;
   imageMimeType: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface BasketItemRecord {

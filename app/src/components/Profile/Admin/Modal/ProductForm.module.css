@@ -1,0 +1,166 @@
+.modal :global(.ant-modal-content) {
+  overflow: hidden;
+  border-radius: 20px;
+  padding: 0;
+}
+
+.modal :global(.ant-modal-header) {
+  margin: 0;
+  padding: 20px 24px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal :global(.ant-modal-close) {
+  top: 16px;
+  right: 18px;
+}
+
+.modal :global(.ant-modal-body) {
+  max-height: calc(100dvh - 130px);
+  overflow-y: auto;
+  padding: 22px 24px 24px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.mainColumn,
+.sideColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section {
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.sectionTitle {
+  margin: 0 0 16px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.section :global(.ant-form-item:last-child) {
+  margin-bottom: 0;
+}
+
+.imageUpload :global(.ant-upload-list) {
+  width: 100%;
+}
+
+.imageUpload :global(.ant-upload-list-item-container),
+.imageUpload :global(.ant-upload-select) {
+  width: 100% !important;
+  height: 240px !important;
+  margin: 0 !important;
+}
+
+.imageUpload :global(.ant-upload-list-item) {
+  padding: 6px;
+  border-radius: 12px;
+}
+
+.imageUpload :global(.ant-upload-list-item-thumbnail img) {
+  object-fit: contain !important;
+}
+
+.uploadPrompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+}
+
+.uploadPrompt svg {
+  color: var(--primary);
+  font-size: 24px;
+}
+
+.twoColumns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.availabilityRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 14px;
+  border-radius: 12px;
+  background: var(--surface-muted);
+}
+
+.availabilityText {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.availabilityText strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.availabilityText span {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+@media screen and (max-width: 760px) {
+  .modal {
+    max-width: calc(100vw - 24px);
+  }
+
+  .modal :global(.ant-modal-body) {
+    padding: 16px;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .mainColumn {
+    order: 2;
+  }
+
+  .sideColumn {
+    order: 1;
+  }
+
+  .imageUpload :global(.ant-upload-list-item-container),
+  .imageUpload :global(.ant-upload-select) {
+    height: 210px !important;
+  }
+}
+
+@media screen and (max-width: 420px) {
+  .twoColumns {
+    grid-template-columns: 1fr;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+}

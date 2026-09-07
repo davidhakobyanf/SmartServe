@@ -1,182 +1,147 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Modal, Table, Checkbox } from 'antd';
-import css from './CardModal.module.css';
-import Typography from '@mui/joy/Typography';
-import IconButton from '@mui/joy/IconButton';
+import { Button, Modal, Switch, Tag } from 'antd';
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import DeleteCardModal from './DeleteCardModal/DeleteCardModal';
 import EditCardModal from './EditCardModal/EditCardModal';
-import Quantity from '@/hoc/Quantity/Quantity';
-import type { MenuCard, MenuImage, MenuSauce } from '@/types';
-
-interface SauceOption {
-  option: MenuSauce;
-  total: number;
-}
+import { formatAmount } from '@/lib/formatters';
+import type { MenuCard, MenuImage } from '@/types';
+import css from './CardModal.module.css';
 
 interface CardModalProps {
   setCardModalOpen: (open: boolean) => void;
   cardModalOpen: boolean;
-  index: number | null;
   item: MenuCard | null;
   images: MenuImage[];
   fetchProfile: (options?: { force?: boolean }) => void;
+  onToggleActive: (item: MenuCard) => Promise<void>;
 }
 
 export default function CardModal({
   setCardModalOpen,
   cardModalOpen,
-  index,
   item,
   images,
   fetchProfile,
+  onToggleActive,
 }: CardModalProps) {
   const t = useTranslations('menuModal');
-  const [quantity, setQuantity] = useState(1);
-  const [allTotal, setAllTotal] = useState(item?.price ?? 0);
-  const [plainOptions, setPlainOptions] = useState<SauceOption[]>([]);
-  const [selectedOptions, setSelectedOptions] = useState<Record<string, boolean>>({});
-  const [modalWidth, setModalWidth] = useState(650);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [showEditConfirmation, setShowEditConfirmation] = useState(false);
+  const [switching, setSwitching] = useState(false);
+  const imageSrc = item
+    ? images.find((image) => image.id === item.id)?.src
+    : undefined;
 
-  useEffect(() => {
-    setAllTotal((item?.price ?? 0) * quantity);
-  }, [item, quantity]);
-
-  useEffect(() => {
-    setPlainOptions(item?.sauces?.map((option) => ({ option, total: 0 })) ?? []);
-  }, [item]);
-
-  useEffect(() => {
-    const total = plainOptions?.reduce((acc, curr) => acc + curr.total, 0) ?? 0;
-    setAllTotal(((item?.price ?? 0) + total) * quantity);
-  }, [plainOptions, quantity, item]);
-
-  useEffect(() => {
-    setPlainOptions(item?.sauces?.map((option) => ({ option, total: 0 })) ?? []);
-    setSelectedOptions({});
-    setQuantity(1);
-  }, [item]);
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth <= 330) setModalWidth(250);
-      else if (window.innerWidth <= 630) setModalWidth(400);
-      else setModalWidth(650);
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const imageSrc =
-    index !== null ? images[index]?.src : item ? images.find((i) => i.id === item.id)?.src : undefined;
-
-  const columns = [
-    {
-      title: t('card.saucesColumn'),
-      dataIndex: 'option',
-      key: 'option',
-      render: (_: unknown, record: SauceOption) => (
-        <Checkbox
-          checked={!!selectedOptions[record.option.id]}
-          onChange={(e) => {
-            const checked = e.target.checked;
-            setSelectedOptions((prev) => ({
-              ...prev,
-              [record.option.id]: checked,
-            }));
-            setPlainOptions((prev) =>
-              prev.map((o) =>
-                o.option.id === record.option.id
-                  ? { ...o, total: checked ? record.option.price : 0 }
-                  : o,
-              ),
-            );
-          }}
-        >
-          {record.option.name}
-        </Checkbox>
-      ),
-    },
-    {
-      title: t('card.totalColumn'),
-      dataIndex: 'total',
-      key: 'total',
-      render: (_: unknown, record: SauceOption) => record.option.price,
-    },
-  ];
-
-  const data = plainOptions?.map((option) => ({
-    key: option.option.id,
-    option: option.option,
-    total: option.total,
-  }));
+  const handleAvailabilityChange = async () => {
+    if (!item) return;
+    setSwitching(true);
+    try {
+      await onToggleActive(item);
+    } finally {
+      setSwitching(false);
+    }
+  };
 
   return (
-    <div>
+    <>
       <Modal
-        title={
-          item && item.title.length > 20
-            ? `${item.title.slice(0, 20)}...`
-            : item?.title
-        }
+        title={t('card.detailsTitle')}
         open={cardModalOpen}
         onCancel={() => setCardModalOpen(false)}
-        width={modalWidth}
+        width={820}
         footer={null}
+        centered
         className={css.modal}
-        classNames={{ body: css.modalBody }}
       >
         {item ? (
           <div className={css.container}>
-            <div className={css.container_top}>
-              <div className={css.container_right}>
-                <img src={imageSrc} alt={item.title} loading="lazy" className={css.card_img} />
+            <div className={css.hero}>
+              <div className={css.imagePanel}>
+                {imageSrc ? (
+                  <img
+                    src={imageSrc}
+                    alt={item.title}
+                    className={css.cardImage}
+                  />
+                ) : (
+                  <div className={css.imageFallback}>{t('card.noImage')}</div>
+                )}
               </div>
-              <div className={css.text}>
-                <Typography level="title-lg" className={css.card_title}>
-                  {item.title}
-                </Typography>
-                <Typography level="body-sm" className={css.card_description}>
-                  {item.description}
-                </Typography>
-                <Quantity quantity={quantity} setQuantity={setQuantity} />
+
+              <div className={css.details}>
+                <div className={css.headingRow}>
+                  <div>
+                    {item.categoryName && (
+                      <div className={css.category}>{item.categoryName}</div>
+                    )}
+                    <h2 className={css.cardTitle}>{item.title}</h2>
+                  </div>
+                  <div className={css.availability}>
+                    <span>{t('card.availability')}</span>
+                    <Switch
+                      checked={item.active}
+                      loading={switching}
+                      onChange={() => void handleAvailabilityChange()}
+                    />
+                    <strong className={item.active ? css.active : css.inactive}>
+                      {item.active ? t('card.available') : t('card.unavailable')}
+                    </strong>
+                  </div>
+                </div>
+
+                <p className={css.description}>{item.description}</p>
+
+                <div className={css.stats}>
+                  <div className={css.stat}>
+                    <span>{t('card.unitPrice')}</span>
+                    <strong>{formatAmount(item.price)} ֏</strong>
+                  </div>
+                  <div className={css.stat}>
+                    <span>{t('card.stockQuantity')}</span>
+                    <strong>{item.stockQuantity ?? t('card.stockNotSet')}</strong>
+                  </div>
+                </div>
               </div>
             </div>
-            <Table columns={columns} dataSource={data} pagination={false} />
-            <div className={css.modal_footer}>
-              <div style={{ marginTop: 16, fontSize: '20px' }}>
-                {t.rich('card.totalAmount', {
-                  total: String(allTotal),
-                  b: (chunks) => <b>{chunks}</b>,
-                })}
+
+            <section className={css.saucesSection}>
+              <h3>{t('card.sauces')}</h3>
+              <div className={css.sauces}>
+                {item.sauces.length > 0 ? (
+                  item.sauces.map((sauce) => (
+                    <Tag key={sauce.id} className={css.sauceTag}>
+                      {sauce.name} · {formatAmount(sauce.price)} ֏
+                    </Tag>
+                  ))
+                ) : (
+                  <span className={css.emptyText}>{t('card.noSauces')}</span>
+                )}
               </div>
-              <div className={css.card_buttons}>
-                <IconButton variant="plain" color="neutral" size="sm">
-                  <EditOutlined
-                    className={css.icons}
-                    style={{ color: 'blue' }}
-                    onClick={() => setShowEditConfirmation(true)}
-                  />
-                </IconButton>
-                <IconButton
-                  variant="plain"
-                  color="neutral"
-                  size="sm"
-                  onClick={() => setShowDeleteConfirmation(true)}
-                >
-                  <DeleteOutlined className={css.icons} style={{ color: 'red' }} />
-                </IconButton>
-              </div>
+            </section>
+
+            <div className={css.actions}>
+              <Button
+                danger
+                icon={<DeleteOutlined />}
+                onClick={() => setShowDeleteConfirmation(true)}
+              >
+                {t('card.delete')}
+              </Button>
+              <Button
+                type="primary"
+                icon={<EditOutlined />}
+                onClick={() => setShowEditConfirmation(true)}
+              >
+                {t('card.edit')}
+              </Button>
             </div>
           </div>
         ) : null}
       </Modal>
+
       <EditCardModal
         item={item}
         fetchProfile={fetchProfile}
@@ -195,6 +160,6 @@ export default function CardModal({
         card={item}
         setCardModalOpen={setCardModalOpen}
       />
-    </div>
+    </>
   );
 }

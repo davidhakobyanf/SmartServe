@@ -20,6 +20,7 @@ describe("ProductsService", () => {
   };
   const saucesRepo = { findBy: jest.fn() };
   const basketItemsRepo = { count: jest.fn() };
+  const events = { emit: jest.fn() };
 
   let service: ProductsService;
 
@@ -29,6 +30,7 @@ describe("ProductsService", () => {
       new ProductsRepository(productsRepo as never, categoriesRepo as never, basketItemsRepo as never),
       new ProductSaucesService(productSaucesRepo as never, saucesRepo as never),
       new ProductImagesService(productsRepo as never),
+      events as never,
     );
   });
 
@@ -61,6 +63,7 @@ describe("ProductsService", () => {
         categoryId: category.id,
         title: " Burger ",
         price: 2000,
+        stockQuantity: 8,
         sauceIds: ["sauce-2", "sauce-1", "sauce-1"],
       }),
     ).resolves.toBe(detailedProduct);
@@ -72,6 +75,13 @@ describe("ProductsService", () => {
       { productId: "product-1", sauceId: "sauce-1" },
       { productId: "product-1", sauceId: "sauce-2" },
     ]);
+    expect(productsRepo.create).toHaveBeenCalledWith(
+      expect.objectContaining({ stockQuantity: 8 }),
+    );
+    expect(events.emit).toHaveBeenCalledWith("products:changed", {
+      action: "created",
+      productId: "product-1",
+    });
   });
 
   it("rejects a product when one of its sauces does not exist", async () => {
@@ -108,5 +118,9 @@ describe("ProductsService", () => {
       success: true,
     });
     expect(productsRepo.delete).toHaveBeenCalledWith("product-1");
+    expect(events.emit).toHaveBeenCalledWith("products:changed", {
+      action: "deleted",
+      productId: "product-1",
+    });
   });
 });

@@ -29,10 +29,13 @@ export interface MenuCard {
   description: string;
   descriptionTranslations?: LocalizedText;
   price: number;
+  stockQuantity?: number | null;
   sauces: MenuSauce[];
   sauceIds?: string[];
   active: boolean;
   image: MenuCardImage;
+  createdAt?: string;
+  updatedAt?: string;
   table?: string | number;
   count?: number;
 }

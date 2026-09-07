@@ -24,6 +24,9 @@
   "markUnavailable": "Նշել որպես անհասանելի",
   "markAvailable": "Նշել որպես հասանելի",
   "price": "{price} դրամ",
+  "stock": "{count} հատ",
+  "stockNotSet": "Քանակը նշված չէ",
+  "availability": "Հասանելիություն",
   "available": "Հասանելի է",
   "unavailable": "Անհասանելի է",
   "categoriesManagement": {

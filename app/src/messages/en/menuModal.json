@@ -13,6 +13,10 @@
     "selectImage": "Select Image",
     "price": "Price",
     "pricePlaceholder": "Price",
+    "stockQuantity": "Quantity in stock",
+    "stockPlaceholder": "Quantity",
+    "availability": "Availability",
+    "availabilityHint": "Turn off when the item is out of stock",
     "inactive": "inactive"
   },
   "validation": {
@@ -20,13 +24,22 @@
     "title": "Please input title!",
     "description": "Please input Description!",
     "price": "Please input price!",
+    "stockQuantity": "Enter the quantity in stock!",
     "image": "Select an image",
     "invalidType": "Choose a JPG, PNG, or WebP image",
     "tooLarge": "The image must be smaller than 5 MB"
   },
+  "sections": {
+    "content": "Basic information",
+    "sales": "Price and availability"
+  },
+  "actions": {
+    "cancel": "Cancel"
+  },
   "add": {
     "title": "Create Menu Item",
-    "submit": "Create"
+    "submit": "Create",
+    "error": "Failed to create the menu item"
   },
   "edit": {
     "title": "Edit Menu Item",
@@ -34,6 +47,18 @@
     "error": "Failed to save the menu item"
   },
   "card": {
+    "detailsTitle": "Product details",
+    "availability": "Availability",
+    "available": "Available",
+    "unavailable": "Unavailable",
+    "unitPrice": "Unit price",
+    "stockQuantity": "Quantity in stock",
+    "stockNotSet": "Not set",
+    "sauces": "Available sauces",
+    "noSauces": "No sauces selected for this product",
+    "noImage": "No image",
+    "edit": "Edit",
+    "delete": "Delete",
     "saucesColumn": "Sauces",
     "totalColumn": "Total",
     "totalAmount": "Total amount <b>{total}</b> dram",

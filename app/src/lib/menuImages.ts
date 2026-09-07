@@ -7,7 +7,10 @@ export function menuImageApiUrl(cardId: string): string {
 
 export function resolveMenuImageSrc(card: MenuCard): string {
   if (card.image?.hasData && card.id) {
-    return menuImageApiUrl(card.id);
+    const version = card.updatedAt
+      ? `?v=${encodeURIComponent(card.updatedAt)}`
+      : '';
+    return `${menuImageApiUrl(card.id)}${version}`;
   }
   const name = card.image?.name;
   if (name) {

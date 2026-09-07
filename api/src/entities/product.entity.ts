@@ -52,6 +52,9 @@ export class Product {
   })
   price!: number;
 
+  @Column({ type: "integer", nullable: true })
+  stockQuantity!: number | null;
+
   @Column({ type: "boolean", default: true })
   isActive!: boolean;
 

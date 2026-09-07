@@ -250,6 +250,19 @@
   color: var(--primary);
 }
 
+.productMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.stock {
+  color: var(--text-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
 .desc {
   font-size: 13px;
   line-height: 1.45;
@@ -261,22 +274,35 @@
   min-height: 37px;
 }
 
-.tag {
-  align-self: flex-start;
+.availabilityControl {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   margin-top: 4px;
-  padding: 4px 12px;
-  border-radius: 999px;
-  border: none;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.availabilityControl > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.availabilityControl span {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.availabilityControl strong {
   font-size: 12px;
   font-weight: 600;
-  cursor: pointer;
 }
 .tagOn {
-  background: var(--success-bg);
   color: var(--success);
 }
 .tagOff {
-  background: var(--danger-bg);
   color: var(--danger);
 }
 

@@ -13,6 +13,10 @@
     "selectImage": "Ընտրել նկար",
     "price": "Գին",
     "pricePlaceholder": "Գին",
+    "stockQuantity": "Առկա քանակ",
+    "stockPlaceholder": "Քանակ",
+    "availability": "Հասանելիություն",
+    "availabilityHint": "Անջատեք, եթե ուտեստը հասանելի չէ",
     "inactive": "ոչ ակտիվ"
   },
   "validation": {
@@ -20,13 +24,22 @@
     "title": "Մուտքագրեք անվանումը!",
     "description": "Մուտքագրեք նկարագրությունը!",
     "price": "Մուտքագրեք գինը!",
+    "stockQuantity": "Մուտքագրեք առկա քանակը!",
     "image": "Ընտրեք նկար",
     "invalidType": "Ընտրեք JPG, PNG կամ WebP նկար",
     "tooLarge": "Նկարը պետք է փոքր լինի 5 ՄԲ-ից"
   },
+  "sections": {
+    "content": "Հիմնական տվյալներ",
+    "sales": "Գին և հասանելիություն"
+  },
+  "actions": {
+    "cancel": "Չեղարկել"
+  },
   "add": {
     "title": "Ստեղծել քարտ",
-    "submit": "Ստեղծել"
+    "submit": "Ստեղծել",
+    "error": "Չհաջողվեց ստեղծել ուտեստը"
   },
   "edit": {
     "title": "Խմբագրել քարտը",
@@ -34,6 +47,18 @@
     "error": "Չհաջողվեց պահպանել ուտեստը"
   },
   "card": {
+    "detailsTitle": "Ուտեստի տվյալներ",
+    "availability": "Հասանելիություն",
+    "available": "Հասանելի է",
+    "unavailable": "Անհասանելի է",
+    "unitPrice": "Մեկ միավորի գին",
+    "stockQuantity": "Առկա քանակ",
+    "stockNotSet": "Նշված չէ",
+    "sauces": "Հասանելի սոուսներ",
+    "noSauces": "Այս ուտեստի համար սոուսներ չկան",
+    "noImage": "Նկար չկա",
+    "edit": "Խմբագրել",
+    "delete": "Ջնջել",
     "saucesColumn": "Սոուսներ",
     "totalColumn": "Ընդամենը",
     "totalAmount": "Ընդհանուր գումար <b>{total}</b> դրամ",

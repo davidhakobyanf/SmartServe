@@ -25,6 +25,10 @@ export function productToMenuCard(product: ProductRecord): MenuCard {
     ),
     descriptionTranslations: product.descriptionTranslations,
     price: Number(product.price) || 0,
+    stockQuantity:
+      product.stockQuantity === null || product.stockQuantity === undefined
+        ? null
+        : Number(product.stockQuantity),
     sauces: Array.isArray(product.sauces)
       ? product.sauces.map((sauce) => ({
           ...sauce,
@@ -38,6 +42,8 @@ export function productToMenuCard(product: ProductRecord): MenuCard {
       mimeType: product.imageMimeType ?? undefined,
       hasData: Boolean(product.imageName),
     },
+    createdAt: product.createdAt,
+    updatedAt: product.updatedAt,
     count: 1,
   };
 }

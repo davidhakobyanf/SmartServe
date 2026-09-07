@@ -48,7 +48,7 @@ export function productFixture(): Product {
   return Object.assign(new Product(), {
     id: ID, categoryId: ID, title: "Burger", titleTranslations: { en: "Burger", ru: "Бургер" },
     description: "Beef", descriptionTranslations: { en: "Beef", ru: "Говядина" },
-    price: 1000, isActive: true, imageName: "burger.png", imageMimeType: "image/png",
+    price: 1000, stockQuantity: 12, isActive: true, imageName: "burger.png", imageMimeType: "image/png",
     createdAt: NOW, updatedAt: NOW,
     category: Object.assign(new Category(), {
       id: ID, name: "Food", nameTranslations: { en: "Food", ru: "Еда" }, isActive: true,

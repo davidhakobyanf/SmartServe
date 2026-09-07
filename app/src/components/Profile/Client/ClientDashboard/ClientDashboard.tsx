@@ -33,10 +33,13 @@ import { useWaiterClient } from '@/hooks/useWaiterClient';
 import { useSessionLock } from '@/hooks/useSessionLock';
 import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
 import { getMenuLineTotal, type MenuBadge } from '@/lib/clientMenu';
+import { createSocket } from '@/lib/ws/socket';
 import ClientMenuGrid from './ClientMenuGrid';
 import ClientOrderPanel from './ClientOrderPanel';
 
-const PAGE_SIZE = 8;
+const MIN_PAGE_SIZE = 8;
+const MENU_NAMESPACE = '/menu';
+const MENU_UPDATED_EVENT = 'menu:updated';
 
 const CATEGORY_ICONS = [TbSoup, TbMeat, TbCake, TbGlassFull];
 
@@ -104,6 +107,36 @@ export default function ClientDashboard() {
     return () => setSessionToken(null);
   }, [sessionId]);
 
+  useEffect(() => {
+    if (!sessionId) return;
+
+    let active = true;
+    const socket = createSocket(MENU_NAMESPACE, { sessionToken: sessionId });
+    const refreshMenu = async () => {
+      try {
+        const { data } = await clientAPI.getPublicMenu();
+        if (active) {
+          setMenuCards(
+            (data ?? []).map((product: ProductRecord) =>
+              productToMenuCard(product),
+            ),
+          );
+        }
+      } catch {
+        // Keep the last valid menu; reconnecting will trigger another refresh.
+      }
+    };
+
+    socket.on('connect', refreshMenu);
+    socket.on(MENU_UPDATED_EVENT, refreshMenu);
+
+    return () => {
+      active = false;
+      socket.removeAllListeners();
+      socket.disconnect();
+    };
+  }, [sessionId]);
+
   const { callWaiter } = useWaiterClient(sessionId);
   const { profileDataList } = useProfileData();
 
@@ -111,16 +144,32 @@ export default function ClientDashboard() {
   const [category, setCategory] = useState('All Items');
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('popular');
-  const [visible, setVisible] = useState(PAGE_SIZE);
+  const [columnCount, setColumnCount] = useState(1);
+  const pageSize = Math.ceil(MIN_PAGE_SIZE / columnCount) * columnCount;
+  const [visible, setVisible] = useState(MIN_PAGE_SIZE);
   const [basket, setBasket] = useState<MenuCard[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [cardModalOpen, setCardModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuCard | null>(null);
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [selectedBadge, setSelectedBadge] = useState<'popular' | 'chef' | null>(
     null,
   );
   const [editingLine, setEditingLine] = useState<MenuCard | null>(null);
+  const selectedItemId = selectedItem?.id;
+
+  useEffect(() => {
+    if (!selectedItemId) return;
+
+    const updatedItem = menuCards.find((card) => card.id === selectedItemId);
+    if (updatedItem) {
+      setSelectedItem(updatedItem);
+      return;
+    }
+
+    setSelectedItem(null);
+    setEditingLine(null);
+    setCardModalOpen(false);
+  }, [menuCards, selectedItemId]);
 
   useEffect(() => {
     if (liveBasketItems) {
@@ -184,8 +233,8 @@ export default function ClientDashboard() {
 
   // Reset pagination whenever the visible set changes.
   useEffect(() => {
-    setVisible(PAGE_SIZE);
-  }, [search, sort, category]);
+    setVisible(pageSize);
+  }, [search, sort, category, pageSize]);
 
   const shown = cards.slice(0, visible);
   const hasMore = cards.length > visible;
@@ -194,9 +243,7 @@ export default function ClientDashboard() {
     item: MenuCard,
     badge: MenuBadge = null,
   ) => {
-    const idx = menuCards.findIndex((c) => c.id === item.id);
     setSelectedItem(item);
-    setSelectedIndex(idx >= 0 ? idx : null);
     setSelectedBadge(badge);
     setEditingLine(null);
     setCardModalOpen(true);
@@ -385,7 +432,8 @@ export default function ClientDashboard() {
               hasMore={hasMore}
               onOpen={openDetail}
               onQuickAdd={quickAdd}
-              onLoadMore={() => setVisible((value) => value + PAGE_SIZE)}
+              onLoadMore={() => setVisible((value) => value + pageSize)}
+              onColumnCountChange={setColumnCount}
             />
           </main>
           <ClientOrderPanel
@@ -405,7 +453,6 @@ export default function ClientDashboard() {
       <ClientCardModal
         cardModalOpen={cardModalOpen}
         setCardModalOpen={setCardModalOpen}
-        index={selectedIndex}
         item={
           selectedItem
             ? menuCards.find((c) => c.id === selectedItem.id) ?? null

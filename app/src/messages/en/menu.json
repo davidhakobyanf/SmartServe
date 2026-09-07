@@ -24,6 +24,9 @@
   "markUnavailable": "Mark unavailable",
   "markAvailable": "Mark available",
   "price": "{price} AMD",
+  "stock": "In stock: {count}",
+  "stockNotSet": "Stock not set",
+  "availability": "Availability",
   "available": "Available",
   "unavailable": "Unavailable",
   "categoriesManagement": {

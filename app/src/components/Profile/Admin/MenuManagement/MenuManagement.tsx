@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { Input, Select, Dropdown, Empty } from 'antd';
+import { Input, Select, Dropdown, Empty, Switch } from 'antd';
 import { TbPlus, TbSearch, TbDotsVertical } from 'react-icons/tb';
 import clientAPI from '@/api/api';
 import { useFetching } from '@/hoc/fetchingHook';
@@ -33,7 +33,6 @@ export default function MenuManagement() {
   const [addOpen, setAddOpen] = useState(false);
   const [cardOpen, setCardOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuCard | null>(null);
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const [editCard] = useFetching(async (card: Partial<MenuCard>) => {
     if (!card.id) return;
@@ -50,6 +49,9 @@ export default function MenuManagement() {
         ? { descriptionTranslations: card.descriptionTranslations }
         : {}),
       ...(card.price !== undefined ? { price: card.price } : {}),
+      ...(card.stockQuantity !== undefined
+        ? { stockQuantity: card.stockQuantity }
+        : {}),
       ...(card.sauceIds !== undefined
         ? { sauceIds: card.sauceIds }
         : card.sauces !== undefined
@@ -67,6 +69,7 @@ export default function MenuManagement() {
       titleTranslations: formData.titleTranslations,
       descriptionTranslations: formData.descriptionTranslations,
       price: formData.price,
+      stockQuantity: formData.stockQuantity,
       sauceIds: formData.sauceIds ?? [],
       isActive: formData.active ?? true,
       image: formData.image,
@@ -99,6 +102,16 @@ export default function MenuManagement() {
       list = list.filter((c) => c.title.toLowerCase().includes(q));
     }
     switch (sort) {
+      case 'newest':
+        list.sort((a, b) => {
+          const createdAtDifference =
+            Date.parse(b.createdAt ?? '') - Date.parse(a.createdAt ?? '');
+
+          return Number.isNaN(createdAtDifference) || createdAtDifference === 0
+            ? b.id.localeCompare(a.id)
+            : createdAtDifference;
+        });
+        break;
       case 'price-asc':
         list.sort((a, b) => a.price - b.price);
         break;
@@ -112,14 +125,19 @@ export default function MenuManagement() {
     return list;
   }, [profileDataList.card, category, search, sort]);
 
-  const openCard = (item: MenuCard, index: number) => {
+  const openCard = (item: MenuCard) => {
     setSelectedItem(item);
-    setSelectedIndex(index);
     setCardOpen(true);
   };
 
-  const toggleActive = (item: MenuCard) => {
-    void editCard({ id: item.id, active: !item.active });
+  const toggleActive = async (item: MenuCard) => {
+    const active = !item.active;
+    const succeeded = await editCard({ id: item.id, active });
+    if (succeeded) {
+      setSelectedItem((current) =>
+        current?.id === item.id ? { ...current, active } : current,
+      );
+    }
   };
 
   const SORT_OPTIONS = [
@@ -231,13 +249,13 @@ export default function MenuManagement() {
             </div>
           ) : (
             <div className={css.grid}>
-              {cards.map((item, index) => {
+              {cards.map((item) => {
                 const src = images.find((im) => im.id === item.id)?.src;
                 return (
                   <article key={item.id} className={css.card}>
                     <div
                       className={css.imgWrap}
-                      onClick={() => canManageProducts && openCard(item, index)}
+                      onClick={() => canManageProducts && openCard(item)}
                     >
                       {src ? (
                         <img
@@ -255,7 +273,7 @@ export default function MenuManagement() {
                         <h3
                           className={css.cardTitle}
                           onClick={() =>
-                            canManageProducts && openCard(item, index)
+                            canManageProducts && openCard(item)
                           }
                         >
                           {item.title}
@@ -268,7 +286,7 @@ export default function MenuManagement() {
                                 {
                                   key: 'edit',
                                   label: t('edit'),
-                                  onClick: () => openCard(item, index),
+                                  onClick: () => openCard(item),
                                 },
                                 {
                                   key: 'toggle',
@@ -286,20 +304,34 @@ export default function MenuManagement() {
                           </Dropdown>
                         )}
                       </div>
-                      <div className={css.price}>
-                        {t('price', { price: item.price })}
+                      <div className={css.productMeta}>
+                        <div className={css.price}>
+                          {t('price', { price: item.price })}
+                        </div>
+                        <span className={css.stock}>
+                          {item.stockQuantity === null ||
+                          item.stockQuantity === undefined
+                            ? t('stockNotSet')
+                            : t('stock', { count: item.stockQuantity })}
+                        </span>
                       </div>
                       <p className={css.desc}>{item.description}</p>
-                      <button
-                        type="button"
-                        className={`${css.tag} ${
-                          item.active ? css.tagOn : css.tagOff
-                        }`}
-                        onClick={() => canManageProducts && toggleActive(item)}
-                        disabled={!canManageProducts}
-                      >
-                        {item.active ? t('available') : t('unavailable')}
-                      </button>
+                      <div className={css.availabilityControl}>
+                        <div>
+                          <span>{t('availability')}</span>
+                          <strong
+                            className={item.active ? css.tagOn : css.tagOff}
+                          >
+                            {item.active ? t('available') : t('unavailable')}
+                          </strong>
+                        </div>
+                        <Switch
+                          size="small"
+                          checked={item.active}
+                          disabled={!canManageProducts}
+                          onChange={() => void toggleActive(item)}
+                        />
+                      </div>
                     </div>
                   </article>
                 );
@@ -338,10 +370,10 @@ export default function MenuManagement() {
           <CardModal
             cardModalOpen={cardOpen}
             setCardModalOpen={setCardOpen}
-            index={selectedIndex}
             item={selectedItem}
             images={images}
             fetchProfile={fetchProfile}
+            onToggleActive={toggleActive}
           />
         </>
       )}

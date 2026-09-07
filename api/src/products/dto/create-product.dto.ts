@@ -2,6 +2,7 @@ import {
   IsArray,
   IsBoolean,
   IsNotEmpty,
+  IsInt,
   IsNumber,
   IsOptional,
   IsString,
@@ -45,6 +46,11 @@ export class CreateProductDto {
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)
   price!: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  stockQuantity?: number | null;
 
   @IsOptional()
   @IsArray()

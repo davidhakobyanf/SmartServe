@@ -14,6 +14,7 @@ import { BasketItem } from "src/entities/basket-item.entity";
 import { ProductsRepository } from "./products.repository";
 import { ProductSaucesService } from "./product-sauces.service";
 import { ProductImagesService } from "./product-images.service";
+import { MenuGateway } from "./menu.gateway";
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { ProductImagesService } from "./product-images.service";
     ProductsRepository,
     ProductSaucesService,
     ProductImagesService,
+    MenuGateway,
   ],
   exports: [ProductsService],
 })

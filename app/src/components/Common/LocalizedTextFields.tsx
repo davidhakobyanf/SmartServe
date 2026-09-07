@@ -12,6 +12,7 @@ interface LocalizedTextFieldsProps {
   multiline?: boolean;
   maxLength: number;
   required?: boolean;
+  rows?: number;
 }
 
 const LANGUAGE_KEYS: Record<ContentLocale, 'lang_en' | 'lang_am' | 'lang_ru'> = {
@@ -27,6 +28,7 @@ export default function LocalizedTextFields({
   multiline = false,
   maxLength,
   required = false,
+  rows = 4,
 }: LocalizedTextFieldsProps) {
   const t = useTranslations('common');
 
@@ -54,7 +56,7 @@ export default function LocalizedTextFields({
             >
               {multiline ? (
                 <TextArea
-                  rows={4}
+                  rows={rows}
                   maxLength={maxLength}
                   showCount
                   placeholder={placeholder}

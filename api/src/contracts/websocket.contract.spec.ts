@@ -4,12 +4,14 @@ import { Socket, Server } from "socket.io";
 import { OrdersGateway } from "../orders/orders.gateway";
 import { WaiterGateway } from "../waiter/waiter.gateway";
 import { SessionsGateway } from "../sessions/session.gateway";
+import { MenuGateway } from "../products/menu.gateway";
 import { UsersService } from "../users/users.service";
 import { StaffSocketAuthService } from "../users/staff-socket-auth.service";
 import { Permission } from "../common/auth/permission";
 import { UserStatus } from "../common/auth/user-status";
 import { SESSION_DOMAIN_EVENTS } from "../sessions/session.events";
 import { ORDER_DOMAIN_EVENTS } from "../orders/order.events";
+import { PRODUCT_DOMAIN_EVENTS } from "../products/product.events";
 import { ID, SESSION_ID, orderFixture, sessionFixture, userFixture } from "./fixtures";
 
 describe("WebSocket compatibility", () => {
@@ -23,6 +25,7 @@ describe("WebSocket compatibility", () => {
   let ordersGateway: OrdersGateway;
   let waiterGateway: WaiterGateway;
   let sessionsGateway: SessionsGateway;
+  let menuGateway: MenuGateway;
   const emit = jest.fn();
   const to = jest.fn(() => ({ emit }));
 
@@ -33,7 +36,9 @@ describe("WebSocket compatibility", () => {
     ordersGateway = new OrdersGateway(staffAuth);
     waiterGateway = new WaiterGateway(staffAuth, sessions as never);
     sessionsGateway = new SessionsGateway(sessions as never);
+    menuGateway = new MenuGateway();
     for (const gateway of [ordersGateway, waiterGateway, sessionsGateway]) gateway.server = { to } as unknown as Server;
+    menuGateway.server = { emit } as unknown as Server;
   });
 
   function client(auth: Record<string, string> = {}) {
@@ -43,7 +48,7 @@ describe("WebSocket compatibility", () => {
   }
 
   it("freezes namespaces, subscribed messages and domain events", () => {
-    expect([OrdersGateway, WaiterGateway, SessionsGateway].map((gateway) => ({
+    expect([OrdersGateway, WaiterGateway, SessionsGateway, MenuGateway].map((gateway) => ({
       namespace: Reflect.getMetadata(GATEWAY_OPTIONS, gateway).namespace,
       events: Object.getOwnPropertyNames(gateway.prototype).flatMap((key) => {
         const handler = (gateway.prototype as unknown as Record<string, unknown>)[key];
@@ -54,9 +59,17 @@ describe("WebSocket compatibility", () => {
       { namespace: "orders", events: ["join"] },
       { namespace: "waiter", events: ["join", "waiter:call"] },
       { namespace: "sessions", events: ["join"] },
+      { namespace: "menu", events: [] },
     ]);
     expect(ORDER_DOMAIN_EVENTS).toEqual({ CHANGED: "orders:changed" });
     expect(SESSION_DOMAIN_EVENTS).toEqual({ CLOSED: "session:closed", BASKET_CHANGED: "session:basket-changed" });
+    expect(PRODUCT_DOMAIN_EVENTS).toEqual({ CHANGED: "products:changed" });
+  });
+
+  it("broadcasts menu invalidation after a product change", () => {
+    const payload = { action: "updated" as const, productId: ID };
+    menuGateway.onProductChanged(payload);
+    expect(emit).toHaveBeenCalledWith("menu:updated", payload);
   });
 
   it.each(["missing", "invalid", "inactive", "inactive-role", "no-user", "no-permission"])("preserves staff acknowledgements for %s", async (scenario) => {

@@ -13,6 +13,7 @@ describe("Product workflow compatibility", () => {
   const linksRepo = { delete: jest.fn(), create: jest.fn(), save: jest.fn() };
   let service: ProductsService;
   let repository: ProductsRepository;
+  const events = { emit: jest.fn() };
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -21,24 +22,29 @@ describe("Product workflow compatibility", () => {
     productRepo.findOneOrFail.mockResolvedValue(product);
     productRepo.save.mockImplementation(async (value) => value);
     repository = new ProductsRepository(productRepo as unknown as Repository<Product>, { findOne: async () => product.category } as never, {} as never);
-    service = new ProductsService(repository, new ProductSaucesService(linksRepo as never, sauceRepo as never), new ProductImagesService(productRepo as never));
+    service = new ProductsService(repository, new ProductSaucesService(linksRepo as never, sauceRepo as never), new ProductImagesService(productRepo as never), events as never);
   });
 
   it("preserves query relations, sorting and active-menu predicates", async () => {
     await repository.findAll();
     expect(productRepo.find).toHaveBeenLastCalledWith({ relations: { category: true, sauceLinks: { sauce: true } }, order: { title: "ASC" } });
-    await repository.findActiveMenu();
-    expect(productRepo.find).toHaveBeenLastCalledWith({ where: { isActive: true, category: { isActive: true } }, relations: { category: true, sauceLinks: { sauce: true } }, order: { category: { sortOrder: "ASC" }, title: "ASC" } });
+    await repository.findPublicMenu();
+    expect(productRepo.find).toHaveBeenLastCalledWith({ where: { category: { isActive: true } }, relations: { category: true, sauceLinks: { sauce: true } }, order: { category: { sortOrder: "ASC" }, title: "ASC" } });
     await repository.findOneWithDetails(product.id);
     expect(productRepo.findOneOrFail).toHaveBeenLastCalledWith({ where: { id: product.id }, relations: { category: true, sauceLinks: { sauce: true } } });
   });
 
   it("keeps translated-field replacement distinct from legacy English updates", async () => {
-    await service.update(product.id, { title: " New title ", descriptionTranslations: { am: " Նոր " } });
+    await service.update(product.id, { title: " New title ", descriptionTranslations: { am: " Նոր " }, stockQuantity: 7 });
     expect(product.titleTranslations).toEqual({ en: "New title", ru: "Бургер" });
     expect(product.descriptionTranslations).toEqual({ am: "Նոր" });
     expect(product.description).toBe("Նոր");
+    expect(product.stockQuantity).toBe(7);
     expect(linksRepo.delete).not.toHaveBeenCalled();
+    expect(events.emit).toHaveBeenCalledWith("products:changed", {
+      action: "updated",
+      productId: product.id,
+    });
   });
 
   it("preserves product metadata-only upload behavior and existing image bytes", async () => {

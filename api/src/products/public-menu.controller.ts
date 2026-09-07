@@ -9,9 +9,9 @@ export class PublicMenuController {
 
   @UseGuards(OpenSessionGuard)
   @Get()
-  async findActiveMenu(@Headers("accept-language") locale?: string) {
+  async findPublicMenu(@Headers("accept-language") locale?: string) {
     return productsResponse(
-      await this.productsService.findActiveMenu(),
+      await this.productsService.findPublicMenu(),
       true,
       locale,
     );

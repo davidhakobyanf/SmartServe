@@ -67,7 +67,7 @@ describe("HTTP compatibility (real Nest routing, guards, pipes and serialization
         { provide: JwtService, useValue: jwt }, { provide: UsersService, useValue: users },
         { provide: OrdersService, useValue: orders }, { provide: SessionsService, useValue: sessions },
         { provide: TablesService, useValue: { findAll: async () => [tableFixture()] } },
-        { provide: ProductsService, useValue: { ...imageService, findAll: async () => [productFixture()], findActiveMenu: async () => [productFixture()] } },
+        { provide: ProductsService, useValue: { ...imageService, findAll: async () => [productFixture()], findPublicMenu: async () => [productFixture()] } },
         { provide: CategoriesService, useValue: imageService }, { provide: SaucesService, useValue: imageService },
         {
           provide: ProfileService, useValue: {

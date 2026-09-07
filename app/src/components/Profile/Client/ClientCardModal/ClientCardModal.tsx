@@ -13,7 +13,6 @@ import { formatAmount } from '@/lib/formatters';
 interface ClientCardModalProps {
   setCardModalOpen: (open: boolean) => void;
   cardModalOpen: boolean;
-  index: number | null;
   item: MenuCard | null;
   images: MenuImage[];
   badge?: 'popular' | 'chef' | null;
@@ -23,7 +22,6 @@ interface ClientCardModalProps {
 export default function ClientCardModal({
   setCardModalOpen,
   cardModalOpen,
-  index,
   item,
   images,
   badge = null,
@@ -73,12 +71,9 @@ export default function ClientCardModal({
     }
   }, [cardModalOpen, item, setCardModalOpen]);
 
-  const imageSrc =
-    index !== null
-      ? images[index]?.src
-      : item
-        ? images.find((i) => i.id === item.id)?.src
-        : undefined;
+  const imageSrc = item
+    ? images.find((image) => image.id === item.id)?.src
+    : undefined;
 
   const selectedSauces = (item?.sauces ?? []).filter(
     (sauce) => selected[sauce.id],

@@ -24,6 +24,9 @@
   "markUnavailable": "Отметить как недоступное",
   "markAvailable": "Отметить как доступное",
   "price": "{price} драм",
+  "stock": "В наличии: {count}",
+  "stockNotSet": "Остаток не указан",
+  "availability": "Доступность",
   "available": "Доступно",
   "unavailable": "Недоступно",
   "categoriesManagement": {

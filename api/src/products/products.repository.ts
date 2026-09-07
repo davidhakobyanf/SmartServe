@@ -40,10 +40,9 @@ export class ProductsRepository {
     });
   }
 
-  findActiveMenu(): Promise<Product[]> {
+  findPublicMenu(): Promise<Product[]> {
     return this.productsRepo.find({
       where: {
-        isActive: true,
         category: {
           isActive: true,
         },
