@@ -19,7 +19,7 @@ import {
 } from "src/common/guards/open-session.guard";
 import { PermissionsGuard } from "src/common/guards/permissions.guard";
 import { User } from "src/entities/user.entity";
-import { UsersService } from "src/users/users.service";
+import { getEffectivePermissions } from "src/common/auth/effective-permissions";
 import { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
 import { ordersResponse, orderResponse } from "./order-response";
 import { OrdersService } from "./orders.service";
@@ -28,21 +28,14 @@ import { OrdersService } from "./orders.service";
 export class OrdersController {
   constructor(
     private readonly ordersService: OrdersService,
-    private readonly usersService: UsersService,
   ) {}
-
-  private canViewRevenue(user: User): boolean {
-    return this.usersService
-      .getEffectivePermissions(user)
-      .includes(Permission.REVENUE_VIEW);
-  }
 
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @RequirePermissions(Permission.ORDERS_VIEW)
   @Get()
   async findAll(@CurrentUser() user: User) {
     const orders = await this.ordersService.findAll();
-    return ordersResponse(orders, this.canViewRevenue(user));
+    return ordersResponse(orders, getEffectivePermissions(user).includes(Permission.REVENUE_VIEW));
   }
 
   @UseGuards(OpenSessionGuard)
@@ -72,6 +65,6 @@ export class OrdersController {
     @CurrentUser() user: User,
   ) {
     const order = await this.ordersService.updateStatus(id, dto.status);
-    return orderResponse(order, this.canViewRevenue(user));
+    return orderResponse(order, getEffectivePermissions(user).includes(Permission.REVENUE_VIEW));
   }
 }

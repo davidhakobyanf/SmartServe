@@ -1,3 +1,5 @@
+import { storedImageContent } from "../common/http/image-response";
+import { isForeignKeyViolation } from "../database/database-error";
 import {
   BadRequestException,
   ConflictException,
@@ -7,15 +9,15 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { Category } from "src/entities/category.entity";
 import { Product } from "src/entities/product.entity";
-import { QueryFailedError, Repository } from "typeorm";
+import { Repository } from "typeorm";
 import { CreateCategoryDto } from "./dto/create-category.dto";
 import { UpdateCategoryDto } from "./dto/update-category.dto";
 import {
-  cleanLocalizedText,
+  updatedLocalizedText,
   primaryLocalizedText,
   withLegacyEnglish,
 } from "src/common/i18n/localized-text";
-import { decodeImage } from "src/common/utils/image-upload.util";
+import { decodeImage, imageReplacement } from "src/common/utils/image-upload.util";
 
 @Injectable()
 export class CategoriesService {
@@ -43,14 +45,7 @@ export class CategoriesService {
       .where("category.id = :id", { id })
       .getOne();
 
-    if (!category?.imageData) {
-      throw new NotFoundException("Category image not found");
-    }
-
-    return {
-      buffer: category.imageData,
-      mimeType: category.imageMimeType || "image/jpeg",
-    };
+    return storedImageContent(category?.imageData, category?.imageMimeType, "Category image not found");
   }
 
   async create(dto: CreateCategoryDto): Promise<Category> {
@@ -99,13 +94,7 @@ export class CategoriesService {
     }
 
     if (dto.name !== undefined || dto.nameTranslations !== undefined) {
-      const nameTranslations =
-        dto.nameTranslations !== undefined
-          ? cleanLocalizedText(dto.nameTranslations)
-          : withLegacyEnglish(category.nameTranslations, dto.name);
-      if (dto.name !== undefined && dto.nameTranslations === undefined) {
-        nameTranslations.en = dto.name.trim();
-      }
+      const nameTranslations = updatedLocalizedText(category.nameTranslations, dto.nameTranslations, dto.name);
       const name = primaryLocalizedText(nameTranslations);
       if (!name) {
         throw new BadRequestException(
@@ -133,13 +122,7 @@ export class CategoriesService {
       category.isActive = dto.isActive;
     }
 
-    if (dto.removeImage) {
-      category.imageName = null;
-      category.imageMimeType = null;
-      category.imageData = null;
-    } else if (dto.image?.data) {
-      Object.assign(category, decodeImage(dto.image, "category-image"));
-    }
+    Object.assign(category, imageReplacement(dto.image, dto.removeImage, "category-image"));
 
     return this.categoryRepository.save(category);
   }
@@ -165,10 +148,7 @@ export class CategoriesService {
         throw new NotFoundException("Category not found");
       }
     } catch (error) {
-      if (
-        error instanceof QueryFailedError &&
-        (error.driverError as { code?: string } | undefined)?.code === "23503"
-      ) {
+      if (isForeignKeyViolation(error)) {
         throw new ConflictException(
           "Category cannot be deleted while it contains products",
         );

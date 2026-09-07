@@ -1,0 +1,99 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`User workflows before/after refactoring preserves login rejection for disabled 1`] = `
+{
+  "body": {
+    "message": "Access is disabled.",
+    "status": "disabled",
+  },
+  "status": 403,
+}
+`;
+
+exports[`User workflows before/after refactoring preserves login rejection for pending 1`] = `
+{
+  "body": {
+    "message": "Application is awaiting manager approval.",
+    "status": "pending",
+  },
+  "status": 403,
+}
+`;
+
+exports[`User workflows before/after refactoring preserves login rejection for rejected 1`] = `
+{
+  "body": {
+    "message": "Application was rejected.",
+    "reason": "Rejected reason",
+    "status": "rejected",
+  },
+  "status": 403,
+}
+`;
+
+exports[`User workflows before/after refactoring preserves self-management and conflicting-permission rejections: conflict 1`] = `
+{
+  "body": {
+    "conflictingPermissions": [
+      "orders.view",
+    ],
+    "message": "A permission cannot be both allowed and denied",
+  },
+  "status": 400,
+}
+`;
+
+exports[`User workflows before/after refactoring preserves self-management and conflicting-permission rejections: self-disable 1`] = `
+{
+  "body": {
+    "error": "Bad Request",
+    "message": "You cannot disable your own account",
+    "statusCode": 400,
+  },
+  "status": 400,
+}
+`;
+
+exports[`User workflows before/after refactoring preserves self-management and conflicting-permission rejections: self-permissions 1`] = `
+{
+  "body": {
+    "error": "Bad Request",
+    "message": "You cannot change your own permissions",
+    "statusCode": 400,
+  },
+  "status": 400,
+}
+`;
+
+exports[`User workflows before/after refactoring preserves self-management and conflicting-permission rejections: self-role 1`] = `
+{
+  "body": {
+    "error": "Bad Request",
+    "message": "You cannot change your own role",
+    "statusCode": 400,
+  },
+  "status": 400,
+}
+`;
+
+exports[`User workflows before/after refactoring protects the final owner role and personal owner permissions: owner-permissions 1`] = `
+{
+  "body": {
+    "error": "Bad Request",
+    "message": "Owner permissions cannot be overridden",
+    "statusCode": 400,
+  },
+  "status": 400,
+}
+`;
+
+exports[`User workflows before/after refactoring protects the final owner role and personal owner permissions: owner-role 1`] = `
+{
+  "body": {
+    "error": "Bad Request",
+    "message": "The last active owner cannot lose the owner role",
+    "statusCode": 400,
+  },
+  "status": 400,
+}
+`;

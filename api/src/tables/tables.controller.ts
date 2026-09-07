@@ -18,28 +18,14 @@ import { RequirePermissions } from "src/common/auth/permissions.decorator";
 import { UpdateTableDto } from "./dto/update-table.dto";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";
 import { User } from "src/entities/user.entity";
-import { UsersService } from "src/users/users.service";
-import { DiningTable } from "src/entities/dining-table.entity";
-import { localizedNameResponse } from "src/common/i18n/localized-response";
+import { tableResponse } from "./table-response";
 
 @Controller("api/tables")
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 export class TablesController {
   constructor(
     private readonly tablesService: TablesService,
-    private readonly usersService: UsersService,
   ) {}
-
-  private responseFor(user: User, table: DiningTable, locale?: string) {
-    const canManageQr = this.usersService
-      .getEffectivePermissions(user)
-      .includes(Permission.TABLES_QR_MANAGE);
-    const localizedTable = localizedNameResponse(table, locale);
-
-    return canManageQr
-      ? localizedTable
-      : { ...localizedTable, publicToken: undefined };
-  }
 
   @Get()
   @RequirePermissions(Permission.TABLES_VIEW)
@@ -48,7 +34,7 @@ export class TablesController {
     @Headers("accept-language") locale?: string,
   ) {
     const tables = await this.tablesService.findAll();
-    return tables.map((table) => this.responseFor(user, table, locale));
+    return tables.map((table) => tableResponse(user, table, locale));
   }
 
   @Post()
@@ -58,7 +44,7 @@ export class TablesController {
     @CurrentUser() user: User,
     @Headers("accept-language") locale?: string,
   ) {
-    return this.responseFor(
+    return tableResponse(
       user,
       await this.tablesService.create(dto),
       locale,
@@ -73,7 +59,7 @@ export class TablesController {
     @CurrentUser() user: User,
     @Headers("accept-language") locale?: string,
   ) {
-    return this.responseFor(
+    return tableResponse(
       user,
       await this.tablesService.update(id, dto),
       locale,

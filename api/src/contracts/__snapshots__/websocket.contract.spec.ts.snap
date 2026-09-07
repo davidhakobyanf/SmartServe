@@ -1,0 +1,168 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WebSocket compatibility broadcasts distinct revenue views without changing order snapshots 1`] = `
+[
+  [
+    "orders:updated",
+    [
+      {
+        "completedAt": null,
+        "createdAt": 2026-09-07T10:00:00.000Z,
+        "id": "11111111-1111-4111-8111-111111111111",
+        "items": [
+          {
+            "createdAt": 2026-09-07T10:00:00.000Z,
+            "descriptionSnapshot": "Original beef",
+            "id": "11111111-1111-4111-8111-111111111111",
+            "lineTotal": null,
+            "productId": "11111111-1111-4111-8111-111111111111",
+            "quantity": 2,
+            "sauces": [
+              {
+                "id": "11111111-1111-4111-8111-111111111111",
+                "name": "Garlic",
+                "unitPrice": 300,
+              },
+            ],
+            "titleSnapshot": "Original burger",
+            "unitPrice": null,
+          },
+        ],
+        "sessionId": "22222222-2222-4222-8222-222222222222",
+        "status": "placed",
+        "table": {
+          "id": "11111111-1111-4111-8111-111111111111",
+          "name": "Window",
+          "number": 7,
+        },
+        "tableId": "11111111-1111-4111-8111-111111111111",
+        "total": null,
+        "updatedAt": 2026-09-07T10:00:00.000Z,
+      },
+    ],
+  ],
+  [
+    "orders:updated",
+    [
+      {
+        "completedAt": null,
+        "createdAt": 2026-09-07T10:00:00.000Z,
+        "id": "11111111-1111-4111-8111-111111111111",
+        "items": [
+          {
+            "createdAt": 2026-09-07T10:00:00.000Z,
+            "descriptionSnapshot": "Original beef",
+            "id": "11111111-1111-4111-8111-111111111111",
+            "lineTotal": 2600,
+            "productId": "11111111-1111-4111-8111-111111111111",
+            "quantity": 2,
+            "sauces": [
+              {
+                "id": "11111111-1111-4111-8111-111111111111",
+                "name": "Garlic",
+                "unitPrice": 300,
+              },
+            ],
+            "titleSnapshot": "Original burger",
+            "unitPrice": 1000,
+          },
+        ],
+        "sessionId": "22222222-2222-4222-8222-222222222222",
+        "status": "placed",
+        "table": {
+          "id": "11111111-1111-4111-8111-111111111111",
+          "name": "Window",
+          "number": 7,
+        },
+        "tableId": "11111111-1111-4111-8111-111111111111",
+        "total": 2600,
+        "updatedAt": 2026-09-07T10:00:00.000Z,
+      },
+    ],
+  ],
+]
+`;
+
+exports[`WebSocket compatibility preserves staff acknowledgements for inactive: orders 1`] = `
+{
+  "error": "User is not active",
+  "ok": false,
+}
+`;
+
+exports[`WebSocket compatibility preserves staff acknowledgements for inactive: waiter 1`] = `
+{
+  "error": "Missing waiter_calls.view permission",
+  "ok": false,
+}
+`;
+
+exports[`WebSocket compatibility preserves staff acknowledgements for inactive-role: orders 1`] = `
+{
+  "error": "User is not active",
+  "ok": false,
+}
+`;
+
+exports[`WebSocket compatibility preserves staff acknowledgements for inactive-role: waiter 1`] = `
+{
+  "error": "Missing waiter_calls.view permission",
+  "ok": false,
+}
+`;
+
+exports[`WebSocket compatibility preserves staff acknowledgements for invalid: orders 1`] = `
+{
+  "error": "Invalid or expired access token",
+  "ok": false,
+}
+`;
+
+exports[`WebSocket compatibility preserves staff acknowledgements for invalid: waiter 1`] = `
+{
+  "error": "Invalid or expired access token",
+  "ok": false,
+}
+`;
+
+exports[`WebSocket compatibility preserves staff acknowledgements for missing: orders 1`] = `
+{
+  "error": "Missing access token",
+  "ok": false,
+}
+`;
+
+exports[`WebSocket compatibility preserves staff acknowledgements for missing: waiter 1`] = `
+{
+  "error": "Missing access token",
+  "ok": false,
+}
+`;
+
+exports[`WebSocket compatibility preserves staff acknowledgements for no-permission: orders 1`] = `
+{
+  "error": "Missing orders.view permission",
+  "ok": false,
+}
+`;
+
+exports[`WebSocket compatibility preserves staff acknowledgements for no-permission: waiter 1`] = `
+{
+  "error": "Missing waiter_calls.view permission",
+  "ok": false,
+}
+`;
+
+exports[`WebSocket compatibility preserves staff acknowledgements for no-user: orders 1`] = `
+{
+  "error": "User is not active",
+  "ok": false,
+}
+`;
+
+exports[`WebSocket compatibility preserves staff acknowledgements for no-user: waiter 1`] = `
+{
+  "error": "Missing waiter_calls.view permission",
+  "ok": false,
+}
+`;

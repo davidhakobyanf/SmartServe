@@ -1,5 +1,8 @@
 import { BadRequestException, ConflictException } from "@nestjs/common";
 import { ProductsService } from "./products.service";
+import { ProductsRepository } from "./products.repository";
+import { ProductSaucesService } from "./product-sauces.service";
+import { ProductImagesService } from "./product-images.service";
 
 describe("ProductsService", () => {
   const productsRepo = {
@@ -23,11 +26,9 @@ describe("ProductsService", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     service = new ProductsService(
-      productsRepo as never,
-      categoriesRepo as never,
-      productSaucesRepo as never,
-      saucesRepo as never,
-      basketItemsRepo as never,
+      new ProductsRepository(productsRepo as never, categoriesRepo as never, basketItemsRepo as never),
+      new ProductSaucesService(productSaucesRepo as never, saucesRepo as never),
+      new ProductImagesService(productsRepo as never),
     );
   });
 

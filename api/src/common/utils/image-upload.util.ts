@@ -2,10 +2,19 @@ import { BadRequestException } from "@nestjs/common";
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
-interface ImageUploadInput {
+export interface ImageUploadInput {
   name?: string;
   mimeType?: string;
   data?: string;
+}
+
+export function imageReplacement(
+  image: ImageUploadInput | undefined,
+  removeImage: boolean | undefined,
+  fallbackName: string,
+) {
+  if (removeImage) return { imageName: null, imageMimeType: null, imageData: null };
+  return image?.data ? decodeImage(image, fallbackName) : {};
 }
 
 export interface DecodedImage {

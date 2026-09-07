@@ -1,4 +1,3 @@
-import { JwtService } from "@nestjs/jwt";
 import {
   SubscribeMessage,
   WebSocketGateway,
@@ -8,9 +7,8 @@ import { isUUID } from "class-validator";
 import { Server, Socket } from "socket.io";
 import { v4 as uuidv4 } from "uuid";
 import { Permission } from "src/common/auth/permission";
-import { UserStatus } from "src/common/auth/user-status";
 import { SessionsService } from "src/sessions/sessions.service";
-import { UsersService } from "src/users/users.service";
+import { StaffSocketAuthService } from "src/users/staff-socket-auth.service";
 
 export const WS_NAMESPACE = "waiter";
 export const WS_EVENTS = {
@@ -37,8 +35,7 @@ export type WaiterCallPayload = {
 })
 export class WaiterGateway {
   constructor(
-    private readonly jwtService: JwtService,
-    private readonly usersService: UsersService,
+    private readonly staffAuth: StaffSocketAuthService,
     private readonly sessionsService: SessionsService,
   ) {}
 
@@ -51,27 +48,13 @@ export class WaiterGateway {
       client.handshake.auth?.accessToken ?? "",
     ).trim();
 
-    if (!accessToken) {
-      return { ok: false, error: "Missing access token" };
-    }
-
     try {
-      const payload = await this.jwtService.verifyAsync<{ sub: string }>(
+      const authorization = await this.staffAuth.authorize(
         accessToken,
+        Permission.WAITER_CALLS_VIEW,
+        "Missing waiter_calls.view permission",
       );
-      const user = await this.usersService.findById(payload.sub);
-      const permissions = user
-        ? this.usersService.getEffectivePermissions(user)
-        : [];
-
-      if (
-        !user ||
-        user.status !== UserStatus.ACTIVE ||
-        !user.role?.isActive ||
-        !permissions.includes(Permission.WAITER_CALLS_VIEW)
-      ) {
-        return { ok: false, error: "Missing waiter_calls.view permission" };
-      }
+      if (authorization.ok === false) return authorization;
 
       await client.join(WS_ROOMS.ADMIN);
       return { ok: true };

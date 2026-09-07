@@ -1,3 +1,4 @@
+import { sendImage } from "../common/http/image-response";
 import {
   Body,
   Controller,
@@ -71,8 +72,6 @@ export class ProfileImagesController {
     @Res() response: Response,
   ): Promise<void> {
     const avatar = await this.profileService.getAvatar(id);
-    response.setHeader('Content-Type', avatar.mimeType);
-    response.setHeader('Cache-Control', 'public, max-age=86400');
-    response.send(avatar.buffer);
+    sendImage(response, avatar);
   }
 }

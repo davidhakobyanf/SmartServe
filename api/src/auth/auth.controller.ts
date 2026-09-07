@@ -4,7 +4,7 @@ import { LoginDto } from "../users/dto/login.dto";
 import { JwtAuthGuard } from "src/common/guards/jwt-auth.guard";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";
 import { User } from "src/entities/user.entity";
-import { resolveLocalizedText } from "src/common/i18n/localized-text";
+import { authenticatedUserResponse } from "./auth-response";
 
 @Controller("api")
 export class AuthController {
@@ -21,24 +21,6 @@ export class AuthController {
     @CurrentUser() user: User,
     @Headers("accept-language") locale?: string,
   ) {
-    const permissions = this.usersService.getEffectivePermissions(user);
-
-    return {
-      id: user.id,
-      name: user.name,
-      surname: user.surname,
-      email: user.email,
-      status: user.status,
-      permissions,
-      role: {
-        id: user.role!.id,
-        name: resolveLocalizedText(
-          user.role!.nameTranslations,
-          user.role!.name,
-          locale,
-        ),
-        code: user.role!.code,
-      },
-    };
+    return authenticatedUserResponse(user, locale);
   }
 }

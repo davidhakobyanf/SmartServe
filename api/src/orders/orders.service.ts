@@ -12,6 +12,7 @@ import { OrderItem } from "src/entities/order-item.entity";
 import { DataSource, Repository } from "typeorm";
 import { ORDER_DOMAIN_EVENTS } from "./order.events";
 import { SESSION_DOMAIN_EVENTS } from "src/sessions/session.events";
+import { calculateOrderTotal, createOrderItemSnapshot } from "./order-calculation";
 
 @Injectable()
 export class OrdersService {
@@ -21,10 +22,6 @@ export class OrdersService {
     private readonly dataSource: DataSource,
     private readonly events: EventEmitter2,
   ) {}
-
-  private roundMoney(value: number): number {
-    return Math.round(value * 100) / 100;
-  }
 
   private async notifyOrdersChanged(): Promise<void> {
     this.events.emit(ORDER_DOMAIN_EVENTS.CHANGED, await this.findAll());
@@ -97,32 +94,14 @@ export class OrdersService {
         completedAt: null,
       });
 
-      newOrder.items = basketItems.map((basketItem) => {
-        const lineTotal = this.roundMoney(
-          (basketItem.unitPrice +
-            basketItem.sauces.reduce(
-              (sum, sauce) => sum + sauce.unitPrice,
-              0,
-            )) *
-            basketItem.quantity,
-        );
-
-        return orderItemsRepo.create({
+      newOrder.items = basketItems.map((basketItem) =>
+        orderItemsRepo.create({
           order: newOrder,
-          productId: basketItem.productId,
-          product: basketItem.product,
-          titleSnapshot: basketItem.product.title,
-          descriptionSnapshot: basketItem.product.description,
-          unitPrice: basketItem.unitPrice,
-          quantity: basketItem.quantity,
-          sauces: basketItem.sauces,
-          lineTotal,
-        });
-      });
-
-      newOrder.total = this.roundMoney(
-        newOrder.items.reduce((sum, item) => sum + item.lineTotal, 0),
+          ...createOrderItemSnapshot(basketItem),
+        }),
       );
+
+      newOrder.total = calculateOrderTotal(newOrder.items);
 
       const savedOrder = await ordersRepo.save(newOrder);
       await basketItemsRepo.delete({ sessionId });

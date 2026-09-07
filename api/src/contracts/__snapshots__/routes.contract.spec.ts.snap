@@ -1,0 +1,1447 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`HTTP route registry preserves every public route and its transport metadata 1`] = `
+[
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "3",
+        "pipes": [],
+      },
+    ],
+    "controller": "AuthController",
+    "guards": [],
+    "method": "POST",
+    "path": [
+      "user/login",
+      "auth/login",
+    ],
+    "permissions": [],
+    "prefix": "api",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "custom",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 1,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "AuthController",
+    "guards": [
+      "JwtAuthGuard",
+    ],
+    "method": "GET",
+    "path": "auth/me",
+    "permissions": [],
+    "prefix": "api",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "0",
+        "pipes": [],
+      },
+    ],
+    "controller": "BasketItemsController",
+    "guards": [
+      "OpenSessionGuard",
+    ],
+    "method": "GET",
+    "path": "/",
+    "permissions": [],
+    "prefix": "api/basket-items",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "0",
+        "pipes": [],
+      },
+      {
+        "data": undefined,
+        "index": 1,
+        "kind": "3",
+        "pipes": [],
+      },
+    ],
+    "controller": "BasketItemsController",
+    "guards": [
+      "OpenSessionGuard",
+    ],
+    "method": "POST",
+    "path": "/",
+    "permissions": [],
+    "prefix": "api/basket-items",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "0",
+        "pipes": [],
+      },
+      {
+        "data": "id",
+        "index": 1,
+        "kind": "5",
+        "pipes": [
+          "ParseUUIDPipe",
+        ],
+      },
+      {
+        "data": undefined,
+        "index": 2,
+        "kind": "3",
+        "pipes": [],
+      },
+    ],
+    "controller": "BasketItemsController",
+    "guards": [
+      "OpenSessionGuard",
+    ],
+    "method": "PATCH",
+    "path": ":id",
+    "permissions": [],
+    "prefix": "api/basket-items",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "0",
+        "pipes": [],
+      },
+      {
+        "data": "id",
+        "index": 1,
+        "kind": "5",
+        "pipes": [
+          "ParseUUIDPipe",
+        ],
+      },
+    ],
+    "controller": "BasketItemsController",
+    "guards": [
+      "OpenSessionGuard",
+    ],
+    "method": "DELETE",
+    "path": ":id",
+    "permissions": [],
+    "prefix": "api/basket-items",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "0",
+        "pipes": [],
+      },
+    ],
+    "controller": "BasketItemsController",
+    "guards": [
+      "OpenSessionGuard",
+    ],
+    "method": "DELETE",
+    "path": "/",
+    "permissions": [],
+    "prefix": "api/basket-items",
+  },
+  {
+    "arguments": [
+      {
+        "data": "accept-language",
+        "index": 0,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "CategoriesController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "GET",
+    "path": "/",
+    "permissions": [
+      "menu.view",
+    ],
+    "prefix": "api/categories",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "3",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 1,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "CategoriesController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "POST",
+    "path": "/",
+    "permissions": [
+      "categories.manage",
+    ],
+    "prefix": "api/categories",
+  },
+  {
+    "arguments": [
+      {
+        "data": "id",
+        "index": 0,
+        "kind": "5",
+        "pipes": [
+          "ParseUUIDPipe",
+        ],
+      },
+      {
+        "data": undefined,
+        "index": 1,
+        "kind": "3",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 2,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "CategoriesController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "PATCH",
+    "path": ":id",
+    "permissions": [
+      "categories.manage",
+    ],
+    "prefix": "api/categories",
+  },
+  {
+    "arguments": [
+      {
+        "data": "id",
+        "index": 0,
+        "kind": "5",
+        "pipes": [
+          "ParseUUIDPipe",
+        ],
+      },
+    ],
+    "controller": "CategoriesController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "DELETE",
+    "path": ":id",
+    "permissions": [
+      "categories.manage",
+    ],
+    "prefix": "api/categories",
+  },
+  {
+    "arguments": [
+      {
+        "data": "id",
+        "index": 0,
+        "kind": "5",
+        "pipes": [
+          "ParseUUIDPipe",
+        ],
+      },
+      {
+        "data": undefined,
+        "index": 1,
+        "kind": "1",
+        "pipes": [],
+      },
+    ],
+    "controller": "CategoryImagesController",
+    "guards": [],
+    "method": "GET",
+    "path": ":id",
+    "permissions": [],
+    "prefix": "api/category-images",
+  },
+  {
+    "arguments": [],
+    "controller": "HealthController",
+    "guards": [],
+    "method": "GET",
+    "path": "/",
+    "permissions": [],
+    "prefix": "api/health",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "custom",
+        "pipes": [],
+      },
+    ],
+    "controller": "OrdersController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "GET",
+    "path": "/",
+    "permissions": [
+      "orders.view",
+    ],
+    "prefix": "api/orders",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "0",
+        "pipes": [],
+      },
+    ],
+    "controller": "OrdersController",
+    "guards": [
+      "OpenSessionGuard",
+    ],
+    "method": "GET",
+    "path": "mine",
+    "permissions": [],
+    "prefix": "api/orders",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "0",
+        "pipes": [],
+      },
+    ],
+    "controller": "OrdersController",
+    "guards": [
+      "OpenSessionGuard",
+    ],
+    "method": "POST",
+    "path": "/",
+    "permissions": [],
+    "prefix": "api/orders",
+  },
+  {
+    "arguments": [
+      {
+        "data": "id",
+        "index": 0,
+        "kind": "5",
+        "pipes": [
+          "ParseUUIDPipe",
+        ],
+      },
+      {
+        "data": undefined,
+        "index": 1,
+        "kind": "3",
+        "pipes": [],
+      },
+      {
+        "data": undefined,
+        "index": 2,
+        "kind": "custom",
+        "pipes": [],
+      },
+    ],
+    "controller": "OrdersController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "PATCH",
+    "path": ":id/status",
+    "permissions": [
+      "orders.manage",
+    ],
+    "prefix": "api/orders",
+  },
+  {
+    "arguments": [
+      {
+        "data": "id",
+        "index": 0,
+        "kind": "5",
+        "pipes": [
+          "ParseUUIDPipe",
+        ],
+      },
+      {
+        "data": undefined,
+        "index": 1,
+        "kind": "1",
+        "pipes": [],
+      },
+    ],
+    "controller": "ProductImagesController",
+    "guards": [],
+    "method": "GET",
+    "path": ":id",
+    "permissions": [],
+    "prefix": "api/product-images",
+  },
+  {
+    "arguments": [
+      {
+        "data": "accept-language",
+        "index": 0,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "ProductsController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "GET",
+    "path": "/",
+    "permissions": [
+      "menu.view",
+    ],
+    "prefix": "api/products",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "3",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 1,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "ProductsController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "POST",
+    "path": "/",
+    "permissions": [
+      "products.manage",
+    ],
+    "prefix": "api/products",
+  },
+  {
+    "arguments": [
+      {
+        "data": "id",
+        "index": 0,
+        "kind": "5",
+        "pipes": [
+          "ParseUUIDPipe",
+        ],
+      },
+      {
+        "data": undefined,
+        "index": 1,
+        "kind": "3",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 2,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "ProductsController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "PATCH",
+    "path": ":id",
+    "permissions": [
+      "products.manage",
+    ],
+    "prefix": "api/products",
+  },
+  {
+    "arguments": [
+      {
+        "data": "id",
+        "index": 0,
+        "kind": "5",
+        "pipes": [
+          "ParseUUIDPipe",
+        ],
+      },
+    ],
+    "controller": "ProductsController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "DELETE",
+    "path": ":id",
+    "permissions": [
+      "products.manage",
+    ],
+    "prefix": "api/products",
+  },
+  {
+    "arguments": [
+      {
+        "data": "accept-language",
+        "index": 0,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "PublicMenuController",
+    "guards": [
+      "OpenSessionGuard",
+    ],
+    "method": "GET",
+    "path": "/",
+    "permissions": [],
+    "prefix": "api/menu",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "custom",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 1,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "ProfileController",
+    "guards": [
+      "JwtAuthGuard",
+    ],
+    "method": "GET",
+    "path": "/",
+    "permissions": [],
+    "prefix": "api/profile",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "custom",
+        "pipes": [],
+      },
+      {
+        "data": undefined,
+        "index": 1,
+        "kind": "3",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 2,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "ProfileController",
+    "guards": [
+      "JwtAuthGuard",
+    ],
+    "method": "PATCH",
+    "path": "/",
+    "permissions": [],
+    "prefix": "api/profile",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "custom",
+        "pipes": [],
+      },
+      {
+        "data": undefined,
+        "index": 1,
+        "kind": "3",
+        "pipes": [],
+      },
+    ],
+    "controller": "ProfileController",
+    "guards": [
+      "JwtAuthGuard",
+    ],
+    "method": "PATCH",
+    "path": "password",
+    "permissions": [],
+    "prefix": "api/profile",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "custom",
+        "pipes": [],
+      },
+      {
+        "data": undefined,
+        "index": 1,
+        "kind": "3",
+        "pipes": [],
+      },
+    ],
+    "controller": "ProfileController",
+    "guards": [
+      "JwtAuthGuard",
+    ],
+    "method": "PUT",
+    "path": "avatar",
+    "permissions": [],
+    "prefix": "api/profile",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "custom",
+        "pipes": [],
+      },
+    ],
+    "controller": "ProfileController",
+    "guards": [
+      "JwtAuthGuard",
+    ],
+    "method": "DELETE",
+    "path": "avatar",
+    "permissions": [],
+    "prefix": "api/profile",
+  },
+  {
+    "arguments": [
+      {
+        "data": "id",
+        "index": 0,
+        "kind": "5",
+        "pipes": [
+          "ParseUUIDPipe",
+        ],
+      },
+      {
+        "data": undefined,
+        "index": 1,
+        "kind": "1",
+        "pipes": [],
+      },
+    ],
+    "controller": "ProfileImagesController",
+    "guards": [],
+    "method": "GET",
+    "path": ":id",
+    "permissions": [],
+    "prefix": "api/profile-images",
+  },
+  {
+    "arguments": [
+      {
+        "data": "accept-language",
+        "index": 0,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "RolesController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "GET",
+    "path": "/",
+    "permissions": [
+      "roles.manage",
+    ],
+    "prefix": "api/roles",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "3",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 1,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "RolesController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "POST",
+    "path": "/",
+    "permissions": [
+      "roles.manage",
+    ],
+    "prefix": "api/roles",
+  },
+  {
+    "arguments": [
+      {
+        "data": "id",
+        "index": 0,
+        "kind": "5",
+        "pipes": [],
+      },
+      {
+        "data": undefined,
+        "index": 1,
+        "kind": "3",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 2,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "RolesController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "PATCH",
+    "path": ":id",
+    "permissions": [
+      "roles.manage",
+    ],
+    "prefix": "api/roles",
+  },
+  {
+    "arguments": [
+      {
+        "data": "id",
+        "index": 0,
+        "kind": "5",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 1,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "RolesController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "PATCH",
+    "path": ":id/enable",
+    "permissions": [
+      "roles.manage",
+    ],
+    "prefix": "api/roles",
+  },
+  {
+    "arguments": [
+      {
+        "data": "id",
+        "index": 0,
+        "kind": "5",
+        "pipes": [],
+      },
+      {
+        "data": undefined,
+        "index": 1,
+        "kind": "custom",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 2,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "RolesController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "PATCH",
+    "path": ":id/disable",
+    "permissions": [
+      "roles.manage",
+    ],
+    "prefix": "api/roles",
+  },
+  {
+    "arguments": [
+      {
+        "data": "accept-language",
+        "index": 0,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "SaucesController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "GET",
+    "path": "/",
+    "permissions": [
+      "menu.view",
+    ],
+    "prefix": "api/sauces",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "3",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 1,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "SaucesController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "POST",
+    "path": "/",
+    "permissions": [
+      "products.manage",
+    ],
+    "prefix": "api/sauces",
+  },
+  {
+    "arguments": [
+      {
+        "data": "id",
+        "index": 0,
+        "kind": "5",
+        "pipes": [
+          "ParseUUIDPipe",
+        ],
+      },
+      {
+        "data": undefined,
+        "index": 1,
+        "kind": "3",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 2,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "SaucesController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "PATCH",
+    "path": ":id",
+    "permissions": [
+      "products.manage",
+    ],
+    "prefix": "api/sauces",
+  },
+  {
+    "arguments": [
+      {
+        "data": "id",
+        "index": 0,
+        "kind": "5",
+        "pipes": [
+          "ParseUUIDPipe",
+        ],
+      },
+    ],
+    "controller": "SaucesController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "DELETE",
+    "path": ":id",
+    "permissions": [
+      "products.manage",
+    ],
+    "prefix": "api/sauces",
+  },
+  {
+    "arguments": [
+      {
+        "data": "id",
+        "index": 0,
+        "kind": "5",
+        "pipes": [
+          "ParseUUIDPipe",
+        ],
+      },
+      {
+        "data": undefined,
+        "index": 1,
+        "kind": "1",
+        "pipes": [],
+      },
+    ],
+    "controller": "SauceImagesController",
+    "guards": [],
+    "method": "GET",
+    "path": ":id",
+    "permissions": [],
+    "prefix": "api/sauce-images",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "3",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 1,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "SessionsController",
+    "guards": [],
+    "method": "POST",
+    "path": "open",
+    "permissions": [],
+    "prefix": "api/sessions",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "custom",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 1,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "SessionsController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "GET",
+    "path": "open",
+    "permissions": [
+      "tables.view",
+    ],
+    "prefix": "api/sessions",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "0",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 1,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "SessionsController",
+    "guards": [
+      "OpenSessionGuard",
+    ],
+    "method": "GET",
+    "path": "current",
+    "permissions": [],
+    "prefix": "api/sessions",
+  },
+  {
+    "arguments": [
+      {
+        "data": "id",
+        "index": 0,
+        "kind": "5",
+        "pipes": [
+          "ParseUUIDPipe",
+        ],
+      },
+      {
+        "data": undefined,
+        "index": 1,
+        "kind": "custom",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 2,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "SessionsController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "PATCH",
+    "path": ":id/close",
+    "permissions": [
+      "tables.manage",
+    ],
+    "prefix": "api/sessions",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "3",
+        "pipes": [],
+      },
+    ],
+    "controller": "SetupController",
+    "guards": [],
+    "method": "POST",
+    "path": "/",
+    "permissions": [],
+    "prefix": "api/setup",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "custom",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 1,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "TablesController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "GET",
+    "path": "/",
+    "permissions": [
+      "tables.view",
+    ],
+    "prefix": "api/tables",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "3",
+        "pipes": [],
+      },
+      {
+        "data": undefined,
+        "index": 1,
+        "kind": "custom",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 2,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "TablesController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "POST",
+    "path": "/",
+    "permissions": [
+      "tables.manage",
+    ],
+    "prefix": "api/tables",
+  },
+  {
+    "arguments": [
+      {
+        "data": "id",
+        "index": 0,
+        "kind": "5",
+        "pipes": [
+          "ParseUUIDPipe",
+        ],
+      },
+      {
+        "data": undefined,
+        "index": 1,
+        "kind": "3",
+        "pipes": [],
+      },
+      {
+        "data": undefined,
+        "index": 2,
+        "kind": "custom",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 3,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "TablesController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "PATCH",
+    "path": ":id",
+    "permissions": [
+      "tables.manage",
+    ],
+    "prefix": "api/tables",
+  },
+  {
+    "arguments": [
+      {
+        "data": "accept-language",
+        "index": 0,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "UsersManagementController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "GET",
+    "path": "/",
+    "permissions": [
+      "users.view",
+    ],
+    "prefix": "api/users",
+  },
+  {
+    "arguments": [
+      {
+        "data": "id",
+        "index": 0,
+        "kind": "5",
+        "pipes": [],
+      },
+      {
+        "data": undefined,
+        "index": 1,
+        "kind": "3",
+        "pipes": [],
+      },
+      {
+        "data": undefined,
+        "index": 2,
+        "kind": "custom",
+        "pipes": [],
+      },
+    ],
+    "controller": "UsersManagementController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "PATCH",
+    "path": ":id/approve",
+    "permissions": [
+      "users.approve",
+    ],
+    "prefix": "api/users",
+  },
+  {
+    "arguments": [
+      {
+        "data": "id",
+        "index": 0,
+        "kind": "5",
+        "pipes": [],
+      },
+      {
+        "data": undefined,
+        "index": 1,
+        "kind": "3",
+        "pipes": [],
+      },
+    ],
+    "controller": "UsersManagementController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "PATCH",
+    "path": ":id/reject",
+    "permissions": [
+      "users.approve",
+    ],
+    "prefix": "api/users",
+  },
+  {
+    "arguments": [
+      {
+        "data": "id",
+        "index": 0,
+        "kind": "5",
+        "pipes": [],
+      },
+      {
+        "data": undefined,
+        "index": 1,
+        "kind": "custom",
+        "pipes": [],
+      },
+    ],
+    "controller": "UsersManagementController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "PATCH",
+    "path": ":id/disable",
+    "permissions": [
+      "users.manage",
+    ],
+    "prefix": "api/users",
+  },
+  {
+    "arguments": [
+      {
+        "data": "id",
+        "index": 0,
+        "kind": "5",
+        "pipes": [],
+      },
+    ],
+    "controller": "UsersManagementController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "PATCH",
+    "path": ":id/enable",
+    "permissions": [
+      "users.manage",
+    ],
+    "prefix": "api/users",
+  },
+  {
+    "arguments": [
+      {
+        "data": "id",
+        "index": 0,
+        "kind": "5",
+        "pipes": [],
+      },
+      {
+        "data": undefined,
+        "index": 1,
+        "kind": "3",
+        "pipes": [],
+      },
+      {
+        "data": undefined,
+        "index": 2,
+        "kind": "custom",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 3,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "UsersManagementController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "PATCH",
+    "path": ":id/role",
+    "permissions": [
+      "users.manage",
+    ],
+    "prefix": "api/users",
+  },
+  {
+    "arguments": [
+      {
+        "data": "id",
+        "index": 0,
+        "kind": "5",
+        "pipes": [],
+      },
+      {
+        "data": undefined,
+        "index": 1,
+        "kind": "3",
+        "pipes": [],
+      },
+      {
+        "data": undefined,
+        "index": 2,
+        "kind": "custom",
+        "pipes": [],
+      },
+    ],
+    "controller": "UsersManagementController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "PATCH",
+    "path": ":id/permissions",
+    "permissions": [
+      "users.manage",
+    ],
+    "prefix": "api/users",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "3",
+        "pipes": [],
+      },
+    ],
+    "controller": "UsersController",
+    "guards": [],
+    "method": "POST",
+    "path": "/",
+    "permissions": [],
+    "prefix": "api/register",
+  },
+  {
+    "arguments": [],
+    "controller": "VenueSettingsController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "GET",
+    "path": "/",
+    "permissions": [
+      "venue.settings.manage",
+    ],
+    "prefix": "api/venue-settings",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "3",
+        "pipes": [],
+      },
+    ],
+    "controller": "VenueSettingsController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "PATCH",
+    "path": "/",
+    "permissions": [
+      "venue.settings.manage",
+    ],
+    "prefix": "api/venue-settings",
+  },
+  {
+    "arguments": [],
+    "controller": "PublicVenueSettingsController",
+    "guards": [],
+    "method": "GET",
+    "path": "/",
+    "permissions": [],
+    "prefix": "api/venue-settings/public",
+  },
+]
+`;

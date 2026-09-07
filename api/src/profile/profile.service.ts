@@ -1,11 +1,11 @@
+import { storedImageContent } from "../common/http/image-response";
 import {
   BadRequestException,
   ConflictException,
   Injectable,
-  NotFoundException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { resolveLocalizedText } from 'src/common/i18n/localized-text';
+import { profileResponse } from './profile-response';
 import { decodeImage } from 'src/common/utils/image-upload.util';
 import { isValidPassword } from 'src/common/utils/password.util';
 import { User } from 'src/entities/user.entity';
@@ -21,30 +21,7 @@ export class ProfileService {
   constructor(private readonly usersService: UsersService) {}
 
   getProfile(user: User, locale?: string) {
-    return {
-      id: user.id,
-      name: user.name,
-      surname: user.surname,
-      email: user.email,
-      status: user.status,
-      role: user.role
-        ? {
-            id: user.role.id,
-            name: resolveLocalizedText(
-              user.role.nameTranslations,
-              user.role.name,
-              locale,
-            ),
-            code: user.role.code,
-          }
-        : null,
-      permissions: this.usersService.getEffectivePermissions(user),
-      avatarName: user.avatarName,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-      lastLoginAt: user.lastLoginAt,
-      card: [],
-    };
+    return profileResponse(user, locale);
   }
 
   async updateProfile(user: User, dto: UpdateProfileDto, locale?: string) {
@@ -117,12 +94,6 @@ export class ProfileService {
 
   async getAvatar(id: string): Promise<{ buffer: Buffer; mimeType: string }> {
     const user = await this.usersService.findAvatarById(id);
-    if (!user?.avatarData) {
-      throw new NotFoundException('Avatar not found');
-    }
-    return {
-      buffer: user.avatarData,
-      mimeType: user.avatarMimeType || 'image/jpeg',
-    };
+    return storedImageContent(user?.avatarData, user?.avatarMimeType, "Avatar not found");
   }
 }

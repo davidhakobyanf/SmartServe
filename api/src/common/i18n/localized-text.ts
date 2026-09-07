@@ -43,6 +43,22 @@ export function primaryLocalizedText(
   return cleaned.en ?? cleaned.am ?? cleaned.ru ?? legacyValue.trim();
 }
 
+// An explicit translation object replaces all translations; a legacy string
+// only changes English. Keep this distinct from creation's fallback behavior.
+export function updatedLocalizedText(
+  current: LocalizedText | null | undefined,
+  translations: LocalizedText | null | undefined,
+  legacyValue: string | undefined,
+): LocalizedText {
+  const result = translations !== undefined
+    ? cleanLocalizedText(translations)
+    : withLegacyEnglish(current, legacyValue);
+  if (legacyValue !== undefined && translations === undefined) {
+    result.en = legacyValue.trim();
+  }
+  return result;
+}
+
 export function resolveLocalizedText(
   translations: LocalizedText | null | undefined,
   legacyValue: string | null | undefined,

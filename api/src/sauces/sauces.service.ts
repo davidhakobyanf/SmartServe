@@ -1,3 +1,4 @@
+import { storedImageContent } from "../common/http/image-response";
 import {
   BadRequestException,
   ConflictException,
@@ -10,11 +11,11 @@ import { ILike, Repository } from "typeorm";
 import { CreateSauceDto } from "./dto/create-sauce.dto";
 import { UpdateSauceDto } from "./dto/update-sauce.dto";
 import {
-  cleanLocalizedText,
+  updatedLocalizedText,
   primaryLocalizedText,
   withLegacyEnglish,
 } from "src/common/i18n/localized-text";
-import { decodeImage } from "src/common/utils/image-upload.util";
+import { decodeImage, imageReplacement } from "src/common/utils/image-upload.util";
 
 @Injectable()
 export class SaucesService {
@@ -39,14 +40,7 @@ export class SaucesService {
       .where("sauce.id = :id", { id })
       .getOne();
 
-    if (!sauce?.imageData) {
-      throw new NotFoundException("Sauce image not found");
-    }
-
-    return {
-      buffer: sauce.imageData,
-      mimeType: sauce.imageMimeType || "image/jpeg",
-    };
+    return storedImageContent(sauce?.imageData, sauce?.imageMimeType, "Sauce image not found");
   }
 
   async create(dto: CreateSauceDto): Promise<Sauce> {
@@ -102,13 +96,7 @@ export class SaucesService {
     }
 
     if (dto.name !== undefined || dto.nameTranslations !== undefined) {
-      const nameTranslations =
-        dto.nameTranslations !== undefined
-          ? cleanLocalizedText(dto.nameTranslations)
-          : withLegacyEnglish(sauce.nameTranslations, dto.name);
-      if (dto.name !== undefined && dto.nameTranslations === undefined) {
-        nameTranslations.en = dto.name.trim();
-      }
+      const nameTranslations = updatedLocalizedText(sauce.nameTranslations, dto.nameTranslations, dto.name);
       const name = primaryLocalizedText(nameTranslations);
       if (!name) {
         throw new BadRequestException("Sauce name cannot be empty");
@@ -129,13 +117,7 @@ export class SaucesService {
       sauce.isActive = dto.isActive;
     }
 
-    if (dto.removeImage) {
-      sauce.imageName = null;
-      sauce.imageMimeType = null;
-      sauce.imageData = null;
-    } else if (dto.image?.data) {
-      Object.assign(sauce, decodeImage(dto.image, "sauce-image"));
-    }
+    Object.assign(sauce, imageReplacement(dto.image, dto.removeImage, "sauce-image"));
 
     return this.saucesRepo.save(sauce);
   }

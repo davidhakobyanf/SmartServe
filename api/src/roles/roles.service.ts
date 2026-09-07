@@ -10,7 +10,7 @@ import { Repository } from "typeorm";
 import { CreateRoleDto } from "./dto/create-role.dto";
 import { UpdateRoleDto } from "./dto/update-role.dto";
 import {
-  cleanLocalizedText,
+  updatedLocalizedText,
   primaryLocalizedText,
   withLegacyEnglish,
 } from "src/common/i18n/localized-text";
@@ -69,13 +69,7 @@ export class RolesService {
       throw new BadRequestException("At least one field must be provided");
     }
     if (dto.name !== undefined || dto.nameTranslations !== undefined) {
-      const nameTranslations =
-        dto.nameTranslations !== undefined
-          ? cleanLocalizedText(dto.nameTranslations)
-          : withLegacyEnglish(role.nameTranslations, dto.name);
-      if (dto.name !== undefined && dto.nameTranslations === undefined) {
-        nameTranslations.en = dto.name.trim();
-      }
+      const nameTranslations = updatedLocalizedText(role.nameTranslations, dto.nameTranslations, dto.name);
       const name = primaryLocalizedText(nameTranslations);
 
       if (!name) {

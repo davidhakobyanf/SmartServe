@@ -17,37 +17,18 @@ import { CreateRoleDto } from "./dto/create-role.dto";
 import { UpdateRoleDto } from "./dto/update-role.dto";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";
 import { User } from "src/entities/user.entity";
-import { Role } from "src/entities/role.entity";
-import { resolveLocalizedText } from "src/common/i18n/localized-text";
+import { roleResponse } from "./role-response";
 
 @Controller("api/roles")
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
-  private roleResponse(role: Role, locale?: string) {
-    return {
-      id: role.id,
-      name: resolveLocalizedText(
-        role.nameTranslations,
-        role.name,
-        locale,
-      ),
-      nameTranslations: role.nameTranslations,
-      code: role.code,
-      permissions: role.permissions,
-      isSystem: role.isSystem,
-      isActive: role.isActive,
-      createdAt: role.createdAt,
-      updatedAt: role.updatedAt,
-    };
-  }
-
   @Get()
   @RequirePermissions(Permission.ROLES_MANAGE)
   async findAll(@Headers("accept-language") locale?: string) {
     const roles = await this.rolesService.findAll();
-    return roles.map((role) => this.roleResponse(role, locale));
+    return roles.map((role) => roleResponse(role, locale));
   }
 
   @Post()
@@ -57,7 +38,7 @@ export class RolesController {
     @Headers("accept-language") locale?: string,
   ) {
     const role = await this.rolesService.create(dto);
-    return this.roleResponse(role, locale);
+    return roleResponse(role, locale);
   }
 
   @Patch(":id")
@@ -68,7 +49,7 @@ export class RolesController {
     @Headers("accept-language") locale?: string,
   ) {
     const role = await this.rolesService.update(id, dto);
-    return this.roleResponse(role, locale);
+    return roleResponse(role, locale);
   }
   @Patch(":id/enable")
   @RequirePermissions(Permission.ROLES_MANAGE)
@@ -77,7 +58,7 @@ export class RolesController {
     @Headers("accept-language") locale?: string,
   ) {
     const role = await this.rolesService.enable(id);
-    return this.roleResponse(role, locale);
+    return roleResponse(role, locale);
   }
   @Patch(":id/disable")
   @RequirePermissions(Permission.ROLES_MANAGE)
@@ -87,6 +68,6 @@ export class RolesController {
     @Headers("accept-language") locale?: string,
   ) {
     const role = await this.rolesService.disable(id, actor.role!.id);
-    return this.roleResponse(role, locale);
+    return roleResponse(role, locale);
   }
 }

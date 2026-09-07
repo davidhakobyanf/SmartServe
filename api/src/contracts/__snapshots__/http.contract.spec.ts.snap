@@ -1,0 +1,645 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization) preserves JWT and permission error bodies: Basic abc 1`] = `
+{
+  "body": {
+    "error": "Invalid authorization header",
+  },
+  "status": 401,
+}
+`;
+
+exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization) preserves JWT and permission error bodies: Bearer expired 1`] = `
+{
+  "body": {
+    "error": "Invalid or expired access token",
+  },
+  "status": 401,
+}
+`;
+
+exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization) preserves JWT and permission error bodies: undefined 1`] = `
+{
+  "body": {
+    "error": "Missing access token",
+  },
+  "status": 401,
+}
+`;
+
+exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization) preserves financial visibility and original order snapshots: mine 1`] = `
+{
+  "body": [
+    {
+      "completedAt": null,
+      "createdAt": "2026-09-07T10:00:00.000Z",
+      "id": "11111111-1111-4111-8111-111111111111",
+      "items": [
+        {
+          "createdAt": "2026-09-07T10:00:00.000Z",
+          "descriptionSnapshot": "Original beef",
+          "id": "11111111-1111-4111-8111-111111111111",
+          "lineTotal": 2600,
+          "productId": "11111111-1111-4111-8111-111111111111",
+          "quantity": 2,
+          "sauces": [
+            {
+              "id": "11111111-1111-4111-8111-111111111111",
+              "name": "Garlic",
+              "unitPrice": 300,
+            },
+          ],
+          "titleSnapshot": "Original burger",
+          "unitPrice": 1000,
+        },
+      ],
+      "sessionId": "22222222-2222-4222-8222-222222222222",
+      "status": "placed",
+      "table": {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "name": "Window",
+        "number": 7,
+      },
+      "tableId": "11111111-1111-4111-8111-111111111111",
+      "total": 2600,
+      "updatedAt": "2026-09-07T10:00:00.000Z",
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization) preserves financial visibility and original order snapshots: place 1`] = `
+{
+  "body": {
+    "completedAt": null,
+    "createdAt": "2026-09-07T10:00:00.000Z",
+    "id": "11111111-1111-4111-8111-111111111111",
+    "items": [
+      {
+        "createdAt": "2026-09-07T10:00:00.000Z",
+        "descriptionSnapshot": "Original beef",
+        "id": "11111111-1111-4111-8111-111111111111",
+        "lineTotal": 2600,
+        "productId": "11111111-1111-4111-8111-111111111111",
+        "quantity": 2,
+        "sauces": [
+          {
+            "id": "11111111-1111-4111-8111-111111111111",
+            "name": "Garlic",
+            "unitPrice": 300,
+          },
+        ],
+        "titleSnapshot": "Original burger",
+        "unitPrice": 1000,
+      },
+    ],
+    "sessionId": "22222222-2222-4222-8222-222222222222",
+    "status": "placed",
+    "table": {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "name": "Window",
+      "number": 7,
+    },
+    "tableId": "11111111-1111-4111-8111-111111111111",
+    "total": 2600,
+    "updatedAt": "2026-09-07T10:00:00.000Z",
+  },
+  "status": 201,
+}
+`;
+
+exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization) preserves financial visibility and original order snapshots: revenue=false 1`] = `
+{
+  "body": [
+    {
+      "completedAt": null,
+      "createdAt": "2026-09-07T10:00:00.000Z",
+      "id": "11111111-1111-4111-8111-111111111111",
+      "items": [
+        {
+          "createdAt": "2026-09-07T10:00:00.000Z",
+          "descriptionSnapshot": "Original beef",
+          "id": "11111111-1111-4111-8111-111111111111",
+          "lineTotal": null,
+          "productId": "11111111-1111-4111-8111-111111111111",
+          "quantity": 2,
+          "sauces": [
+            {
+              "id": "11111111-1111-4111-8111-111111111111",
+              "name": "Garlic",
+              "unitPrice": 300,
+            },
+          ],
+          "titleSnapshot": "Original burger",
+          "unitPrice": null,
+        },
+      ],
+      "sessionId": "22222222-2222-4222-8222-222222222222",
+      "status": "placed",
+      "table": {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "name": "Window",
+        "number": 7,
+      },
+      "tableId": "11111111-1111-4111-8111-111111111111",
+      "total": null,
+      "updatedAt": "2026-09-07T10:00:00.000Z",
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization) preserves financial visibility and original order snapshots: revenue=true 1`] = `
+{
+  "body": [
+    {
+      "completedAt": null,
+      "createdAt": "2026-09-07T10:00:00.000Z",
+      "id": "11111111-1111-4111-8111-111111111111",
+      "items": [
+        {
+          "createdAt": "2026-09-07T10:00:00.000Z",
+          "descriptionSnapshot": "Original beef",
+          "id": "11111111-1111-4111-8111-111111111111",
+          "lineTotal": 2600,
+          "productId": "11111111-1111-4111-8111-111111111111",
+          "quantity": 2,
+          "sauces": [
+            {
+              "id": "11111111-1111-4111-8111-111111111111",
+              "name": "Garlic",
+              "unitPrice": 300,
+            },
+          ],
+          "titleSnapshot": "Original burger",
+          "unitPrice": 1000,
+        },
+      ],
+      "sessionId": "22222222-2222-4222-8222-222222222222",
+      "status": "placed",
+      "table": {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "name": "Window",
+        "number": 7,
+      },
+      "tableId": "11111111-1111-4111-8111-111111111111",
+      "total": 2600,
+      "updatedAt": "2026-09-07T10:00:00.000Z",
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization) preserves localized auth, profile, staff and role responses without password: auth/me 1`] = `
+{
+  "body": {
+    "email": "test@example.com",
+    "id": "11111111-1111-4111-8111-111111111111",
+    "name": "Davit",
+    "permissions": [
+      "users.view",
+      "roles.manage",
+    ],
+    "role": {
+      "code": "manager",
+      "id": "11111111-1111-4111-8111-111111111111",
+      "name": "Менеджер",
+    },
+    "status": "active",
+    "surname": "Test",
+  },
+  "status": 200,
+}
+`;
+
+exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization) preserves localized auth, profile, staff and role responses without password: profile 1`] = `
+{
+  "body": {
+    "avatarName": null,
+    "card": [],
+    "createdAt": "2026-09-07T10:00:00.000Z",
+    "email": "test@example.com",
+    "id": "11111111-1111-4111-8111-111111111111",
+    "lastLoginAt": null,
+    "name": "Davit",
+    "permissions": [
+      "users.view",
+      "roles.manage",
+    ],
+    "role": {
+      "code": "manager",
+      "id": "11111111-1111-4111-8111-111111111111",
+      "name": "Менеджер",
+    },
+    "status": "active",
+    "surname": "Test",
+    "updatedAt": "2026-09-07T10:00:00.000Z",
+  },
+  "status": 200,
+}
+`;
+
+exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization) preserves localized auth, profile, staff and role responses without password: roles 1`] = `
+{
+  "body": [
+    {
+      "code": "manager",
+      "createdAt": "2026-09-07T10:00:00.000Z",
+      "id": "11111111-1111-4111-8111-111111111111",
+      "isActive": true,
+      "isSystem": false,
+      "name": "Менеджер",
+      "nameTranslations": {
+        "am": "Կառավարիչ",
+        "en": "Manager",
+        "ru": "Менеджер",
+      },
+      "permissions": [
+        "users.view",
+        "roles.manage",
+      ],
+      "updatedAt": "2026-09-07T10:00:00.000Z",
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization) preserves localized auth, profile, staff and role responses without password: users 1`] = `
+{
+  "body": [
+    {
+      "approvedAt": "2026-09-07T10:00:00.000Z",
+      "createdAt": "2026-09-07T10:00:00.000Z",
+      "email": "test@example.com",
+      "id": "11111111-1111-4111-8111-111111111111",
+      "lastLoginAt": null,
+      "name": "Davit",
+      "permissionAllow": [],
+      "permissionDeny": [],
+      "rejectionReason": null,
+      "role": {
+        "code": "manager",
+        "id": "11111111-1111-4111-8111-111111111111",
+        "name": "Менеджер",
+      },
+      "status": "active",
+      "surname": "Test",
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization) preserves localized product mapping and public-menu filtering: admin 1`] = `
+{
+  "body": [
+    {
+      "category": {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "isActive": true,
+        "name": "Еда",
+        "nameTranslations": {
+          "en": "Food",
+          "ru": "Еда",
+        },
+      },
+      "categoryId": "11111111-1111-4111-8111-111111111111",
+      "createdAt": "2026-09-07T10:00:00.000Z",
+      "description": "Говядина",
+      "descriptionTranslations": {
+        "en": "Beef",
+        "ru": "Говядина",
+      },
+      "id": "11111111-1111-4111-8111-111111111111",
+      "imageMimeType": "image/png",
+      "imageName": "burger.png",
+      "isActive": true,
+      "price": 1000,
+      "sauces": [
+        {
+          "id": "sauce-1",
+          "isActive": false,
+          "name": "Барбекю",
+          "nameTranslations": {
+            "ru": "Барбекю",
+          },
+          "price": 300,
+        },
+        {
+          "id": "sauce-0",
+          "isActive": true,
+          "name": "Чесночный",
+          "nameTranslations": {
+            "ru": "Чесночный",
+          },
+          "price": 300,
+        },
+      ],
+      "title": "Бургер",
+      "titleTranslations": {
+        "en": "Burger",
+        "ru": "Бургер",
+      },
+      "updatedAt": "2026-09-07T10:00:00.000Z",
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization) preserves localized product mapping and public-menu filtering: guest 1`] = `
+{
+  "body": [
+    {
+      "category": {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "isActive": true,
+        "name": "Еда",
+        "nameTranslations": {
+          "en": "Food",
+          "ru": "Еда",
+        },
+      },
+      "categoryId": "11111111-1111-4111-8111-111111111111",
+      "createdAt": "2026-09-07T10:00:00.000Z",
+      "description": "Говядина",
+      "descriptionTranslations": {
+        "en": "Beef",
+        "ru": "Говядина",
+      },
+      "id": "11111111-1111-4111-8111-111111111111",
+      "imageMimeType": "image/png",
+      "imageName": "burger.png",
+      "isActive": true,
+      "price": 1000,
+      "sauces": [
+        {
+          "id": "sauce-0",
+          "isActive": true,
+          "name": "Чесночный",
+          "nameTranslations": {
+            "ru": "Чесночный",
+          },
+          "price": 300,
+        },
+      ],
+      "title": "Бургер",
+      "titleTranslations": {
+        "en": "Burger",
+        "ru": "Бургер",
+      },
+      "updatedAt": "2026-09-07T10:00:00.000Z",
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization) preserves session header, closed-session errors and QR visibility: closed 1`] = `
+{
+  "body": {
+    "error": "Forbidden",
+    "message": "Session is closed or invalid",
+    "statusCode": 403,
+  },
+  "status": 403,
+}
+`;
+
+exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization) preserves session header, closed-session errors and QR visibility: guest 1`] = `
+{
+  "body": {
+    "closedAt": null,
+    "createdAt": "2026-09-07T10:00:00.000Z",
+    "id": "22222222-2222-4222-8222-222222222222",
+    "status": "open",
+    "table": {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "name": "У окна",
+      "nameTranslations": {
+        "en": "Window",
+        "ru": "У окна",
+      },
+      "number": 7,
+    },
+  },
+  "status": 200,
+}
+`;
+
+exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization) preserves session header, closed-session errors and QR visibility: open 1`] = `
+{
+  "body": {
+    "closedAt": null,
+    "createdAt": "2026-09-07T10:00:00.000Z",
+    "id": "22222222-2222-4222-8222-222222222222",
+    "status": "open",
+    "table": {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "name": "Window",
+      "nameTranslations": {
+        "en": "Window",
+        "ru": "У окна",
+      },
+      "number": 7,
+    },
+  },
+  "status": 201,
+}
+`;
+
+exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization) preserves session header, closed-session errors and QR visibility: sessions-qr=false 1`] = `
+{
+  "body": [
+    {
+      "closedAt": null,
+      "createdAt": "2026-09-07T10:00:00.000Z",
+      "id": "22222222-2222-4222-8222-222222222222",
+      "status": "open",
+      "table": {
+        "createdAt": "2026-09-07T10:00:00.000Z",
+        "id": "11111111-1111-4111-8111-111111111111",
+        "isActive": true,
+        "name": "У окна",
+        "nameTranslations": {
+          "en": "Window",
+          "ru": "У окна",
+        },
+        "number": 7,
+        "updatedAt": "2026-09-07T10:00:00.000Z",
+      },
+      "tableId": "11111111-1111-4111-8111-111111111111",
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization) preserves session header, closed-session errors and QR visibility: sessions-qr=true 1`] = `
+{
+  "body": [
+    {
+      "closedAt": null,
+      "createdAt": "2026-09-07T10:00:00.000Z",
+      "id": "22222222-2222-4222-8222-222222222222",
+      "status": "open",
+      "table": {
+        "createdAt": "2026-09-07T10:00:00.000Z",
+        "id": "11111111-1111-4111-8111-111111111111",
+        "isActive": true,
+        "name": "У окна",
+        "nameTranslations": {
+          "en": "Window",
+          "ru": "У окна",
+        },
+        "number": 7,
+        "publicToken": "11111111-1111-4111-8111-111111111111",
+        "updatedAt": "2026-09-07T10:00:00.000Z",
+      },
+      "tableId": "11111111-1111-4111-8111-111111111111",
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization) preserves session header, closed-session errors and QR visibility: tables-qr=false 1`] = `
+{
+  "body": [
+    {
+      "createdAt": "2026-09-07T10:00:00.000Z",
+      "id": "11111111-1111-4111-8111-111111111111",
+      "isActive": true,
+      "name": "У окна",
+      "nameTranslations": {
+        "en": "Window",
+        "ru": "У окна",
+      },
+      "number": 7,
+      "updatedAt": "2026-09-07T10:00:00.000Z",
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization) preserves session header, closed-session errors and QR visibility: tables-qr=true 1`] = `
+{
+  "body": [
+    {
+      "createdAt": "2026-09-07T10:00:00.000Z",
+      "id": "11111111-1111-4111-8111-111111111111",
+      "isActive": true,
+      "name": "У окна",
+      "nameTranslations": {
+        "en": "Window",
+        "ru": "У окна",
+      },
+      "number": 7,
+      "publicToken": "11111111-1111-4111-8111-111111111111",
+      "updatedAt": "2026-09-07T10:00:00.000Z",
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization) preserves staff mutation response shapes: approve 1`] = `
+{
+  "body": {
+    "approvedAt": "2026-09-07T10:00:00.000Z",
+    "approvedByUserId": "11111111-1111-4111-8111-111111111111",
+    "email": "test@example.com",
+    "id": "11111111-1111-4111-8111-111111111111",
+    "roleId": "11111111-1111-4111-8111-111111111111",
+    "status": "active",
+  },
+  "status": 200,
+}
+`;
+
+exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization) preserves staff mutation response shapes: disable 1`] = `
+{
+  "body": {
+    "email": "test@example.com",
+    "id": "11111111-1111-4111-8111-111111111111",
+    "status": "active",
+  },
+  "status": 200,
+}
+`;
+
+exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization) preserves staff mutation response shapes: enable 1`] = `
+{
+  "body": {
+    "email": "test@example.com",
+    "id": "11111111-1111-4111-8111-111111111111",
+    "status": "active",
+  },
+  "status": 200,
+}
+`;
+
+exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization) preserves staff mutation response shapes: permissions 1`] = `
+{
+  "body": {
+    "effectivePermissions": [
+      "users.approve",
+      "users.manage",
+    ],
+    "email": "test@example.com",
+    "id": "11111111-1111-4111-8111-111111111111",
+    "permissionAllow": [],
+    "permissionDeny": [],
+    "status": "active",
+  },
+  "status": 200,
+}
+`;
+
+exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization) preserves staff mutation response shapes: reject 1`] = `
+{
+  "body": {
+    "email": "test@example.com",
+    "id": "11111111-1111-4111-8111-111111111111",
+    "rejectionReason": null,
+    "status": "active",
+  },
+  "status": 200,
+}
+`;
+
+exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization) preserves staff mutation response shapes: role 1`] = `
+{
+  "body": {
+    "email": "test@example.com",
+    "id": "11111111-1111-4111-8111-111111111111",
+    "role": {
+      "code": "manager",
+      "id": "11111111-1111-4111-8111-111111111111",
+      "name": "Менеджер",
+    },
+    "roleId": "11111111-1111-4111-8111-111111111111",
+    "status": "active",
+  },
+  "status": 200,
+}
+`;
+
+exports[`HTTP compatibility (real Nest routing, guards, pipes and serialization) preserves validation errors and registration response: validation 1`] = `
+{
+  "body": {
+    "error": "Bad Request",
+    "message": [
+      "email must be an email",
+      "password must be a string",
+    ],
+    "statusCode": 400,
+  },
+  "status": 400,
+}
+`;

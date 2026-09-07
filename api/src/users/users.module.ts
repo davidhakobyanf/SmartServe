@@ -9,6 +9,10 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { PermissionsGuard } from 'src/common/guards/permissions.guard';
 import { UsersManagementController } from './users-management.controller';
 import { Role } from 'src/entities/role.entity';
+import { UserAuthenticationService } from './user-authentication.service';
+import { StaffManagementService } from './staff-management.service';
+import { UsersRepository } from './users.repository';
+import { StaffSocketAuthService } from './staff-socket-auth.service';
 
 @Module({
   imports: [
@@ -25,7 +29,15 @@ import { Role } from 'src/entities/role.entity';
     }),
   ],
   controllers: [UsersController, UsersManagementController],
-  providers: [UsersService, JwtAuthGuard, PermissionsGuard],
-  exports: [UsersService,JwtAuthGuard,PermissionsGuard,JwtModule],
+  providers: [
+    UsersService,
+    UserAuthenticationService,
+    StaffManagementService,
+    UsersRepository,
+    StaffSocketAuthService,
+    JwtAuthGuard,
+    PermissionsGuard,
+  ],
+  exports: [UsersService, StaffSocketAuthService, JwtAuthGuard, PermissionsGuard, JwtModule],
 })
 export class UsersModule {}

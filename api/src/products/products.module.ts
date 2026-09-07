@@ -11,6 +11,9 @@ import { ProductImagesController } from "./product-images.controller";
 import { ProductSauce } from "src/entities/product-sauce.entity";
 import { Sauce } from "src/entities/sauce.entity";
 import { BasketItem } from "src/entities/basket-item.entity";
+import { ProductsRepository } from "./products.repository";
+import { ProductSaucesService } from "./product-sauces.service";
+import { ProductImagesService } from "./product-images.service";
 
 @Module({
   imports: [
@@ -29,7 +32,12 @@ import { BasketItem } from "src/entities/basket-item.entity";
     PublicMenuController,
     ProductImagesController,
   ],
-  providers: [ProductsService],
+  providers: [
+    ProductsService,
+    ProductsRepository,
+    ProductSaucesService,
+    ProductImagesService,
+  ],
   exports: [ProductsService],
 })
 export class ProductsModule {}

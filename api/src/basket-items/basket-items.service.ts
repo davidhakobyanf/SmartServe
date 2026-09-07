@@ -15,6 +15,7 @@ import {
   SessionClosedPayload,
 } from "src/sessions/session.events";
 import { SauceSnapshot } from "src/common/types/sauce-snapshot";
+import { matchesSauceSelection, normalizeSauceIds, selectSauceSnapshots } from "src/sauces/sauce-selection";
 
 @Injectable()
 export class BasketItemsService {
@@ -35,33 +36,15 @@ export class BasketItemsService {
     });
   }
 
-  private normalizeSauceIds(sauceIds: string[] = []): string[] {
-    return [...new Set(sauceIds)].sort();
-  }
-
   private resolveSauces(
     product: Product,
     sauceIds: string[],
   ): SauceSnapshot[] {
-    const activeSauces = new Map(
-      (product.sauceLinks ?? [])
-        .map((link) => link.sauce)
-        .filter((sauce) => sauce.isActive)
-        .map((sauce) => [sauce.id, sauce]),
-    );
-    if (sauceIds.some((sauceId) => !activeSauces.has(sauceId))) {
+    const sauces = selectSauceSnapshots(product.sauceLinks, sauceIds);
+    if (sauces === null) {
       throw new BadRequestException("Invalid sauce for this product");
     }
-
-    return sauceIds.map((sauceId) => {
-      const sauce = activeSauces.get(sauceId)!;
-      return {
-        id: sauce.id,
-        name: sauce.name,
-        nameTranslations: sauce.nameTranslations,
-        unitPrice: sauce.price,
-      };
-    });
+    return sauces;
   }
   findAll(sessionId: string): Promise<BasketItem[]> {
     return this.basketItemsRepo.find({
@@ -98,7 +81,7 @@ export class BasketItemsService {
       throw new NotFoundException("Product is unavailable");
     }
 
-    const sauceIds = this.normalizeSauceIds(dto.sauceIds);
+    const sauceIds = normalizeSauceIds(dto.sauceIds);
     const sauces = this.resolveSauces(product, sauceIds);
 
     const sameProductItems = await this.basketItemsRepo.find({
@@ -109,9 +92,7 @@ export class BasketItemsService {
     });
 
     const existingItem = sameProductItems.find(
-      (item) =>
-        JSON.stringify(item.sauces.map((sauce) => sauce.id).sort()) ===
-        JSON.stringify(sauceIds),
+      (item) => matchesSauceSelection(item.sauces, sauceIds),
     );
 
     const quantity = dto.quantity ?? 1;
@@ -170,7 +151,7 @@ export class BasketItemsService {
     }
 
     if (dto.sauceIds !== undefined) {
-      const sauceIds = this.normalizeSauceIds(dto.sauceIds);
+      const sauceIds = normalizeSauceIds(dto.sauceIds);
       item.sauces = this.resolveSauces(item.product, sauceIds);
     }
     const savedItem = await this.basketItemsRepo.save(item);

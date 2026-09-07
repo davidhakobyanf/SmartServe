@@ -22,54 +22,20 @@ import { RequirePermissions } from "src/common/auth/permissions.decorator";
 import { Permission } from "src/common/auth/permission";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";
 import { User } from "src/entities/user.entity";
-import { UsersService } from "src/users/users.service";
-import { DiningSession } from "src/entities/dining-session.entity";
-import { localizedNameResponse } from "src/common/i18n/localized-response";
+import { adminSessionResponse, guestSessionResponse } from "./session-response";
 
 @Controller("api/sessions")
 export class SessionsController {
   constructor(
     private readonly sessionService: SessionsService,
-    private readonly usersService: UsersService,
   ) {}
-
-  private adminResponseFor(user: User, session: DiningSession, locale?: string) {
-    const canManageQr = this.usersService
-      .getEffectivePermissions(user)
-      .includes(Permission.TABLES_QR_MANAGE);
-
-    const localizedSession = session.table
-      ? { ...session, table: localizedNameResponse(session.table, locale) }
-      : session;
-
-    if (canManageQr || !localizedSession.table) return localizedSession;
-    return {
-      ...localizedSession,
-      table: { ...localizedSession.table, publicToken: undefined },
-    };
-  }
-
-  private guestResponseFor(session: DiningSession, locale?: string) {
-    return {
-      id: session.id,
-      status: session.status,
-      createdAt: session.createdAt,
-      closedAt: session.closedAt,
-      table: {
-        id: session.table.id,
-        number: session.table.number,
-        name: localizedNameResponse(session.table, locale).name,
-        nameTranslations: session.table.nameTranslations,
-      },
-    };
-  }
 
   @Post("open")
   async open(
     @Body() dto: OpenSessionDto,
     @Headers("accept-language") locale?: string,
   ) {
-    return this.guestResponseFor(
+    return guestSessionResponse(
       await this.sessionService.openForTable(dto.tableToken),
       locale,
     );
@@ -84,7 +50,7 @@ export class SessionsController {
   ) {
     const sessions = await this.sessionService.listOpen();
     return sessions.map((session) =>
-      this.adminResponseFor(user, session, locale),
+      adminSessionResponse(user, session, locale),
     );
   }
 
@@ -94,7 +60,7 @@ export class SessionsController {
     @Req() req: RequestWithSession,
     @Headers("accept-language") locale?: string,
   ) {
-    return this.guestResponseFor(req.diningSession!, locale);
+    return guestSessionResponse(req.diningSession!, locale);
   }
 
   @UseGuards(JwtAuthGuard, PermissionsGuard)
@@ -105,7 +71,7 @@ export class SessionsController {
     @CurrentUser() user: User,
     @Headers("accept-language") locale?: string,
   ) {
-    return this.adminResponseFor(
+    return adminSessionResponse(
       user,
       await this.sessionService.close(id),
       locale,

@@ -1,3 +1,4 @@
+import { sendImage } from "../common/http/image-response";
 import {
   Body,
   Controller,
@@ -73,8 +74,6 @@ export class SauceImagesController {
     @Res() response: Response,
   ): Promise<void> {
     const image = await this.saucesService.getImage(id);
-    response.setHeader("Content-Type", image.mimeType);
-    response.setHeader("Cache-Control", "public, max-age=86400");
-    response.send(image.buffer);
+    sendImage(response, image);
   }
 }
