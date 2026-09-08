@@ -20,7 +20,7 @@ describe("OrdersService", () => {
     save: jest.fn(),
     findOneOrFail: jest.fn(),
   };
-  const orderItemsRepo = { create: jest.fn() };
+  const orderItemsRepo = { create: jest.fn(), save: jest.fn() };
   const manager = {
     getRepository: jest.fn((entity) => {
       if (entity === DiningSession) return sessionsRepo;
@@ -62,6 +62,7 @@ describe("OrdersService", () => {
     basketItemsRepo.find.mockResolvedValue([basketItem]);
     transactionOrdersRepo.create.mockImplementation((value) => value);
     orderItemsRepo.create.mockImplementation((value) => value);
+    orderItemsRepo.save.mockImplementation(async (value) => value);
     transactionOrdersRepo.save.mockImplementation(async (value) => ({
       ...value,
       id: "order-1",
@@ -75,6 +76,13 @@ describe("OrdersService", () => {
     expect(transactionOrdersRepo.save).toHaveBeenCalledWith(
       expect.objectContaining({ total: 3400, status: "placed" }),
     );
+    expect(orderItemsRepo.save).toHaveBeenCalledWith([
+      expect.objectContaining({
+        orderId: "order-1",
+        productId: "product-1",
+        lineTotal: 3400,
+      }),
+    ]);
     expect(basketItemsRepo.delete).toHaveBeenCalledWith({
       sessionId: "session-1",
     });

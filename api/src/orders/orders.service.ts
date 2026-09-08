@@ -86,24 +86,26 @@ export class OrdersService {
         throw new BadRequestException("Basket is empty");
       }
 
+      const itemSnapshots = basketItems.map((basketItem) =>
+        createOrderItemSnapshot(basketItem),
+      );
+
       const newOrder = ordersRepo.create({
         tableId: session.tableId,
         sessionId: session.id,
         status: "placed",
-        total: 0,
+        total: calculateOrderTotal(itemSnapshots),
         completedAt: null,
       });
 
-      newOrder.items = basketItems.map((basketItem) =>
+      const savedOrder = await ordersRepo.save(newOrder);
+      const orderItems = itemSnapshots.map((snapshot) =>
         orderItemsRepo.create({
-          order: newOrder,
-          ...createOrderItemSnapshot(basketItem),
+          ...snapshot,
+          orderId: savedOrder.id,
         }),
       );
-
-      newOrder.total = calculateOrderTotal(newOrder.items);
-
-      const savedOrder = await ordersRepo.save(newOrder);
+      await orderItemsRepo.save(orderItems);
       await basketItemsRepo.delete({ sessionId });
 
       return ordersRepo.findOneOrFail({

@@ -21,7 +21,13 @@ describe("Persistence and domain-event ordering", () => {
       save: jest.fn(async (value: object) => { timeline.push("order-save"); return { ...value, id: "order" }; }),
       findOneOrFail: async () => orderFixture(),
     };
-    const itemsRepo = { create: (value: unknown) => value };
+    const itemsRepo = {
+      create: (value: unknown) => value,
+      save: jest.fn(async (value: unknown) => {
+        timeline.push("order-items-save");
+        return value;
+      }),
+    };
     const manager = {
       getRepository: (entity: unknown) => {
         if (entity === DiningSession) return sessionRepo;
@@ -46,10 +52,18 @@ describe("Persistence and domain-event ordering", () => {
       expect(events.emit).not.toHaveBeenCalled();
     } else {
       await service.createFromBasket(SESSION_ID);
-      expect(timeline).toEqual(["order-save", "basket-delete", "commit", "session:basket-changed", "orders:changed"]);
+      expect(timeline).toEqual(["order-save", "order-items-save", "basket-delete", "commit", "session:basket-changed", "orders:changed"]);
     }
     expect(sessionRepo.findOne).toHaveBeenCalledWith({ where: { id: SESSION_ID }, lock: { mode: "pessimistic_write" } });
-    expect(orderRepo.save).toHaveBeenCalledWith(expect.objectContaining({ total: 0.9, items: [expect.objectContaining({ lineTotal: 0.9, titleSnapshot: "Burger", descriptionSnapshot: "Beef" })] }));
+    expect(orderRepo.save).toHaveBeenCalledWith(expect.objectContaining({ total: 0.9 }));
+    expect(itemsRepo.save).toHaveBeenCalledWith([
+      expect.objectContaining({
+        orderId: "order",
+        lineTotal: 0.9,
+        titleSnapshot: "Burger",
+        descriptionSnapshot: "Beef",
+      }),
+    ]);
     expect(basketRepo.find).toHaveBeenCalledWith({ where: { sessionId: SESSION_ID }, relations: { product: true }, order: { createdAt: "ASC" } });
   });
 
