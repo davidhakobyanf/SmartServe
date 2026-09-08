@@ -1,4 +1,5 @@
 import type { MenuCard } from './index';
+import type { OrderStatus } from './restaurant';
 
 export interface OrderRecord {
   _id: string;
@@ -6,5 +7,5 @@ export interface OrderRecord {
   allPrice: number;
   table: string | number;
   createdAt?: string;
-  status?: 'placed' | 'completed' | 'cancelled';
+  status?: OrderStatus;
 }

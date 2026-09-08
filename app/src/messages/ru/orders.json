@@ -15,7 +15,9 @@
   "statusUpdateSuccess": "Статус заказа обновлён",
   "statusUpdateError": "Не удалось обновить статус заказа",
   "statuses": {
-    "placed": "Принят",
+    "placed": "В процессе",
+    "preparing": "Готовится",
+    "ready": "Готов",
     "completed": "Завершён",
     "cancelled": "Отменён"
   },

@@ -80,8 +80,9 @@ export class SessionsService {
         closedAt: null,
       });
 
+      let saved: DiningSession;
       try {
-        return await this.sessionRepo.save(session);
+        saved = await this.sessionRepo.save(session);
       } catch (error) {
         const existingSession = await this.sessionRepo.findOne({
           where: {
@@ -100,7 +101,14 @@ export class SessionsService {
         if (!this.isUniqueViolation(error)) {
           throw error;
         }
+        continue;
       }
+
+      this.events.emit(SESSION_DOMAIN_EVENTS.OPENED, {
+        sessionId: saved.id,
+        tableNumber: table.number,
+      });
+      return saved;
     }
 
     throw new ServiceUnavailableException("Could not create dining session");

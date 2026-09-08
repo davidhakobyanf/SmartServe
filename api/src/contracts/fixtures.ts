@@ -69,6 +69,8 @@ export function orderFixture(): Order {
     status: "placed", total: 2600, completedAt: null, createdAt: NOW, updatedAt: NOW,
     items: [Object.assign(new OrderItem(), {
       id: ID, productId: ID, titleSnapshot: "Original burger", descriptionSnapshot: "Original beef",
+      titleTranslationsSnapshot: { en: "Original burger", am: "Բուրգեր", ru: "Бургер" },
+      descriptionTranslationsSnapshot: { en: "Original beef", am: "Տավարի միս", ru: "Говядина" },
       product: productFixture(), unitPrice: 1000, quantity: 2, lineTotal: 2600, createdAt: NOW,
       sauces: [{ id: ID, name: "Garlic", unitPrice: 300 }],
     })],

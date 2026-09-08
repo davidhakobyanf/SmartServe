@@ -99,12 +99,12 @@ export function relationalOrderToOrderRecord(
     items: (order.items ?? []).map((item) => ({
       id: item.productId ?? item.id,
       title: resolveLocalizedText(
-        item.product?.titleTranslations,
+        item.titleTranslationsSnapshot ?? item.product?.titleTranslations,
         item.titleSnapshot,
         requestedLocale,
       ),
       description: resolveLocalizedText(
-        item.product?.descriptionTranslations,
+        item.descriptionTranslationsSnapshot ?? item.product?.descriptionTranslations,
         item.descriptionSnapshot,
         requestedLocale,
       ),

@@ -22,6 +22,8 @@ export function orderResponse(order: Order, includeFinancials: boolean) {
       productId: item.productId,
       titleSnapshot: item.titleSnapshot,
       descriptionSnapshot: item.descriptionSnapshot,
+      titleTranslationsSnapshot: item.titleTranslationsSnapshot,
+      descriptionTranslationsSnapshot: item.descriptionTranslationsSnapshot,
       unitPrice: includeFinancials ? item.unitPrice : null,
       quantity: item.quantity,
       sauces: item.sauces,

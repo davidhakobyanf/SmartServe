@@ -11,6 +11,7 @@ import {
 import { Order } from "./order.entity";
 import { Product } from "./product.entity";
 import { SauceSnapshot } from "src/common/types/sauce-snapshot";
+import type { LocalizedText } from "../common/i18n/localized-text";
 
 @Entity("order_items")
 @Check(`"quantity" > 0`)
@@ -45,6 +46,12 @@ export class OrderItem {
 
   @Column({ type: "text", default: "" })
   descriptionSnapshot!: string;
+
+  @Column({ type: "jsonb", default: {} })
+  titleTranslationsSnapshot!: LocalizedText;
+
+  @Column({ type: "jsonb", default: {} })
+  descriptionTranslationsSnapshot!: LocalizedText;
 
   @Column({
     type: "numeric",

@@ -176,6 +176,10 @@ class DataApi {
     return instance.post('/api/orders');
   }
 
+  static async getMyOrders(sessionToken: string): Promise<AxiosResponse<RelationalOrder[]>> {
+    return instance.get('/api/orders/mine', { headers: { 'x-session-token': sessionToken } });
+  }
+
   static async updateOrderStatus(
     id: string,
     status: OrderStatus,

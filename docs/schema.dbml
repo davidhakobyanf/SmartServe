@@ -1,5 +1,8 @@
 // SmartServe — PostgreSQL schema (paste into https://dbdiagram.io)
-// Source of truth: api/src/entities/*.entity.ts (migration-managed, synchronize=false)
+// Source of truth: api/src/entities/*.entity.ts and api/src/migrations/*.ts
+// Updated: 2026-09-08, through AddOrderPreparationStatuses1788860000000.
+// Application tables only; TypeORM's internal migration history is omitted.
+// This diagram documents the schema; apply database changes using migrations.
 
 Enum user_status_enum {
   pending
@@ -10,6 +13,8 @@ Enum user_status_enum {
 
 Enum order_status_enum {
   placed
+  preparing
+  ready
   completed
   cancelled
 }
@@ -68,6 +73,7 @@ Table products {
   description text [not null, default: '']
   descriptionTranslations jsonb [not null, default: `{}`, note: 'LocalizedText {en,am,ru}']
   price numeric(10,2) [not null]
+  stockQuantity int [null, note: 'NULL = unlimited; CHECK stockQuantity IS NULL OR stockQuantity >= 0 (CHK_products_stock_quantity)']
   isActive boolean [not null, default: true]
   imageName varchar(255) [null]
   imageMimeType varchar(100) [null]
@@ -158,7 +164,7 @@ Table orders {
   }
 }
 
-// Order lines. title/description/sauces are FROZEN snapshots at order time,
+// Order lines. title/description, their translations and sauces are FROZEN snapshots at order time,
 // so the order is immune to later menu edits. productId may become null if
 // the product is later deleted (ON DELETE SET NULL).
 Table order_items {
@@ -167,6 +173,8 @@ Table order_items {
   productId uuid [null, ref: > products.id, note: 'ON DELETE SET NULL']
   titleSnapshot varchar(160) [not null]
   descriptionSnapshot text [not null, default: '']
+  titleTranslationsSnapshot jsonb [not null, default: `{}`, note: 'Frozen LocalizedText {en,am,ru} at order time']
+  descriptionTranslationsSnapshot jsonb [not null, default: `{}`, note: 'Frozen LocalizedText {en,am,ru} at order time']
   unitPrice numeric(10,2) [not null]
   quantity int [not null, note: 'CHECK quantity > 0']
   sauces jsonb [not null, default: `[]`, note: 'SauceSnapshot[]']

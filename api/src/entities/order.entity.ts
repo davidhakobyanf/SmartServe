@@ -13,7 +13,8 @@ import { DiningSession } from "./dining-session.entity";
 import { DiningTable } from "./dining-table.entity";
 import { OrderItem } from "./order-item.entity";
 
-export type OrderStatus = "placed" | "completed" | "cancelled";
+export const ORDER_STATUSES = ["placed", "preparing", "ready", "completed", "cancelled"] as const;
+export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
 @Entity("orders")
 export class Order {
@@ -44,7 +45,7 @@ export class Order {
 
   @Column({
     type: "enum",
-    enum: ["placed", "completed", "cancelled"],
+    enum: ORDER_STATUSES,
     enumName: "order_status_enum",
     default: "placed",
   })

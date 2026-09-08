@@ -1,8 +1,14 @@
 import type { SauceSnapshot } from "../common/types/sauce-snapshot";
+import { LocalizedText, withLegacyEnglish } from "../common/i18n/localized-text";
 
 interface OrderableBasketItem {
   productId: string;
-  product: { title: string; description: string };
+  product: {
+    title: string;
+    description: string;
+    titleTranslations?: LocalizedText;
+    descriptionTranslations?: LocalizedText;
+  };
   unitPrice: number;
   quantity: number;
   sauces: SauceSnapshot[];
@@ -18,6 +24,8 @@ export function createOrderItemSnapshot(item: OrderableBasketItem) {
     product: item.product,
     titleSnapshot: item.product.title,
     descriptionSnapshot: item.product.description,
+    titleTranslationsSnapshot: withLegacyEnglish(item.product.titleTranslations, item.product.title),
+    descriptionTranslationsSnapshot: withLegacyEnglish(item.product.descriptionTranslations, item.product.description),
     unitPrice: item.unitPrice,
     quantity: item.quantity,
     sauces: item.sauces,

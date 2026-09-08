@@ -4,6 +4,8 @@ import type { MenuCard, MenuImage } from '@/types';
 import { formatAmount } from '@/lib/formatters';
 import { getBasketLineKey, getMenuLineTotal } from '@/lib/clientMenu';
 import css from './ClientDashboard.module.css';
+import ClientOrderHistory from './ClientOrderHistory';
+import type { OrderRecord } from '@/types/orders';
 
 interface ClientOrderPanelProps {
   open: boolean;
@@ -15,17 +17,29 @@ interface ClientOrderPanelProps {
   onChangeCount: (item: MenuCard, next: number) => Promise<void>;
   onRemove: (item: MenuCard) => Promise<void>;
   onPlaceOrder: () => Promise<boolean>;
+  placing: boolean;
+  tab: 'basket' | 'orders';
+  onTabChange: (tab: 'basket' | 'orders') => void;
+  orders: OrderRecord[];
+  ordersLoading: boolean;
+  ordersError: boolean;
+  onRefreshOrders: () => Promise<void>;
 }
 
-export default function ClientOrderPanel({ open, basket, images, total, onClose, onOpenItem, onChangeCount, onRemove, onPlaceOrder }: ClientOrderPanelProps) {
+export default function ClientOrderPanel({ open, basket, images, total, onClose, onOpenItem, onChangeCount, onRemove, onPlaceOrder, placing, tab, onTabChange, orders, ordersLoading, ordersError, onRefreshOrders }: ClientOrderPanelProps) {
   const t = useTranslations('client');
   return (
     <>
-      <aside className={`${css.order} ${open ? css.orderOpen : ''}`} aria-label={t('order.title')}>
+      <aside className={`${css.order} ${open ? css.orderOpen : ''}`} aria-label={t('history.panelTitle')}>
         <div className={css.orderHead}>
-          <h3>{t('order.title')}</h3>
+          <h3>{tab === 'basket' ? t('history.basket') : t('history.title')}</h3>
           <button type="button" className={css.orderClose} onClick={onClose} aria-label={t('card.close')}><TbX /></button>
         </div>
+        <div className={css.orderTabs}>
+          <button type="button" aria-pressed={tab === 'basket'} onClick={() => onTabChange('basket')}>{t('history.basket')} <span>{basket.reduce((sum, item) => sum + (item.count ?? 1), 0)}</span></button>
+          <button type="button" aria-pressed={tab === 'orders'} onClick={() => onTabChange('orders')}>{t('history.title')} <span>{orders.length}</span></button>
+        </div>
+        {tab === 'orders' ? <ClientOrderHistory orders={orders} loading={ordersLoading} error={ordersError} onRefresh={onRefreshOrders} /> : <>
         <div className={`${css.orderList} ss-scroll`}>
           {basket.length === 0 ? (
             <div className={css.orderEmpty}><TbShoppingCart /><p>{t('order.empty')}</p></div>
@@ -54,11 +68,12 @@ export default function ClientOrderPanel({ open, basket, images, total, onClose,
         </div>
         <div className={css.orderFooter}>
           <div className={css.totalRow}><span>{t('order.total')}</span><span className={css.totalValue}>{formatAmount(total)} ֏</span></div>
-          <button type="button" className={css.placeBtn} disabled={basket.length === 0} onClick={() => void onPlaceOrder()}>
+          <button type="button" className={css.placeBtn} disabled={basket.length === 0 || placing} onClick={() => void onPlaceOrder()}>
             <TbLock className={css.placeLock} />{t('order.placeOrder')}<TbArrowRight className={css.placeArrow} />
           </button>
           <p className={css.kitchenNote}><TbLock /> {t('order.kitchenNote')}</p>
         </div>
+        </>}
       </aside>
       {open && <button type="button" className={css.backdrop} onClick={onClose} aria-label={t('card.close')} />}
     </>

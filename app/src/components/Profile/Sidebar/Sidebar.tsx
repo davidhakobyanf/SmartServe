@@ -19,6 +19,7 @@ import type { IconType } from 'react-icons';
 import { useProfileData } from '@/context/ProfileDataContext';
 import { useWaiterCalls } from '@/context/WaiterCallsContext';
 import { useOrders } from '@/context/OrdersContext';
+import { useTables } from '@/context/TablesContext';
 import { useVenueSettings } from '@/context/VenueSettingsContext';
 import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
 import css from './Sidebar.module.css';
@@ -29,7 +30,7 @@ type NavItem = {
   href: string;
   labelKey: string;
   icon: IconType;
-  badge?: 'orders' | 'waiter';
+  badge?: 'orders' | 'waiter' | 'tables';
   permissions?: Permission[];
 };
 
@@ -42,7 +43,7 @@ const NAV: NavItem[] = [
   { href: '/profile/dashboard', labelKey: 'dashboard', icon: TbLayoutDashboard, permissions: ['dashboard.view'] },
   { href: '/profile/menu', labelKey: 'menu', icon: TbToolsKitchen2, permissions: ['menu.view'] },
   { href: '/profile/orders', labelKey: 'orders', icon: TbShoppingBag, badge: 'orders', permissions: ['orders.view'] },
-  { href: '/profile/tables', labelKey: 'tables', icon: TbTable, permissions: ['tables.view'] },
+  { href: '/profile/tables', labelKey: 'tables', icon: TbTable, badge: 'tables', permissions: ['tables.view'] },
   { href: '/profile/waiter', labelKey: 'waiter', icon: TbBell, badge: 'waiter', permissions: ['waiter_calls.view'] },
   { href: '/profile/staff', labelKey: 'staff', icon: TbUsers, permissions: ['users.view', 'roles.manage'] },
   { href: '/profile/account', labelKey: 'profile', icon: TbUser },
@@ -56,6 +57,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { profileDataList, permissions } = useProfileData();
   const { calls } = useWaiterCalls();
   const { newCount } = useOrders();
+  const { newCount: newTablesCount } = useTables();
   const { settings } = useVenueSettings();
 
   const fullName = [profileDataList.name, profileDataList.surname]
@@ -107,7 +109,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               ? calls.length
               : badge === 'orders'
                 ? newCount
-                : 0;
+                : badge === 'tables'
+                  ? newTablesCount
+                  : 0;
           return (
             <Link
               key={href}

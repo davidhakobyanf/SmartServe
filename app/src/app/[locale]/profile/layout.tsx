@@ -7,6 +7,7 @@ import { usePathname, useRouter } from '@/i18n/navigation';
 import css from '@/components/Profile/Profile.module.css';
 import Sidebar from '@/components/Profile/Sidebar/Sidebar';
 import { OrdersProvider } from '@/context/OrdersContext';
+import { TablesProvider } from '@/context/TablesContext';
 import { WaiterCallsProvider } from '@/context/WaiterCallsContext';
 import { useProfileData } from '@/context/ProfileDataContext';
 import type { Permission } from '@/types/staff';
@@ -85,37 +86,39 @@ export default function ProfileLayout({
 
   return (
     <OrdersProvider>
-      <WaiterCallsProvider>
-        <div className={css.shell}>
-          <header className={css.mobileHeader}>
-            <button
-              type="button"
-              className={css.menuButton}
-              aria-label={t('openMenu')}
-              aria-controls="profile-navigation"
-              aria-expanded={sidebarOpen}
-              onClick={() => setSidebarOpen(true)}
-            >
-              <TbMenu2 />
-            </button>
-            <span className={css.mobileBrandIcon}><TbChefHat /></span>
-            <span className={css.mobileBrandName}>{settings.venueName}</span>
-          </header>
-          {sidebarOpen && isMobileNavigation && (
-            <button
-              type="button"
-              className={css.overlay}
-              aria-label={t('closeMenu')}
-              onClick={() => setSidebarOpen(false)}
+      <TablesProvider>
+        <WaiterCallsProvider>
+          <div className={css.shell}>
+            <header className={css.mobileHeader}>
+              <button
+                type="button"
+                className={css.menuButton}
+                aria-label={t('openMenu')}
+                aria-controls="profile-navigation"
+                aria-expanded={sidebarOpen}
+                onClick={() => setSidebarOpen(true)}
+              >
+                <TbMenu2 />
+              </button>
+              <span className={css.mobileBrandIcon}><TbChefHat /></span>
+              <span className={css.mobileBrandName}>{settings.venueName}</span>
+            </header>
+            {sidebarOpen && isMobileNavigation && (
+              <button
+                type="button"
+                className={css.overlay}
+                aria-label={t('closeMenu')}
+                onClick={() => setSidebarOpen(false)}
+              />
+            )}
+            <Sidebar
+              isOpen={navigationOpen}
+              onClose={() => setSidebarOpen(false)}
             />
-          )}
-          <Sidebar
-            isOpen={navigationOpen}
-            onClose={() => setSidebarOpen(false)}
-          />
-          <main className={`${css.main} ss-scroll`}>{children}</main>
-        </div>
-      </WaiterCallsProvider>
+            <main className={`${css.main} ss-scroll`}>{children}</main>
+          </div>
+        </WaiterCallsProvider>
+      </TablesProvider>
     </OrdersProvider>
   );
 }

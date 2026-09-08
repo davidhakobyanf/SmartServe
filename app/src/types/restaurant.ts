@@ -65,13 +65,15 @@ export interface BasketItemRecord {
   unitPrice: number;
 }
 
-export type OrderStatus = 'placed' | 'completed' | 'cancelled';
+export type OrderStatus = 'placed' | 'preparing' | 'ready' | 'completed' | 'cancelled';
 
 export interface OrderItemRecord {
   id: string;
   productId: string | null;
   titleSnapshot: string;
   descriptionSnapshot: string;
+  titleTranslationsSnapshot?: LocalizedText;
+  descriptionTranslationsSnapshot?: LocalizedText;
   product?: ProductRecord | null;
   unitPrice: number | null;
   quantity: number;

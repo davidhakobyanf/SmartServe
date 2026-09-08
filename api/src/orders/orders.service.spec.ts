@@ -118,4 +118,14 @@ describe("OrdersService", () => {
     expect(result.completedAt).toBeInstanceOf(Date);
     expect(events.emit).toHaveBeenCalledWith(ORDER_DOMAIN_EVENTS.CHANGED, []);
   });
+
+  it.each(["preparing", "ready"] as const)("saves %s without marking the order completed", async (status) => {
+    const order = { id: "order-1", status: "placed", completedAt: null };
+    ordersRepo.findOne.mockResolvedValue(order);
+    ordersRepo.save.mockImplementation(async (value) => value);
+    const result = await service.updateStatus("order-1", status);
+    expect(result.status).toBe(status);
+    expect(result.completedAt).toBeNull();
+    expect(events.emit).toHaveBeenCalledWith(ORDER_DOMAIN_EVENTS.CHANGED, []);
+  });
 });

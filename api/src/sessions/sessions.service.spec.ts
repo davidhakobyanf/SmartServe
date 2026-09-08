@@ -1,6 +1,7 @@
 import { ForbiddenException } from "@nestjs/common";
 import { SessionsService } from "./sessions.service";
 import { SESSION_DOMAIN_EVENTS } from "./session.events";
+import { QueryFailedError } from "typeorm";
 
 describe("SessionsService", () => {
   const sessionRepo = {
@@ -32,6 +33,7 @@ describe("SessionsService", () => {
 
     await expect(service.openForTable("qr-token")).resolves.toBe(openSession);
     expect(sessionRepo.save).not.toHaveBeenCalled();
+    expect(events.emit).not.toHaveBeenCalled();
   });
 
   it("creates a new session when the table has no open session", async () => {
@@ -47,6 +49,33 @@ describe("SessionsService", () => {
     expect(sessionRepo.create).toHaveBeenCalledWith(
       expect.objectContaining({ tableId: table.id, status: "open" }),
     );
+    expect(events.emit).toHaveBeenCalledTimes(1);
+    expect(events.emit).toHaveBeenCalledWith(SESSION_DOMAIN_EVENTS.OPENED, {
+      sessionId: created.id, tableNumber: table.number,
+    });
+    expect(sessionRepo.save.mock.invocationCallOrder[0]).toBeLessThan(events.emit.mock.invocationCallOrder[0]);
+  });
+
+  it("does not announce a second arrival when concurrent scans reuse the winning session", async () => {
+    const table = { id: "table-1", number: 1 };
+    const winner = { id: "winning-session", tableId: table.id, table };
+    tablesRepo.findOne.mockResolvedValue(table);
+    sessionRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(winner);
+    sessionRepo.exists.mockResolvedValue(false);
+    sessionRepo.save.mockRejectedValueOnce(new QueryFailedError("INSERT", [], { code: "23505" } as never));
+
+    await expect(service.openForTable("qr-token")).resolves.toBe(winner);
+    expect(events.emit).not.toHaveBeenCalled();
+  });
+
+  it("does not announce an arrival when persistence fails", async () => {
+    tablesRepo.findOne.mockResolvedValue({ id: "table-1", number: 1 });
+    sessionRepo.findOne.mockResolvedValue(null);
+    sessionRepo.exists.mockResolvedValue(false);
+    sessionRepo.save.mockRejectedValueOnce(new Error("database unavailable"));
+
+    await expect(service.openForTable("qr-token")).rejects.toThrow("database unavailable");
+    expect(events.emit).not.toHaveBeenCalled();
   });
 
   it("rejects access after a session is closed", async () => {

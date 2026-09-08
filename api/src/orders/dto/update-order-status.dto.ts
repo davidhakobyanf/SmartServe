@@ -1,7 +1,7 @@
 import { IsIn } from "class-validator";
-import type { OrderStatus } from "src/entities/order.entity";
+import { ORDER_STATUSES, OrderStatus } from "src/entities/order.entity";
 
 export class UpdateOrderStatusDto {
-  @IsIn(["placed", "completed", "cancelled"])
+  @IsIn(ORDER_STATUSES)
   status!: OrderStatus;
 }

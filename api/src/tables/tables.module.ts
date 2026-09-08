@@ -5,6 +5,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { TablesController } from "./tables.controller";
 import { UsersModule } from "../users/users.module";
 import { DiningSession } from "src/entities/dining-session.entity";
+import { TablesGateway } from "./tables.gateway";
 
 @Module({
   imports: [
@@ -12,7 +13,7 @@ import { DiningSession } from "src/entities/dining-session.entity";
     UsersModule,
   ],
   controllers: [TablesController],
-  providers: [TablesService],
+  providers: [TablesService, TablesGateway],
   exports: [TablesService],
 })
 export class TablesModule {}

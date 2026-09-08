@@ -8,6 +8,7 @@ import { WaiterGateway } from "../waiter/waiter.gateway";
 import { SessionsGateway } from "../sessions/session.gateway";
 import { StaffSocketAuthService } from "../users/staff-socket-auth.service";
 import { MenuGateway } from "../products/menu.gateway";
+import { TablesGateway } from "../tables/tables.gateway";
 
 describe("Application dependency graph", () => {
   it("resolves all feature providers with the actual module wiring and no database connection", async () => {
@@ -19,7 +20,7 @@ describe("Application dependency graph", () => {
       .overrideProvider(DataSource).useValue(database)
       .compile();
     try {
-      for (const provider of [UsersService, ProductsService, MenuGateway, OrdersGateway, WaiterGateway, SessionsGateway, StaffSocketAuthService]) {
+      for (const provider of [UsersService, ProductsService, MenuGateway, OrdersGateway, WaiterGateway, SessionsGateway, TablesGateway, StaffSocketAuthService]) {
         expect(module.get(provider, { strict: false })).toBeInstanceOf(provider);
       }
       expect(database.getRepository).toHaveBeenCalled();

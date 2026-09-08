@@ -10,6 +10,8 @@ import { CreateTableDto } from "./dto/create-table.dto";
 import { randomUUID } from "crypto";
 import { DiningSession } from "src/entities/dining-session.entity";
 import { UpdateTableDto } from "./dto/update-table.dto";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { TABLE_DOMAIN_EVENTS } from "./table.events";
 import {
   cleanLocalizedText,
   primaryLocalizedText,
@@ -23,6 +25,7 @@ export class TablesService {
     private readonly tablesRepo: Repository<DiningTable>,
     @InjectRepository(DiningSession)
     private readonly sessionsRepo: Repository<DiningSession>,
+    private readonly events: EventEmitter2,
   ) {}
 
   async create(dto: CreateTableDto): Promise<DiningTable> {
@@ -48,7 +51,9 @@ export class TablesService {
       publicToken: randomUUID(),
       isActive: dto.isActive ?? true,
     });
-    return this.tablesRepo.save(table);
+    const saved = await this.tablesRepo.save(table);
+    this.events.emit(TABLE_DOMAIN_EVENTS.CHANGED, { tableId: saved.id });
+    return saved;
   }
   async update(tableId: string, dto: UpdateTableDto): Promise<DiningTable> {
     const table = await this.tablesRepo.findOne({
@@ -99,7 +104,9 @@ export class TablesService {
       }
       table.isActive = dto.isActive;
     }
-    return this.tablesRepo.save(table);
+    const saved = await this.tablesRepo.save(table);
+    this.events.emit(TABLE_DOMAIN_EVENTS.CHANGED, { tableId: saved.id });
+    return saved;
   }
   async findAll() {
     const [tables, openSessions] = await Promise.all([

@@ -5,6 +5,7 @@ import { OrdersGateway } from "../orders/orders.gateway";
 import { WaiterGateway } from "../waiter/waiter.gateway";
 import { SessionsGateway } from "../sessions/session.gateway";
 import { MenuGateway } from "../products/menu.gateway";
+import { TablesGateway } from "../tables/tables.gateway";
 import { UsersService } from "../users/users.service";
 import { StaffSocketAuthService } from "../users/staff-socket-auth.service";
 import { Permission } from "../common/auth/permission";
@@ -48,7 +49,7 @@ describe("WebSocket compatibility", () => {
   }
 
   it("freezes namespaces, subscribed messages and domain events", () => {
-    expect([OrdersGateway, WaiterGateway, SessionsGateway, MenuGateway].map((gateway) => ({
+    expect([OrdersGateway, WaiterGateway, SessionsGateway, MenuGateway, TablesGateway].map((gateway) => ({
       namespace: Reflect.getMetadata(GATEWAY_OPTIONS, gateway).namespace,
       events: Object.getOwnPropertyNames(gateway.prototype).flatMap((key) => {
         const handler = (gateway.prototype as unknown as Record<string, unknown>)[key];
@@ -60,9 +61,10 @@ describe("WebSocket compatibility", () => {
       { namespace: "waiter", events: ["join", "waiter:call"] },
       { namespace: "sessions", events: ["join"] },
       { namespace: "menu", events: [] },
+      { namespace: "tables", events: ["join"] },
     ]);
     expect(ORDER_DOMAIN_EVENTS).toEqual({ CHANGED: "orders:changed" });
-    expect(SESSION_DOMAIN_EVENTS).toEqual({ CLOSED: "session:closed", BASKET_CHANGED: "session:basket-changed" });
+    expect(SESSION_DOMAIN_EVENTS).toEqual({ OPENED: "session:opened", CLOSED: "session:closed", BASKET_CHANGED: "session:basket-changed" });
     expect(PRODUCT_DOMAIN_EVENTS).toEqual({ CHANGED: "products:changed" });
   });
 
@@ -108,6 +110,19 @@ describe("WebSocket compatibility", () => {
     ordersGateway.onOrdersChanged([orderFixture()]);
     expect(to.mock.calls).toEqual([["orders"], ["revenue"]]);
     expect(emit.mock.calls).toMatchSnapshot();
+  });
+
+  it("sends guest orders only to their session and skips closed visits", () => {
+    const first = { ...orderFixture(), id: "first", sessionId: "session-1" };
+    const ready = { ...orderFixture(), id: "ready", sessionId: "session-1", status: "ready" as const };
+    const other = { ...orderFixture(), id: "other", sessionId: "session-2" };
+    const closed = { ...orderFixture(), sessionId: "closed", session: { ...sessionFixture(), status: "closed" as const } };
+    sessionsGateway.onOrdersChanged([first, ready, other, closed]);
+    expect(to.mock.calls).toEqual([["session:session-1"], ["session:session-2"]]);
+    expect(emit.mock.calls[0][0]).toBe("orders:updated");
+    expect(emit.mock.calls[0][1].map((order: { id: string }) => order.id)).toEqual(["first", "ready"]);
+    expect(emit.mock.calls[0][1][1]).toMatchObject({ status: "ready", total: 2600 });
+    expect(emit.mock.calls[1][1].map((order: { id: string }) => order.id)).toEqual(["other"]);
   });
 
   it("preserves session join payload, room and basket/closed payloads", async () => {

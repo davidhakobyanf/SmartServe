@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { App, Input, Select, ConfigProvider } from 'antd';
@@ -8,7 +8,9 @@ import {
   TbUser,
   TbBell,
   TbShoppingCart,
+  TbClipboardList,
   TbSearch,
+  TbFilter,
   TbLayoutGrid,
   TbSoup,
   TbMeat,
@@ -31,6 +33,7 @@ import type { DiningSession } from '@/types/tables';
 import type { BasketItemRecord, ProductRecord } from '@/types/restaurant';
 import { useWaiterClient } from '@/hooks/useWaiterClient';
 import { useSessionLock } from '@/hooks/useSessionLock';
+import { useClientOrders } from '@/hooks/useClientOrders';
 import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
 import { getMenuLineTotal } from '@/lib/clientMenu';
 import { createSocket } from '@/lib/ws/socket';
@@ -49,13 +52,16 @@ export default function ClientDashboard() {
   const { message } = App.useApp();
   const params = useParams();
   const sessionId = params?.clientId as string;
-  const { closed, basketItems: liveBasketItems } = useSessionLock(
+  const { closed, basketItems: liveBasketItems, orders: liveOrders, connectionVersion } = useSessionLock(
     sessionId ?? null,
   );
   const [session, setSession] = useState<DiningSession | null>(null);
   const [sessionUnavailable, setSessionUnavailable] = useState(false);
   const [sessionLoading, setSessionLoading] = useState(true);
   const [menuCards, setMenuCards] = useState<MenuCard[]>([]);
+  const { orders, loading: ordersLoading, error: ordersError, refreshOrders } = useClientOrders(
+    sessionId, Boolean(session && session.id === sessionId && !closed && !sessionUnavailable && session.status === 'open'), liveOrders, connectionVersion,
+  );
 
   const SORT_OPTIONS = useMemo(
     () => [
@@ -162,13 +168,37 @@ export default function ClientDashboard() {
 
   const [images, setImages] = useState<MenuImage[]>([]);
   const [category, setCategory] = useState('all');
+  const menuRef = useRef<HTMLElement>(null);
+  const filterRef = useRef<HTMLDivElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
   const [search, setSearch] = useState('');
+  const filtersActive = category !== 'all' || Boolean(search.trim());
+
+  const returnToResults = () => {
+    const menu = menuRef.current;
+    const filter = filterRef.current;
+    const results = resultsRef.current;
+    if (!menu || !filter || !results) return;
+    const hiddenDistance = filter.getBoundingClientRect().bottom - results.getBoundingClientRect().top;
+    if (hiddenDistance > 0) menu.scrollTop = Math.max(0, menu.scrollTop - hiddenDistance);
+  };
+
+  const changeCategory = (value: string) => {
+    returnToResults();
+    setCategory(value);
+  };
+
+  useEffect(() => {
+    if (!menuCategories.some(({ key }) => key === category)) setCategory('all');
+  }, [category, menuCategories]);
   const [sort, setSort] = useState('default');
   const [columnCount, setColumnCount] = useState(1);
   const pageSize = Math.ceil(MIN_PAGE_SIZE / columnCount) * columnCount;
   const [visible, setVisible] = useState(MIN_PAGE_SIZE);
   const [basket, setBasket] = useState<MenuCard[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
+  const [orderTab, setOrderTab] = useState<'basket' | 'orders'>('basket');
+  const placingRef = useRef(false);
   const [cardModalOpen, setCardModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuCard | null>(null);
   const [editingLine, setEditingLine] = useState<MenuCard | null>(null);
@@ -311,15 +341,20 @@ export default function ClientDashboard() {
   const count = basket.reduce((n, it) => n + (it.count ?? 1), 0);
   const avatarInitial = (profileDataList.name?.[0] ?? 'N').toUpperCase();
 
-  const [placeOrder] = useFetching(async () => {
-    if (basket.length === 0) return;
+  const [placeOrder, placing] = useFetching(async () => {
+    if (basket.length === 0 || placingRef.current) return;
+    placingRef.current = true;
     try {
       await clientAPI.placeOrder();
       setBasket([]);
-      setCartOpen(false);
+      setOrderTab('orders');
+      setCartOpen(true);
       message.success(t('dashboard.orderPlaced'));
+      await refreshOrders();
     } catch {
       message.error(t('dashboard.orderFailed'));
+    } finally {
+      placingRef.current = false;
     }
   });
 
@@ -359,15 +394,21 @@ export default function ClientDashboard() {
           >
             <TbBell /> {t('dashboard.callWaiter')}
           </button>
+          <div className={css.orderActions}>
           <button
             type="button"
             className={css.orderToggle}
-            onClick={() => setCartOpen(true)}
+            onClick={() => { setOrderTab('basket'); setCartOpen(true); }}
           >
             <TbShoppingCart />
-            {t('dashboard.myOrder')}
+            {t('history.basket')}
             <span className={css.orderCount}>{count}</span>
           </button>
+          <button type="button" className={css.orderToggle} onClick={() => { setOrderTab('orders'); setCartOpen(true); }}>
+            <TbClipboardList /> {t('history.title')}
+            <span className={css.orderCount}>{orders.length}</span>
+          </button>
+          </div>
         </header>
 
         <div className={css.body}>
@@ -380,7 +421,7 @@ export default function ClientDashboard() {
                     className={`${css.navItem} ${
                       category === key ? css.navItemActive : ''
                     }`}
-                    onClick={() => setCategory(key)}
+                    onClick={() => changeCategory(key)}
                   >
                     <Icon className={css.navIcon} />
                     <span>{label}</span>
@@ -401,7 +442,7 @@ export default function ClientDashboard() {
             </div>
           </nav>
 
-          <main className={`${css.menu} ss-scroll`}>
+          <main ref={menuRef} className={`${css.menu} ss-scroll`}>
             <h2 className={css.menuTitle}>{t('dashboard.menuTitle')}</h2>
 
             <div className={css.tools}>
@@ -423,21 +464,34 @@ export default function ClientDashboard() {
               />
             </div>
 
-            <div className={css.tabs}>
-              {menuCategories.map(({ key, label }) => (
-                <button
-                  key={key}
-                  type="button"
-                  className={`${css.tab} ${
-                    category === key ? css.tabActive : ''
-                  }`}
-                  onClick={() => setCategory(key)}
-                >
-                  {label}
-                </button>
-              ))}
+            <div ref={filterRef} className={`${css.categoryFilter} ${filtersActive ? css.categoryFilterActive : ''}`}>
+              <label className={css.categoryLabel} htmlFor="menu-category">
+                <TbFilter aria-hidden="true" /> {t('filters.category')}
+                {filtersActive && <span className={css.filterBadge}>{t('filters.active')}</span>}
+              </label>
+              <Select
+                id="menu-category"
+                aria-label={t('filters.category')}
+                size="large"
+                className={css.categorySelect}
+                value={category}
+                onChange={changeCategory}
+                options={menuCategories.map(({ key, label }) => ({ value: key, label }))}
+              />
+              {filtersActive && (
+                <div className={css.filterSummary}>
+                  <span role="status">{t('filters.matching', { count: cards.length, total: menuCards.length })}</span>
+                  <button type="button" className={css.clearFilters} onClick={() => {
+                    returnToResults();
+                    setCategory('all');
+                    setSearch('');
+                  }}>{t('filters.showAll')}</button>
+                </div>
+              )}
             </div>
 
+            <div ref={resultsRef}>
+            {cards.length === 0 && filtersActive && <p className={css.noResults}>{t('filters.empty')}</p>}
             <ClientMenuGrid
               items={shown}
               images={images}
@@ -447,6 +501,7 @@ export default function ClientDashboard() {
               onLoadMore={() => setVisible((value) => value + pageSize)}
               onColumnCountChange={setColumnCount}
             />
+            </div>
           </main>
           <ClientOrderPanel
             open={cartOpen}
@@ -458,6 +513,13 @@ export default function ClientDashboard() {
             onChangeCount={changeCount}
             onRemove={removeItem}
             onPlaceOrder={placeOrder}
+            placing={placing}
+            tab={orderTab}
+            onTabChange={setOrderTab}
+            orders={orders}
+            ordersLoading={ordersLoading}
+            ordersError={ordersError}
+            onRefreshOrders={refreshOrders}
           />
         </div>
       </div>

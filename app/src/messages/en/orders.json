@@ -15,7 +15,9 @@
   "statusUpdateSuccess": "Order status updated",
   "statusUpdateError": "Failed to update order status",
   "statuses": {
-    "placed": "Accepted",
+    "placed": "In progress",
+    "preparing": "Preparing",
+    "ready": "Ready",
     "completed": "Completed",
     "cancelled": "Cancelled"
   },

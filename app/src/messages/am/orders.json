@@ -15,7 +15,9 @@
   "statusUpdateSuccess": "Պատվերի կարգավիճակը թարմացվել է",
   "statusUpdateError": "Չհաջողվեց թարմացնել պատվերի կարգավիճակը",
   "statuses": {
-    "placed": "Ընդունված",
+    "placed": "Ընթացքում է",
+    "preparing": "Պատրաստվում է",
+    "ready": "Պատրաստ է",
     "completed": "Ավարտված",
     "cancelled": "Չեղարկված"
   },

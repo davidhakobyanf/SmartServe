@@ -10,5 +10,6 @@
   "closeConfirm": { "title": "Close service for this table?", "description": "Every guest page connected to the current session will be locked.", "confirm": "Close", "cancel": "Cancel" },
   "messages": { "loadError": "Could not load tables", "created": "Table created", "updated": "Table updated", "saveError": "Could not save table", "closed": "Table session closed", "closeError": "Could not close the session", "copied": "Link copied" },
   "tableNumber": "Table {number}",
+  "notification": { "title": "A client opened the menu", "description": "A client at table {number} scanned the QR code. The table is now occupied." },
   "empty": "No tables have been created yet"
 }

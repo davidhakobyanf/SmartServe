@@ -14,6 +14,7 @@ import {
 import { useOrders } from '@/context/OrdersContext';
 import clientAPI from '@/api/api';
 import type { OrderRecord } from '@/types/orders';
+import type { OrderStatus } from '@/types/restaurant';
 import css from './Orders.module.css';
 import { useProfileData } from '@/context/ProfileDataContext';
 import PageHeader from '@/components/Common/PageHeader/PageHeader';
@@ -77,7 +78,7 @@ export default function Orders() {
 
   const changeStatus = async (
     id: string,
-    status: 'placed' | 'completed' | 'cancelled',
+    status: OrderStatus,
   ) => {
     try {
       await clientAPI.updateOrderStatus(id, status);
@@ -183,6 +184,8 @@ export default function Orders() {
                           }
                           options={[
                             { value: 'placed', label: t('statuses.placed') },
+                            { value: 'preparing', label: t('statuses.preparing') },
+                            { value: 'ready', label: t('statuses.ready') },
                             { value: 'completed', label: t('statuses.completed') },
                             { value: 'cancelled', label: t('statuses.cancelled') },
                           ]}

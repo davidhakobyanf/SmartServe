@@ -17,6 +17,14 @@
     "orderPlaced": "Your order has been placed.",
     "orderFailed": "Couldn't place the order"
   },
+  "history": {"panelTitle":"Your basket and orders","basket":"Basket","title":"My orders","empty":"No orders yet. Choose dishes and place your first order.","loading":"Loading orders…","refresh":"Refresh","loadError":"Could not load orders. Please try again.","orderNumber":"Order #{id}","readyTitle":"Your order is ready!","readyDescription":"Order #{id} is ready. Enjoy your meal!"},
+  "filters": {
+    "category": "Category",
+    "active": "Filter is on",
+    "matching": "Matching dishes: {count} of {total}",
+    "showAll": "Show all",
+    "empty": "No dishes found. Change the filters or select “Show all”."
+  },
   "categories": {
     "allItems": "All Items",
     "starters": "Starters",

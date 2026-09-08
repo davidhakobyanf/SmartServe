@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   App,
@@ -29,6 +29,7 @@ import tablesApi from '@/api/tablesApi';
 import type { RestaurantTable, TablePayload } from '@/types/tables';
 import css from './TablesManagement.module.css';
 import { useProfileData } from '@/context/ProfileDataContext';
+import { useTables } from '@/context/TablesContext';
 import LocalizedTextFields from '@/components/Common/LocalizedTextFields';
 import {
   cleanLocalizedText,
@@ -52,8 +53,7 @@ export default function TablesManagement() {
   const canManageTables = permissions.includes('tables.manage');
   const canManageQr = permissions.includes('tables.qr.manage');
   const [form] = Form.useForm<TableFormValues>();
-  const [tables, setTables] = useState<RestaurantTable[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { tables, loading, refreshTables: loadTables, newCount, markSeen } = useTables();
   const [saving, setSaving] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<RestaurantTable | null>(null);
@@ -62,20 +62,9 @@ export default function TablesManagement() {
 
   useEffect(() => setOrigin(window.location.origin), []);
 
-  const loadTables = useCallback(async () => {
-    setLoading(true);
-    try {
-      setTables(await tablesApi.getTables());
-    } catch {
-      message.error(t('messages.loadError'));
-    } finally {
-      setLoading(false);
-    }
-  }, [message, t]);
-
   useEffect(() => {
-    void loadTables();
-  }, [loadTables]);
+    markSeen();
+  }, [markSeen, newCount]);
 
   const stats = useMemo(
     () => ({
