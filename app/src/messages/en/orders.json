@@ -14,6 +14,37 @@
   "statusPlaced": "Placed",
   "statusUpdateSuccess": "Order status updated",
   "statusUpdateError": "Failed to update order status",
+  "board": {
+    "title": "Kitchen · order queue",
+    "live": "Updating live",
+    "offline": "Disconnected · refresh manually",
+    "filterLabel": "Filter orders",
+    "filters": {
+      "active": "Active",
+      "placed": "New",
+      "preparing": "Preparing",
+      "ready": "Ready",
+      "history": "History",
+      "all": "All"
+    },
+    "search": "Order number, table, dish or extra…",
+    "oldestFirst": "Active orders: oldest first",
+    "newestFirst": "Newest orders first",
+    "loadError": "Could not update orders. Select Refresh to try again.",
+    "showing": "Showing {count} of {total} orders",
+    "noMatches": "No matching orders",
+    "noActive": "All orders are handled",
+    "emptyHint": "Check the search and filters. Completed and cancelled orders are in History.",
+    "showAll": "Show all orders",
+    "additions": "Extras",
+    "dishCount": "Total dishes: {count}",
+    "saving": "Saving…",
+    "actions": {
+      "preparing": "Start preparing",
+      "ready": "Order is ready",
+      "completed": "Complete order"
+    }
+  },
   "statuses": {
     "placed": "In progress",
     "preparing": "Preparing",
