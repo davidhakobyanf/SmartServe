@@ -1,85 +1,45 @@
 'use client';
-
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { App } from 'antd';
 import { useLocale, useTranslations } from 'next-intl';
-import clientAPI from '@/api/api';
 import { normalizeOrderRecord } from '@/lib/normalizeMenuCard';
 import type { OrderStatus, RelationalOrder } from '@/types/restaurant';
+import type { GuestOrderChange } from './useSessionLock';
+import { useServerList } from './useServerList';
 
-export function useClientOrders(token: string | null, enabled: boolean, liveOrders: RelationalOrder[] | null, connectionVersion: number) {
+export function useClientOrders(token: string | null, enabled: boolean, liveOrders: RelationalOrder[] | null, connectionVersion: number, change?: GuestOrderChange | null) {
   const locale = useLocale();
   const t = useTranslations('client');
   const { notification } = App.useApp();
-  const [rawOrders, setRawOrders] = useState<RelationalOrder[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const version = useRef(0);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
+  const list = useServerList<RelationalOrder>('/api/guest-lists/orders', { page, pageSize }, enabled && Boolean(token), token ?? '');
   const statuses = useRef(new Map<string, OrderStatus>());
   const notified = useRef(new Set<string>());
-  const notifyReady = useRef<((id: string) => void) | null>(null);
-  notifyReady.current = (id) => notification.success({
-    message: t('history.readyTitle'),
-    description: t('history.readyDescription', { id: id.slice(-5).toUpperCase() }),
-    placement: 'topRight',
-    duration: 8,
-    key: `order-ready-${id}`,
-  });
-
-  const applyOrders = useCallback((items: RelationalOrder[]) => {
-    const ownOrders = items.filter((order) => order.sessionId === token);
-    for (const order of ownOrders) {
+  const refreshRef = useRef(list.refresh);
+  refreshRef.current = list.refresh;
+  const notifyReady = useRef((id: string) => {});
+  notifyReady.current = (id) => {
+    if (notified.current.has(id)) return;
+    notified.current.add(id);
+    notification.success({ message: t('history.readyTitle'), description: t('history.readyDescription', { id: id.slice(-5).toUpperCase() }), placement: 'topRight', duration: 8, key: `order-ready-${id}` });
+  };
+  useEffect(() => { setPage(1); statuses.current.clear(); notified.current.clear(); }, [token]);
+  useEffect(() => { if (enabled) void refreshRef.current(); }, [enabled, connectionVersion, liveOrders]);
+  useEffect(() => {
+    if (!enabled || !change || change.sessionId !== token) return;
+    if (change.status === 'ready') notifyReady.current(change.id);
+    statuses.current.set(change.id, change.status);
+    void refreshRef.current();
+  }, [change, enabled, token]);
+  useEffect(() => {
+    for (const order of list.data?.items ?? []) {
       const previous = statuses.current.get(order.id);
-      // Initial history is a baseline, not a new "ready" notification.
-      if (order.status === 'ready' && previous && previous !== 'ready' && !notified.current.has(order.id)) {
-        notified.current.add(order.id);
-        notifyReady.current?.(order.id);
-      }
+      if (previous && previous !== 'ready' && order.status === 'ready') notifyReady.current(order.id);
       statuses.current.set(order.id, order.status);
     }
-    setRawOrders(ownOrders);
-    setLoading(false);
-    setError(false);
-  }, [token]);
-
-  const invalidate = useCallback(() => { ++version.current; }, []);
-  const refreshOrders = useCallback(async () => {
-    if (!token || !enabled) return;
-    const request = ++version.current;
-    try {
-      const { data } = await clientAPI.getMyOrders(token);
-      if (request === version.current) applyOrders(data);
-    } catch {
-      if (request === version.current) setError(true);
-    } finally {
-      if (request === version.current) setLoading(false);
-    }
-  }, [token, enabled, applyOrders]);
-
-  useEffect(() => {
-    setRawOrders([]);
-    setLoading(enabled);
-    setError(false);
-    statuses.current.clear();
-    notified.current.clear();
-    return invalidate;
-  }, [token, enabled, invalidate]);
-
-  useEffect(() => {
-    void refreshOrders();
-    return invalidate;
-  }, [refreshOrders, connectionVersion, invalidate]);
-
-  useEffect(() => {
-    if (enabled && liveOrders) {
-      invalidate();
-      applyOrders(liveOrders);
-    }
-  }, [liveOrders, enabled, applyOrders, invalidate]);
-
-  const orders = useMemo(() => rawOrders
-    .filter((order) => order.sessionId === token)
-    .map((order) => normalizeOrderRecord(order, locale)), [rawOrders, token, locale]);
-
-  return { orders, loading, error, refreshOrders };
+  }, [list.data]);
+  const orders = useMemo(() => (list.data?.items ?? []).map(order => normalizeOrderRecord(order, locale)), [list.data, locale]);
+  return { orders, total: list.data?.total ?? 0, pageData: list.data, loading: list.loading, error: list.error, refreshOrders: list.refresh,
+    onPageChange: (next: number, size: number) => { setPage(next); setPageSize(size); } };
 }

@@ -1,4 +1,5 @@
 {
+  "list": {"error":"Не удалось загрузить список.","retry":"Повторить","total":"Всего: {total}","search":"Поиск…","empty":"Ничего не найдено","allSauces":"Все соусы","allCategories":"Все категории","allStatuses":"Все статусы","active":"Активные","inactive":"Неактивные"},
   "language": "Язык",
   "lang_en": "English",
   "lang_ru": "Русский",

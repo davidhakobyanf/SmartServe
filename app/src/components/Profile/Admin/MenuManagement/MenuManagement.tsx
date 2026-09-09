@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Input, Select, Dropdown, Empty, Switch } from 'antd';
 import { TbPlus, TbSearch, TbDotsVertical } from 'react-icons/tb';
@@ -8,33 +8,58 @@ import clientAPI from '@/api/api';
 import { useFetching } from '@/hoc/fetchingHook';
 import { useProfileData } from '@/context/ProfileDataContext';
 import { loadMenuImages } from '@/lib/menuImages';
-import type { MenuCard, MenuImage } from '@/types';
-import type { CategoryRecord } from '@/types/restaurant';
+import type { MenuCard } from '@/types';
+import type { ProductRecord } from '@/types/restaurant';
 import AddModal from '../Modal/AddModal';
 import CardModal from '../Modal/CardModal/CardModal';
 import CategoryManagementPanel from './CategoryManagementModal';
 import SauceManagementPanel from './SauceManagementModal';
 import PageHeader from '@/components/Common/PageHeader/PageHeader';
 import css from './MenuManagement.module.css';
-import { localizeNamedRecord } from '@/types/localization';
+import { productToMenuCard } from '@/lib/normalizeMenuCard';
+import { useDebouncedValue, useServerList } from '@/hooks/useServerList';
+import RemoteSelect from '@/components/Common/RemoteSelect';
+import ListPagination from '@/components/Common/ListPagination';
+import { createSocket } from '@/lib/ws/socket';
 
 type MenuSection = 'products' | 'categories' | 'sauces';
 
 export default function MenuManagement() {
   const t = useTranslations('menu');
   const locale = useLocale();
-  const { profileDataList, fetchProfile, permissions } = useProfileData();
+  const { permissions } = useProfileData();
+  const listT = useTranslations('common.list');
   const canManageCategories = permissions.includes('categories.manage');
   const canManageProducts = permissions.includes('products.manage');
-  const [images, setImages] = useState<MenuImage[]>([]);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('newest');
   const [category, setCategory] = useState('all');
-  const [categories, setCategories] = useState<CategoryRecord[]>([]);
   const [activeSection, setActiveSection] = useState<MenuSection>('products');
   const [addOpen, setAddOpen] = useState(false);
   const [cardOpen, setCardOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuCard | null>(null);
+  const [sauce, setSauce] = useState('all');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(24);
+  const debouncedSearch = useDebouncedValue(search);
+  const filterKey = JSON.stringify([category, sauce, sort, debouncedSearch, pageSize]);
+  const [pageKey, setPageKey] = useState(filterKey);
+  const productList = useServerList<ProductRecord>('/api/lists/products', {
+    page: filterKey === pageKey ? page : 1, pageSize, search: debouncedSearch, sort,
+    categoryId: category === 'all' ? undefined : category,
+    sauceId: sauce === 'all' ? undefined : sauce,
+  }, permissions.includes('menu.view') && activeSection === 'products');
+  const fetchProfile = productList.refresh;
+  const cards = useMemo(() => (productList.data?.items ?? []).map(item => productToMenuCard(item, locale)), [productList.data, locale]);
+  const images = useMemo(() => loadMenuImages([...cards, ...(selectedItem ? [selectedItem] : [])]), [cards, selectedItem]);
+  useEffect(() => {
+    if (!permissions.includes('menu.view')) return;
+    const socket = createSocket('/menu');
+    socket.on('connect', fetchProfile);
+    socket.on('menu:updated', fetchProfile);
+    return () => { socket.removeAllListeners(); socket.disconnect(); };
+  }, [fetchProfile, permissions]);
+
 
   const [editCard] = useFetching(async (card: Partial<MenuCard>) => {
     if (!card.id) return;
@@ -62,7 +87,7 @@ export default function MenuManagement() {
       ...(card.active !== undefined ? { isActive: card.active } : {}),
       ...(card.image !== undefined ? { image: card.image } : {}),
     });
-    await fetchProfile({ force: true });
+    await fetchProfile();
   });
 
   const [fetchAddCard] = useFetching(async (formData: Partial<MenuCard>) => {
@@ -76,66 +101,14 @@ export default function MenuManagement() {
       isActive: formData.active ?? true,
       image: formData.image,
     });
-    await fetchProfile({ force: true });
+    await fetchProfile();
   });
-
-  const loadCategories = useCallback(async () => {
-    const { data } = await clientAPI.getCategories();
-    setCategories(
-      (data ?? []).map((item) => localizeNamedRecord(item, locale)),
-    );
-  }, [locale]);
-
-  useEffect(() => {
-    void loadCategories();
-  }, [loadCategories]);
-
-  useEffect(() => {
-    if (profileDataList.card.length > 0) {
-      setImages(loadMenuImages(profileDataList.card));
-    }
-  }, [profileDataList.card]);
 
   useEffect(() => {
     if (!selectedItem) return;
-    const localizedItem = profileDataList.card.find(
-      (item) => item.id === selectedItem.id,
-    );
-    if (localizedItem) setSelectedItem(localizedItem);
-  }, [profileDataList.card, selectedItem]);
-
-  const cards = useMemo(() => {
-    let list = [...(profileDataList.card ?? [])];
-    if (category !== 'all') {
-      list = list.filter((card) => card.categoryId === category);
-    }
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      list = list.filter((c) => c.title.toLowerCase().includes(q));
-    }
-    switch (sort) {
-      case 'newest':
-        list.sort((a, b) => {
-          const createdAtDifference =
-            Date.parse(b.createdAt ?? '') - Date.parse(a.createdAt ?? '');
-
-          return Number.isNaN(createdAtDifference) || createdAtDifference === 0
-            ? b.id.localeCompare(a.id)
-            : createdAtDifference;
-        });
-        break;
-      case 'price-asc':
-        list.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-desc':
-        list.sort((a, b) => b.price - a.price);
-        break;
-      case 'name':
-        list.sort((a, b) => a.title.localeCompare(b.title));
-        break;
-    }
-    return list;
-  }, [profileDataList.card, category, search, sort]);
+    const current = cards.find(item => item.id === selectedItem.id);
+    if (current && current !== selectedItem) setSelectedItem(current);
+  }, [cards, selectedItem]);
 
   const openCard = (item: MenuCard) => {
     setSelectedItem(item);
@@ -220,20 +193,10 @@ export default function MenuManagement() {
       {activeSection === 'products' && (
         <div className={css.sectionContent} role="tabpanel">
           <div className={css.tabs}>
-            {[{ id: 'all', name: t('categories.all') }, ...categories].map(
-              (cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  className={`${css.tab} ${
-                    category === cat.id ? css.tabActive : ''
-                  }`}
-                  onClick={() => setCategory(cat.id)}
-                >
-                  {cat.name}
-                </button>
-              ),
-            )}
+            <RemoteSelect resource="categories" value={category} onChange={setCategory}
+              allLabel={listT('allCategories')} aria-label={listT('allCategories')} style={{ minWidth: 200, flex: 1 }} />
+            <RemoteSelect resource="sauces" value={sauce} onChange={setSauce}
+              allLabel={listT('allSauces')} aria-label={listT('allSauces')} style={{ minWidth: 200, flex: 1 }} />
           </div>
 
           <div className={css.toolbar}>
@@ -255,7 +218,7 @@ export default function MenuManagement() {
             />
           </div>
 
-          {cards.length === 0 ? (
+          {cards.length === 0 && !productList.loading && !productList.error ? (
             <div className={css.empty}>
               <Empty description={t('empty')} />
             </div>
@@ -350,6 +313,11 @@ export default function MenuManagement() {
               })}
             </div>
           )}
+          <ListPagination data={productList.data} loading={productList.loading} error={productList.error}
+            onRetry={fetchProfile} onChange={(nextPage, size) => {
+              setPage(nextPage); setPageSize(size);
+              setPageKey(JSON.stringify([category, sauce, sort, debouncedSearch, size]));
+            }} />
         </div>
       )}
 
@@ -357,8 +325,7 @@ export default function MenuManagement() {
         <div className={css.sectionContent} role="tabpanel">
           <CategoryManagementPanel
             onChanged={() => {
-              void loadCategories();
-              void fetchProfile({ force: true });
+              void fetchProfile();
             }}
           />
         </div>
@@ -367,7 +334,7 @@ export default function MenuManagement() {
       {activeSection === 'sauces' && canManageProducts && (
         <div className={css.sectionContent} role="tabpanel">
           <SauceManagementPanel
-            onChanged={() => void fetchProfile({ force: true })}
+            onChanged={() => void fetchProfile()}
           />
         </div>
       )}

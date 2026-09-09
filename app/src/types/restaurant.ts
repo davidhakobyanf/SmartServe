@@ -69,6 +69,7 @@ export type OrderStatus = 'placed' | 'preparing' | 'ready' | 'completed' | 'canc
 
 export interface OrderItemRecord {
   id: string;
+  createdAt?: string;
   productId: string | null;
   titleSnapshot: string;
   descriptionSnapshot: string;

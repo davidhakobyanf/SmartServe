@@ -18,6 +18,7 @@ import { VenueSettingsModule } from "./venue-settings/venue-settings.module";
 import { ENTITIES } from "./database/entities";
 import { SaucesModule } from "./sauces/sauces.module";
 import { HealthController } from "./health.controller";
+import { ListingModule } from './listing/listing.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { HealthController } from "./health.controller";
     BasketItemsModule,
     VenueSettingsModule,
     SaucesModule,
+    ListingModule,
   ],
   controllers: [HealthController],
 })

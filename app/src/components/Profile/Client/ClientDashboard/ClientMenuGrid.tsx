@@ -12,7 +12,7 @@ interface ClientMenuGridProps {
   onOpen: (item: MenuCard) => void;
   onQuickAdd: (item: MenuCard) => Promise<void>;
   onLoadMore: () => void;
-  onColumnCountChange: (columnCount: number) => void;
+  onColumnCountChange?: (columnCount: number) => void;
 }
 
 export default function ClientMenuGrid({ items, images, hasMore, onOpen, onQuickAdd, onLoadMore, onColumnCountChange }: ClientMenuGridProps) {
@@ -28,7 +28,7 @@ export default function ClientMenuGrid({ items, images, hasMore, onOpen, onQuick
       const columnCount = template === 'none'
         ? 1
         : template.split(' ').filter(Boolean).length;
-      onColumnCountChange(Math.max(1, columnCount));
+      onColumnCountChange?.(Math.max(1, columnCount));
     };
 
     updateColumnCount();

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   App,
@@ -8,6 +8,8 @@ import {
   Empty,
   Form,
   InputNumber,
+  Input,
+  Select,
   Modal,
   Popconfirm,
   QRCode,
@@ -38,6 +40,8 @@ import {
   type LocalizedText,
 } from '@/types/localization';
 import PageHeader from '@/components/Common/PageHeader/PageHeader';
+import { useServerList, useDebouncedValue } from '@/hooks/useServerList';
+import ListPagination from '@/components/Common/ListPagination';
 
 interface TableFormValues {
   number: number;
@@ -53,7 +57,19 @@ export default function TablesManagement() {
   const canManageTables = permissions.includes('tables.manage');
   const canManageQr = permissions.includes('tables.qr.manage');
   const [form] = Form.useForm<TableFormValues>();
-  const { tables, loading, refreshTables: loadTables, newCount, markSeen } = useTables();
+  const { revision, newCount, markSeen } = useTables();
+  const [search, setSearch] = useState('');
+  const [status, setStatus] = useState('all');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(24);
+  const debounced = useDebouncedValue(search);
+  const filterKey = JSON.stringify([debounced, status, pageSize]);
+  const [pageKey, setPageKey] = useState(filterKey);
+  const list = useServerList<RestaurantTable>('/api/lists/tables', { page: pageKey === filterKey ? page : 1, pageSize, search: debounced, status }, permissions.includes('tables.view'));
+  const { items: tables, loading, refresh: loadTables } = list;
+  const refreshRef = useRef(loadTables);
+  refreshRef.current = loadTables;
+  useEffect(() => { void refreshRef.current(); }, [revision]);
   const [saving, setSaving] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<RestaurantTable | null>(null);
@@ -66,16 +82,7 @@ export default function TablesManagement() {
     markSeen();
   }, [markSeen, newCount]);
 
-  const stats = useMemo(
-    () => ({
-      total: tables.length,
-      open: tables.filter((table) => table.activeSession).length,
-      available: tables.filter((table) => table.isActive && !table.activeSession)
-        .length,
-      inactive: tables.filter((table) => !table.isActive).length,
-    }),
-    [tables],
-  );
+  const stats = { total: 0, open: 0, available: 0, inactive: 0, ...list.data?.stats };
 
   const openCreate = () => {
     setEditing(null);
@@ -201,6 +208,11 @@ export default function TablesManagement() {
         ))}
       </div>
 
+      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+        <Input allowClear value={search} onChange={event => setSearch(event.target.value)} placeholder={commonT('list.search')} style={{ flex: 1, minWidth: 200 }} />
+        <Select value={status} onChange={setStatus} style={{ minWidth: 180 }}
+          options={[{ value: 'all', label: commonT('list.allStatuses') }, ...['open', 'available', 'inactive'].map(value => ({ value, label: t(`stats.${value}`) }))]} />
+      </div>
       <section className={css.card}>
         {loading ? (
           <div className={css.loading}><Spin size="large" /></div>
@@ -289,6 +301,8 @@ export default function TablesManagement() {
           </div>
         )}
       </section>
+      <ListPagination data={list.data} loading={loading} error={list.error} onRetry={loadTables}
+        onChange={(next, size) => { setPage(next); setPageSize(size); setPageKey(JSON.stringify([debounced, status, size])); }} />
 
       <Modal
         title={editing ? t('form.editTitle') : t('form.createTitle')}

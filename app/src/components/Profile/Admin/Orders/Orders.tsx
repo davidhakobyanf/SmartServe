@@ -17,11 +17,15 @@ import {
 import { useOrders } from '@/context/OrdersContext';
 import clientAPI from '@/api/api';
 import type { OrderRecord } from '@/types/orders';
-import type { OrderStatus } from '@/types/restaurant';
+import type { OrderStatus, RelationalOrder } from '@/types/restaurant';
 import css from './Orders.module.css';
 import { useProfileData } from '@/context/ProfileDataContext';
 import PageHeader from '@/components/Common/PageHeader/PageHeader';
 import { formatAmount } from '@/lib/formatters';
+import OrderDishPhoto from './OrderDishPhoto';
+import { normalizeOrderRecord } from '@/lib/normalizeMenuCard';
+import { useDebouncedValue, useServerList } from '@/hooks/useServerList';
+import ListPagination from '@/components/Common/ListPagination';
 
 function timeAgo(
   t: ReturnType<typeof useTranslations>,
@@ -48,22 +52,33 @@ const STATUSES: OrderStatus[] = ['placed', 'preparing', 'ready', 'completed', 'c
 const NEXT_STATUS: Partial<Record<OrderStatus, OrderStatus>> = {
   placed: 'preparing', preparing: 'ready', ready: 'completed',
 };
-const matchesFilter = (order: OrderRecord, filter: OrderFilter) => {
-  const status = order.status ?? 'placed';
-  const archived = status === 'completed' || status === 'cancelled';
-  return filter === 'all' || (filter === 'active' ? !archived : filter === 'history' ? archived : status === filter);
-};
 
 export default function Orders() {
   const t = useTranslations('orders');
   const locale = useLocale();
   const { message } = App.useApp();
-  const { orders, refreshOrders, markSeen, isConnected } = useOrders();
+  const { revision, markSeen, isConnected } = useOrders();
   const { permissions } = useProfileData();
   const canViewRevenue = permissions.includes('revenue.view');
   const canManageOrders = permissions.includes('orders.manage');
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<OrderFilter>('active');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
+  const debouncedSearch = useDebouncedValue(search);
+  const filterKey = JSON.stringify([filter, debouncedSearch, pageSize]);
+  const [pageKey, setPageKey] = useState(filterKey);
+  const orderList = useServerList<RelationalOrder>('/api/lists/orders', {
+    page: pageKey === filterKey ? page : 1, pageSize, status: filter, search: debouncedSearch,
+  }, permissions.includes('orders.view'));
+  const refreshOrders = orderList.refresh;
+  const refreshRef = useRef(refreshOrders);
+  refreshRef.current = refreshOrders;
+  useEffect(() => { void refreshRef.current(); }, [revision]);
+  const filtered = useMemo(() => (orderList.data?.items ?? []).map(order => normalizeOrderRecord(order, locale)), [orderList.data, locale]);
+  const filterCounts = orderList.data?.filterCounts ?? {};
+  const stats = { total: 0, items: 0, tables: 0, revenue: 0, ...orderList.data?.stats };
+
   const [pending, setPending] = useState<Set<string>>(new Set());
   const pendingRef = useRef(new Set<string>());
   const [refreshing, setRefreshing] = useState(false);
@@ -81,46 +96,12 @@ export default function Orders() {
     markSeen();
   }, [refreshOrders, markSeen]);
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase().replace(/^#/, '');
-    const result = orders.filter((order) => matchesFilter(order, filter)).filter(
-      (o) =>
-        o._id.toLowerCase().includes(q) ||
-        String(o.table).toLowerCase().includes(q) ||
-        o.items.some((it) => it.title.toLowerCase().includes(q) || it.sauces?.some((sauce) => sauce.name.toLowerCase().includes(q))),
-    );
-    const timestamp = (order: OrderRecord) => Date.parse(order.createdAt ?? '') || 0;
-    return result.sort((a, b) => {
-      if (filter === 'history') return timestamp(b) - timestamp(a);
-      const aArchived = matchesFilter(a, 'history');
-      const bArchived = matchesFilter(b, 'history');
-      if (aArchived !== bArchived) return Number(aArchived) - Number(bArchived);
-      return aArchived ? timestamp(b) - timestamp(a) : timestamp(a) - timestamp(b);
-    });
-  }, [orders, search, filter]);
-
-  const filterCounts = useMemo(() => Object.fromEntries(
-    FILTERS.map((key) => [key, orders.filter((order) => matchesFilter(order, key)).length]),
-  ), [orders]);
-
   const reload = async () => {
     setRefreshing(true);
     try { await refreshOrders(); setLoadError(false); }
     catch { setLoadError(true); }
     finally { setRefreshing(false); }
   };
-
-  const stats = useMemo(() => {
-    const items = orders.reduce(
-      (n, o) => n + o.items.reduce((s, it) => s + (it.count ?? 1), 0),
-      0,
-    );
-    const tables = new Set(orders.map((o) => String(o.table))).size;
-    const revenue = orders
-      .filter((order) => order.status === 'completed')
-      .reduce((sum, order) => sum + (order.allPrice ?? 0), 0);
-    return { total: orders.length, items, tables, revenue };
-  }, [orders]);
 
   const changeStatus = async (
     id: string,
@@ -196,7 +177,7 @@ export default function Orders() {
             {FILTERS.map((key) => (
               <button key={key} type="button" aria-pressed={filter === key}
                 className={css.filterButton} onClick={() => setFilter(key)}>
-                {t(`board.filters.${key}`)} <span>{filterCounts[key]}</span>
+                {t(`board.filters.${key}`)} <span>{filterCounts[key] ?? 0}</span>
               </button>
             ))}
           </div>
@@ -215,8 +196,8 @@ export default function Orders() {
           </div>
         </div>
         {loadError && <p role="alert" className={css.error}>{t('board.loadError')}</p>}
-        <div className={css.resultSummary} role="status">{t('board.showing', { count: filtered.length, total: orders.length })}</div>
-        {filtered.length === 0 ? (
+        <div className={css.resultSummary} role="status">{t('board.showing', { count: orderList.data?.total ?? 0, total: orderList.data?.unfilteredTotal ?? 0 })}</div>
+        {filtered.length === 0 && !orderList.loading && !orderList.error ? (
           <div className={css.emptyState}>
             <TbChefHat aria-hidden="true" />
             <h3>{t(search.trim() ? 'board.noMatches' : filter === 'active' ? 'board.noActive' : 'empty')}</h3>
@@ -239,12 +220,15 @@ export default function Orders() {
                   <span className={css.statusBadge}>{t(`statuses.${status}`)}</span>
                   <div className={css.ticketTime}><TbClock aria-hidden="true" />
                     <span>{timeAgo(t, order.createdAt)}</span>
-                    {order.createdAt && <time dateTime={order.createdAt}>{new Date(order.createdAt).toLocaleString(locale === 'am' ? 'hy-AM' : locale, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</time>}
+                    {order.createdAt && <time dateTime={order.createdAt}>{new Date(order.createdAt).toLocaleString(locale === 'am' ? 'hy-AM' : locale, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}</time>}
                   </div>
                 </header>
                 <ul className={css.dishes}>
                   {order.items.map((item, itemIndex) => <li key={`${item.id}-${itemIndex}`}>
-                    <span className={css.quantity} aria-label={t('modal.pieces', { count: item.count ?? 1 })}>{item.count ?? 1}×</span>
+                    <div className={css.dishVisual}>
+                      <OrderDishPhoto item={item} />
+                      <span className={css.quantity} aria-label={t('modal.pieces', { count: item.count ?? 1 })}>{item.count ?? 1}×</span>
+                    </div>
                     <div className={css.dishText}><strong>{item.title}</strong>
                       {Boolean(item.sauces?.length) && <p className={css.additions}>{t('board.additions')}: {item.sauces.map((sauce) => sauce.name).join(', ')}</p>}
                     </div>
@@ -272,6 +256,8 @@ export default function Orders() {
             );
           })}
         </div>}
+        <ListPagination data={orderList.data} loading={orderList.loading} error={orderList.error} onRetry={refreshOrders}
+          onChange={(next, size) => { setPage(next); setPageSize(size); setPageKey(JSON.stringify([filter, debouncedSearch, size])); }} />
       </section>
     </div>
   );

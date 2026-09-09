@@ -1,13 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import {
   App,
   Button,
   InputNumber,
   Modal,
-  Select,
   Form,
   Switch,
   Upload,
@@ -20,13 +19,12 @@ import { fileToImagePayload } from '@/lib/fileToImagePayload';
 import { IMAGE_ACCEPT, validateImageFile } from '@/lib/imageValidation';
 import { resolveMenuImageSrc } from '@/lib/menuImages';
 import type { MenuCard } from '@/types';
-import type { CategoryRecord, SauceRecord } from '@/types/restaurant';
+import RemoteSelect from '@/components/Common/RemoteSelect';
 import LocalizedTextFields from '@/components/Common/LocalizedTextFields';
 import {
   cleanLocalizedText,
   hasLocalizedText,
   missingContentLocales,
-  localizeNamedRecord,
   type LocalizedText,
 } from '@/types/localization';
 import formCss from '../../ProductForm.module.css';
@@ -58,30 +56,10 @@ export default function EditCardModal({
   setCardModalOpen,
 }: EditCardModalProps) {
   const t = useTranslations('menuModal');
-  const locale = useLocale();
   const commonT = useTranslations('common');
   const { message } = App.useApp();
   const [form] = Form.useForm<ProductFormValues>();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
-  const [categories, setCategories] = useState<CategoryRecord[]>([]);
-  const [sauces, setSauces] = useState<SauceRecord[]>([]);
-
-  useEffect(() => {
-    void Promise.all([clientAPI.getCategories(), clientAPI.getSauces()]).then(
-      ([categoriesResponse, saucesResponse]) => {
-        setCategories(
-          (categoriesResponse.data ?? []).map((category) =>
-            localizeNamedRecord(category, locale),
-          ),
-        );
-        setSauces(
-          (saucesResponse.data ?? []).map((sauce) =>
-            localizeNamedRecord(sauce, locale),
-          ),
-        );
-      },
-    );
-  }, [locale]);
 
   const [editCard] = useFetching(async (card: Partial<MenuCard>) => {
     if (!card.id) return;
@@ -207,11 +185,8 @@ export default function EditCardModal({
                 label={t('fields.category')}
                 rules={[{ required: true, message: t('validation.category') }]}
               >
-                <Select
-                  options={categories.map((category) => ({
-                    value: category.id,
-                    label: category.name,
-                  }))}
+                <RemoteSelect resource="categories" enabled={showEditConfirmation} initialOptions={item?.categoryId ? [{ value: item.categoryId, label: item.categoryName ?? item.categoryId }] : []}
+                  placeholder={t('fields.categoryPlaceholder')}
                 />
               </Form.Item>
               <LocalizedTextFields
@@ -232,15 +207,8 @@ export default function EditCardModal({
                 required
               />
               <Form.Item name="sauceIds" label={t('fields.sauces')}>
-                <Select
-                  mode="multiple"
+                <RemoteSelect resource="sauces" mode="multiple" enabled={showEditConfirmation} initialOptions={(item?.sauces ?? []).map(sauce => ({ value: sauce.id, label: sauce.name }))}
                   placeholder={t('fields.tagsPlaceholder')}
-                  options={sauces.map((sauce) => ({
-                    value: sauce.id,
-                    label: `${sauce.name} — ${Number(sauce.price)} ֏${
-                      sauce.isActive ? '' : ` (${t('fields.inactive')})`
-                    }`,
-                  }))}
                 />
               </Form.Item>
             </section>

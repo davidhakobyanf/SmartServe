@@ -1,4 +1,5 @@
 {
+  "list": {"error":"Could not load the list.","retry":"Retry","total":"Total: {total}","search":"Search…","empty":"No results","allSauces":"All sauces","allCategories":"All categories","allStatuses":"All statuses","active":"Active","inactive":"Inactive"},
   "language": "Language",
   "lang_en": "English",
   "lang_ru": "Русский",

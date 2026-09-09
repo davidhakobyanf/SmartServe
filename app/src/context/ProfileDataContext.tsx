@@ -14,7 +14,6 @@ import { useLocale } from 'next-intl';
 import clientAPI from '@/api/api';
 import type { Profile } from '@/types';
 import type { Permission } from '@/types/staff';
-import { productToMenuCard } from '@/lib/normalizeMenuCard';
 
 const emptyProfile: Profile = { name: '', surname: '', card: [] };
 
@@ -87,17 +86,9 @@ export function ProfileDataProvider({ children }: { children: ReactNode }) {
       try {
         setIsLoading(true);
         const { data: currentUser } = await clientAPI.getMe();
-        const [{ data: res }, productsResponse] = await Promise.all([
-          clientAPI.getProfile(),
-          currentUser.permissions.includes('menu.view')
-            ? clientAPI.getProducts()
-            : Promise.resolve({ data: [] }),
-        ]);
+        const { data: res } = await clientAPI.getProfile();
         if (res && currentLocaleRef.current === locale) {
-          const cards = productsResponse.data.map((product) =>
-            productToMenuCard(product, locale),
-          );
-          const profile = { ...res, card: cards };
+          const profile = { ...res, card: [] };
           cachedProfile = profile;
           cachedPermissions = currentUser.permissions ?? [];
           cachedForAuthenticatedUser = true;

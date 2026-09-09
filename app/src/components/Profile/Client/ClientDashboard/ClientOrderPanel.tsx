@@ -6,6 +6,7 @@ import { getBasketLineKey, getMenuLineTotal } from '@/lib/clientMenu';
 import css from './ClientDashboard.module.css';
 import ClientOrderHistory from './ClientOrderHistory';
 import type { OrderRecord } from '@/types/orders';
+import type { ReactNode } from 'react';
 
 interface ClientOrderPanelProps {
   open: boolean;
@@ -21,12 +22,14 @@ interface ClientOrderPanelProps {
   tab: 'basket' | 'orders';
   onTabChange: (tab: 'basket' | 'orders') => void;
   orders: OrderRecord[];
+  ordersTotal: number;
+  historyPagination: ReactNode;
   ordersLoading: boolean;
   ordersError: boolean;
   onRefreshOrders: () => Promise<void>;
 }
 
-export default function ClientOrderPanel({ open, basket, images, total, onClose, onOpenItem, onChangeCount, onRemove, onPlaceOrder, placing, tab, onTabChange, orders, ordersLoading, ordersError, onRefreshOrders }: ClientOrderPanelProps) {
+export default function ClientOrderPanel({ open, basket, images, total, onClose, onOpenItem, onChangeCount, onRemove, onPlaceOrder, placing, tab, onTabChange, orders, ordersTotal, historyPagination, ordersLoading, ordersError, onRefreshOrders }: ClientOrderPanelProps) {
   const t = useTranslations('client');
   return (
     <>
@@ -37,9 +40,9 @@ export default function ClientOrderPanel({ open, basket, images, total, onClose,
         </div>
         <div className={css.orderTabs}>
           <button type="button" aria-pressed={tab === 'basket'} onClick={() => onTabChange('basket')}>{t('history.basket')} <span>{basket.reduce((sum, item) => sum + (item.count ?? 1), 0)}</span></button>
-          <button type="button" aria-pressed={tab === 'orders'} onClick={() => onTabChange('orders')}>{t('history.title')} <span>{orders.length}</span></button>
+          <button type="button" aria-pressed={tab === 'orders'} onClick={() => onTabChange('orders')}>{t('history.title')} <span>{ordersTotal}</span></button>
         </div>
-        {tab === 'orders' ? <ClientOrderHistory orders={orders} loading={ordersLoading} error={ordersError} onRefresh={onRefreshOrders} /> : <>
+        {tab === 'orders' ? <ClientOrderHistory orders={orders} loading={ordersLoading} error={ordersError} onRefresh={onRefreshOrders} pagination={historyPagination} /> : <>
         <div className={`${css.orderList} ss-scroll`}>
           {basket.length === 0 ? (
             <div className={css.orderEmpty}><TbShoppingCart /><p>{t('order.empty')}</p></div>

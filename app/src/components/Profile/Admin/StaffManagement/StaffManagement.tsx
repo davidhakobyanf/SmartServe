@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   App,
@@ -29,6 +29,8 @@ import {
 } from '@/types/localization';
 import PageHeader from '@/components/Common/PageHeader/PageHeader';
 import StaffStats from './StaffStats';
+import { useServerList, useDebouncedValue } from '@/hooks/useServerList';
+import ListPagination from '@/components/Common/ListPagination';
 import StaffUsersTable from './StaffUsersTable';
 import StaffRolesTable from './StaffRolesTable';
 import { getApiErrorMessage } from '@/lib/apiError';
@@ -90,11 +92,28 @@ export default function StaffManagement() {
   const canManageUsers = permissions.includes('users.manage');
   const canManageRoles = permissions.includes('roles.manage');
   const [view, setView] = useState<StaffView>('users');
-  const [users, setUsers] = useState<StaffUser[]>([]);
-  const [roles, setRoles] = useState<StaffRole[]>([]);
-  const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(24);
+  const debounced = useDebouncedValue(search);
+  const filterKey = JSON.stringify([view, debounced, pageSize]);
+  const [pageKey, setPageKey] = useState(filterKey);
+  const usersList = useServerList<StaffUser>('/api/lists/users', {
+    page: view === 'users' && pageKey === filterKey ? page : 1, pageSize,
+    search: view === 'users' ? debounced : undefined,
+  }, canViewUsers);
+  const rolesList = useServerList<StaffRole>('/api/lists/roles', {
+    page: view === 'roles' && pageKey === filterKey ? page : 1, pageSize,
+    search: view === 'roles' ? debounced : undefined,
+  }, canManageRoles);
+  const currentList = view === 'users' ? usersList : rolesList;
+  const loading = currentList.loading;
+  const filteredUsers = usersList.items;
+  const filteredRoles = rolesList.items;
+  const stats = { total: usersList.data?.stats?.total ?? 0, pending: usersList.data?.stats?.pending ?? 0, active: usersList.data?.stats?.active ?? 0, roles: rolesList.data?.unfilteredTotal ?? 0 };
+  const loadData = async () => { await Promise.all([usersList.refresh(), rolesList.refresh()]); };
+
 
   const [roleTarget, setRoleTarget] = useState<StaffUser | null>(null);
   const [roleAction, setRoleAction] = useState<RoleAction>('approve');
@@ -117,62 +136,9 @@ export default function StaffManagement() {
     [t],
   );
 
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [nextUsers, nextRoles] = await Promise.all([
-        canViewUsers ? staffApi.getUsers() : Promise.resolve([]),
-        canManageRoles ? staffApi.getRoles() : Promise.resolve([]),
-      ]);
-      setUsers(nextUsers);
-      setRoles(nextRoles);
-    } catch (error) {
-      message.error(getLocalizedApiError(error, t('messages.loadError')));
-    } finally {
-      setLoading(false);
-    }
-  }, [canManageRoles, canViewUsers, getLocalizedApiError, message, t]);
-
-  useEffect(() => {
-    void loadData();
-  }, [loadData]);
-
   useEffect(() => {
     if (!canViewUsers && canManageRoles) setView('roles');
   }, [canManageRoles, canViewUsers]);
-
-  const activeRoles = useMemo(
-    () => roles.filter((role) => role.isActive),
-    [roles],
-  );
-
-  const filteredUsers = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    if (!query) return users;
-    return users.filter((user) =>
-      [user.name, user.surname, user.email, user.role?.name, user.status]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(query)),
-    );
-  }, [search, users]);
-
-  const filteredRoles = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    if (!query) return roles;
-    return roles.filter((role) =>
-      [role.name, role.code].some((value) => value.toLowerCase().includes(query)),
-    );
-  }, [roles, search]);
-
-  const stats = useMemo(
-    () => ({
-      total: users.length,
-      pending: users.filter((user) => user.status === 'pending').length,
-      active: users.filter((user) => user.status === 'active').length,
-      roles: roles.length,
-    }),
-    [roles.length, users],
-  );
 
   const runAction = async (
     action: () => Promise<void>,
@@ -308,10 +274,6 @@ export default function StaffManagement() {
     }
   };
 
-  const roleOptions = activeRoles.map((role) => ({
-    value: role.id,
-    label: `${role.name} (${role.code})`,
-  }));
   const permissionOptions = PERMISSIONS.map((permission) => ({
     value: permission,
     label: t(`permissionLabels.${permission.replaceAll('.', '_')}`),
@@ -401,6 +363,8 @@ export default function StaffManagement() {
             )}
           </div>
         </Spin>
+        <ListPagination data={currentList.data} loading={loading} error={currentList.error} onRetry={currentList.refresh}
+          onChange={(next, size) => { setPage(next); setPageSize(size); setPageKey(JSON.stringify([view, debounced, size])); }} />
       </section>
 
       <StaffManagementModals
@@ -415,7 +379,6 @@ export default function StaffManagement() {
         roleModalOpen={roleModalOpen}
         editingRole={editingRole}
         roleForm={roleForm}
-        roleOptions={roleOptions}
         permissionOptions={permissionOptions}
         onSubmitRoleSelection={submitRoleSelection}
         onSubmitReject={submitReject}

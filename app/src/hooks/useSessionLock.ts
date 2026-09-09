@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { createSocket } from '@/lib/ws/socket';
 import { Socket } from 'socket.io-client';
-import type { BasketItemRecord, RelationalOrder } from '@/types/restaurant';
+import type { BasketItemRecord, RelationalOrder, OrderStatus } from '@/types/restaurant';
+
+export interface GuestOrderChange { id: string; sessionId: string; status: OrderStatus; }
 
 const NAMESPACE = '/sessions';
 const EVT = {
@@ -15,12 +17,14 @@ export function useSessionLock(token: string | null) {
     const [closed, setClosed] = useState(false);
     const [basketItems, setBasketItems] = useState<BasketItemRecord[] | null>(null);
     const [orders, setOrders] = useState<RelationalOrder[] | null>(null);
+    const [orderChange, setOrderChange] = useState<GuestOrderChange | null>(null);
     const [connectionVersion, setConnectionVersion] = useState(0);
     
     useEffect(() => {
         setClosed(false);
         setBasketItems(null);
         setOrders(null);
+        setOrderChange(null);
         if (!token) return;
         const socket: Socket = createSocket(NAMESPACE, { sessionToken: token });
 
@@ -36,6 +40,9 @@ export function useSessionLock(token: string | null) {
         socket.on(EVT.ORDERS_UPDATED, (items: RelationalOrder[]) => {
             if (Array.isArray(items)) setOrders(items.filter((order) => order.sessionId === token));
         });
+        socket.on('order:changed', (event: GuestOrderChange) => {
+            if (event.sessionId === token) setOrderChange(event);
+        });
 
         return () => {
             socket.removeAllListeners();
@@ -43,5 +50,5 @@ export function useSessionLock(token: string | null) {
         };
     }, [token]);
 
-    return { closed, basketItems, orders, connectionVersion };
+    return { closed, basketItems, orders, orderChange, connectionVersion };
 }

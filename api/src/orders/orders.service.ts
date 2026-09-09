@@ -23,8 +23,8 @@ export class OrdersService {
     private readonly events: EventEmitter2,
   ) {}
 
-  private async notifyOrdersChanged(): Promise<void> {
-    this.events.emit(ORDER_DOMAIN_EVENTS.CHANGED, await this.findAll());
+  private async notifyOrdersChanged(order: Order, action: 'created' | 'updated'): Promise<void> {
+    this.events.emit(ORDER_DOMAIN_EVENTS.CHANGED, { order, action });
   }
 
   findAll(): Promise<Order[]> {
@@ -124,7 +124,7 @@ export class OrdersService {
       sessionId,
       items: [],
     });
-    await this.notifyOrdersChanged();
+    await this.notifyOrdersChanged(order, 'created');
     return order;
   }
 
@@ -148,7 +148,7 @@ export class OrdersService {
     order.completedAt = status === "completed" ? new Date() : null;
 
     const savedOrder = await this.ordersRepo.save(order);
-    await this.notifyOrdersChanged();
+    await this.notifyOrdersChanged(savedOrder, 'updated');
     return savedOrder;
   }
 }

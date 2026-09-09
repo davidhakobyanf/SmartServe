@@ -3,15 +3,17 @@ import { TbCheck, TbChefHat, TbClipboardList, TbRefresh } from 'react-icons/tb';
 import type { OrderRecord } from '@/types/orders';
 import { formatAmount } from '@/lib/formatters';
 import css from './ClientDashboard.module.css';
+import type { ReactNode } from 'react';
 
 interface Props {
   orders: OrderRecord[];
   loading: boolean;
   error: boolean;
   onRefresh: () => Promise<void>;
+  pagination?: ReactNode;
 }
 
-export default function ClientOrderHistory({ orders, loading, error, onRefresh }: Props) {
+export default function ClientOrderHistory({ orders, loading, error, onRefresh, pagination }: Props) {
   const t = useTranslations('client');
   const statusT = useTranslations('orders');
   const locale = useLocale();
@@ -47,6 +49,7 @@ export default function ClientOrderHistory({ orders, loading, error, onRefresh }
           </article>
         );
       })}
+      {pagination}
     </div>
   );
 }

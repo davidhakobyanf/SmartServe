@@ -8,7 +8,7 @@ import { OnEvent } from "@nestjs/event-emitter";
 import { SessionsService } from "./sessions.service";
 import { isUUID } from "class-validator";
 import { Order } from "src/entities/order.entity";
-import { ORDER_DOMAIN_EVENTS } from "src/orders/order.events";
+import { ORDER_DOMAIN_EVENTS, OrderChangePayload } from "src/orders/order.events";
 import { ordersResponse } from "src/orders/order-response";
 import {
   SESSION_DOMAIN_EVENTS,
@@ -72,7 +72,14 @@ export class SessionsGateway {
   }
 
   @OnEvent(ORDER_DOMAIN_EVENTS.CHANGED)
-  onOrdersChanged(orders: Order[]) {
+  onOrdersChanged(payload: Order[] | OrderChangePayload) {
+    if (!Array.isArray(payload)) {
+      const { order } = payload;
+      if (order.session?.status === 'closed') return;
+      this.server.to(`session:${order.sessionId}`).emit('order:changed', { id: order.id, sessionId: order.sessionId, status: order.status });
+      return;
+    }
+    const orders = payload;
     const bySession = new Map<string, Order[]>();
     for (const order of orders) {
       if (order.session?.status === "closed") continue;

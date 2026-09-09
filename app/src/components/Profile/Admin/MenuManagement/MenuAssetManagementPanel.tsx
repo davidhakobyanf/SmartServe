@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   Alert,
   App,
@@ -8,11 +8,13 @@ import {
   Form,
   Image,
   InputNumber,
+  Input,
+  Select,
   Upload,
 } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import clientAPI from '@/api/api';
 import { fileToDataUrl, fileToImagePayload } from '@/lib/fileToImagePayload';
 import LocalizedTextFields from '@/components/Common/LocalizedTextFields';
@@ -20,13 +22,14 @@ import {
   cleanLocalizedText,
   hasLocalizedText,
   missingContentLocales,
-  localizeNamedRecord,
   type LocalizedText,
 } from '@/types/localization';
 import css from './AssetManagementModal.module.css';
 import { IMAGE_ACCEPT, validateImageFile } from '@/lib/imageValidation';
 import { getApiErrorStatus } from '@/lib/apiError';
 import MenuAssetList from './MenuAssetList';
+import { useServerList, useDebouncedValue } from '@/hooks/useServerList';
+import ListPagination from '@/components/Common/ListPagination';
 import {
   getMenuAssetImageUrl,
   getMenuAssetValue,
@@ -53,33 +56,28 @@ export default function MenuAssetManagementPanel({
     isCategory ? 'menu.categoriesManagement' : 'menu.sauces',
   );
   const commonT = useTranslations('common');
-  const locale = useLocale();
+  const listT = useTranslations('common.list');
   const { message, modal } = App.useApp();
   const [form] = Form.useForm<AssetFormValues>();
-  const [assets, setAssets] = useState<MenuAssetRecord[]>([]);
+  const [search, setSearch] = useState('');
+  const [active, setActive] = useState('all');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
+  const debounced = useDebouncedValue(search);
+  const filterKey = JSON.stringify([kind, debounced, active, pageSize]);
+  const [pageKey, setPageKey] = useState(filterKey);
+  const assetList = useServerList<MenuAssetRecord>(`/api/lists/${isCategory ? 'categories' : 'sauces'}`, {
+    page: filterKey === pageKey ? page : 1, pageSize, search: debounced,
+    isActive: active === 'all' ? undefined : active,
+  });
+  const assets = assetList.items;
+  const loadAssets = assetList.refresh;
   const [editing, setEditing] = useState<MenuAssetRecord | null>(null);
   const [loading, setLoading] = useState(false);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
   const formSectionRef = useRef<HTMLElement>(null);
-
-  const loadAssets = useCallback(async () => {
-    try {
-      const { data } = isCategory
-        ? await clientAPI.getCategories()
-        : await clientAPI.getSauces();
-      setAssets(
-        (data ?? []).map((asset) => localizeNamedRecord(asset, locale)),
-      );
-    } catch {
-      message.error(t('loadError'));
-    }
-  }, [isCategory, locale, message, t]);
-
-  useEffect(() => {
-    void loadAssets();
-  }, [loadAssets]);
 
   const resetForm = () => {
     form.resetFields();
@@ -341,6 +339,10 @@ export default function MenuAssetManagementPanel({
         </Form>
       </section>
 
+      <div style={{ minWidth: 0 }}>
+      <Input allowClear placeholder={listT('search')} aria-label={listT('search')} value={search} onChange={event => setSearch(event.target.value)} style={{ marginBottom: 12 }} />
+      <Select value={active} onChange={setActive} style={{ width: '100%', marginBottom: 12 }}
+        options={[{value: 'all', label: listT('allStatuses')}, {value: 'true', label: listT('active')}, {value: 'false', label: listT('inactive')}]} />
       <MenuAssetList
         kind={kind}
         assets={assets}
@@ -349,6 +351,9 @@ export default function MenuAssetManagementPanel({
         onDelete={removeAsset}
         onToggle={toggleAsset}
       />
+      <ListPagination data={assetList.data} loading={assetList.loading} error={assetList.error} onRetry={loadAssets}
+        onChange={(next, size) => { setPage(next); setPageSize(size); setPageKey(JSON.stringify([kind, debounced, active, size])); }} />
+      </div>
     </div>
   );
 }

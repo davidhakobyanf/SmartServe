@@ -96,7 +96,11 @@ export function relationalOrderToOrderRecord(
     allPrice: Number(order.total) || 0,
     createdAt: order.createdAt,
     status: order.status,
-    items: (order.items ?? []).map((item) => ({
+    // Keep kitchen lines in a stable order across HTTP and socket refreshes.
+    items: [...(order.items ?? [])].sort((a, b) =>
+      (Date.parse(a.createdAt ?? '') || 0) - (Date.parse(b.createdAt ?? '') || 0)
+      || a.id.localeCompare(b.id),
+    ).map((item) => ({
       id: item.productId ?? item.id,
       title: resolveLocalizedText(
         item.titleTranslationsSnapshot ?? item.product?.titleTranslations,

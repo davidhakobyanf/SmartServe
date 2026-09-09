@@ -1,4 +1,5 @@
 {
+  "list": {"error":"Չհաջողվեց բեռնել ցանկը։","retry":"Կրկնել","total":"Ընդամենը՝ {total}","search":"Որոնում…","empty":"Արդյունքներ չկան","allSauces":"Բոլոր սոուսները","allCategories":"Բոլոր կատեգորիաները","allStatuses":"Բոլոր կարգավիճակները","active":"Ակտիվ","inactive":"Ոչ ակտիվ"},
   "language": "Լեզու",
   "lang_en": "English",
   "lang_ru": "Русский",

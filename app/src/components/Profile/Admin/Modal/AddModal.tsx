@@ -1,13 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useLocale, useTranslations } from 'next-intl';
+import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   App,
   Button,
   InputNumber,
   Modal,
-  Select,
   Form,
   Switch,
   Upload,
@@ -17,14 +16,12 @@ import type { UploadFile } from 'antd/es/upload/interface';
 import { fileToImagePayload } from '@/lib/fileToImagePayload';
 import { IMAGE_ACCEPT, validateImageFile } from '@/lib/imageValidation';
 import type { MenuCard } from '@/types';
-import type { CategoryRecord, SauceRecord } from '@/types/restaurant';
-import clientAPI from '@/api/api';
+import RemoteSelect from '@/components/Common/RemoteSelect';
 import LocalizedTextFields from '@/components/Common/LocalizedTextFields';
 import {
   cleanLocalizedText,
   hasLocalizedText,
   missingContentLocales,
-  localizeNamedRecord,
   type LocalizedText,
 } from '@/types/localization';
 import formCss from './ProductForm.module.css';
@@ -52,38 +49,16 @@ export default function AddModal({
   fetchAddCard,
 }: AddModalProps) {
   const t = useTranslations('menuModal');
-  const locale = useLocale();
   const commonT = useTranslations('common');
   const { message } = App.useApp();
   const [form] = Form.useForm<ProductFormValues>();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
-  const [categories, setCategories] = useState<CategoryRecord[]>([]);
-  const [sauces, setSauces] = useState<SauceRecord[]>([]);
 
   const closeModal = () => {
     setModalOpen(false);
     form.resetFields();
     setFileList([]);
   };
-
-  useEffect(() => {
-    if (modalOpen) {
-      void Promise.all([clientAPI.getCategories(), clientAPI.getSauces()]).then(
-        ([categoriesResponse, saucesResponse]) => {
-          setCategories(
-            (categoriesResponse.data ?? [])
-              .filter((category) => category.isActive)
-              .map((category) => localizeNamedRecord(category, locale)),
-          );
-          setSauces(
-            (saucesResponse.data ?? [])
-              .filter((sauce) => sauce.isActive)
-              .map((sauce) => localizeNamedRecord(sauce, locale)),
-          );
-        },
-      );
-    }
-  }, [locale, modalOpen]);
 
   const onChange = ({ fileList: newFileList }: { fileList: UploadFile[] }) => {
     setFileList(newFileList);
@@ -172,11 +147,7 @@ export default function AddModal({
                 label={t('fields.category')}
                 rules={[{ required: true, message: t('validation.category') }]}
               >
-                <Select
-                  options={categories.map((category) => ({
-                    value: category.id,
-                    label: category.name,
-                  }))}
+                <RemoteSelect resource="categories" activeOnly enabled={modalOpen}
                   placeholder={t('fields.categoryPlaceholder')}
                 />
               </Form.Item>
@@ -198,13 +169,8 @@ export default function AddModal({
                 required
               />
               <Form.Item name="sauceIds" label={t('fields.sauces')}>
-                <Select
-                  mode="multiple"
+                <RemoteSelect resource="sauces" mode="multiple" activeOnly enabled={modalOpen}
                   placeholder={t('fields.tagsPlaceholder')}
-                  options={sauces.map((sauce) => ({
-                    value: sauce.id,
-                    label: `${sauce.name} — ${Number(sauce.price)} ֏`,
-                  }))}
                 />
               </Form.Item>
             </section>

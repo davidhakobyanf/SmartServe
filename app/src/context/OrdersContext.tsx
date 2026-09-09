@@ -1,158 +1,62 @@
 'use client';
-
-import {
-  createContext,
-  useState,
-  useCallback,
-  useRef,
-  useEffect,
-  useContext,
-} from 'react';
+import { createContext, useState, useCallback, useRef, useEffect, useContext } from 'react';
 import { App } from 'antd';
-import type { OrderRecord } from '@/types/orders';
-import { normalizeOrderRecord } from '@/lib/normalizeMenuCard';
 import { createSocket } from '@/lib/ws/socket';
-import clientAPI from '@/api/api';
 import { useProfileData } from '@/context/ProfileDataContext';
-import type { RelationalOrder } from '@/types/restaurant';
 import { formatAmount } from '@/lib/formatters';
-import { useLocale, useTranslations } from 'next-intl';
-
-const NAMESPACE = '/orders';
-const EVT = { JOIN: 'join', UPDATED: 'orders:updated' } as const;
-
-let ordersRequest: {
-  key: string;
-  id: symbol;
-  promise: Promise<void>;
-} | null = null;
+import { useTranslations } from 'next-intl';
 
 interface OrdersContextValue {
-  orders: OrderRecord[];
+  revision: number;
   isConnected: boolean;
   refreshOrders: () => Promise<void>;
   newCount: number;
   markSeen: () => void;
 }
-
 const OrdersContext = createContext<OrdersContextValue | null>(null);
-
-function normalizeList(raw: unknown, locale: string): OrderRecord[] {
-  if (!Array.isArray(raw)) return [];
-  return raw.map((item) =>
-    normalizeOrderRecord(item as RelationalOrder, locale),
-  );
-}
-
 export function OrdersProvider({ children }: { children: React.ReactNode }) {
   const t = useTranslations('orders');
-  const locale = useLocale();
-  const currentLocaleRef = useRef(locale);
-  currentLocaleRef.current = locale;
   const { notification } = App.useApp();
-  const { permissions, isLoading: profileLoading } = useProfileData();
-  const canViewOrders = permissions.includes('orders.view');
+  const { permissions, isLoading } = useProfileData();
+  const canView = permissions.includes('orders.view');
   const canViewRevenue = permissions.includes('revenue.view');
-  const [orders, setOrders] = useState<OrderRecord[]>([]);
+  const [revision, setRevision] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
   const [newCount, setNewCount] = useState(0);
-  const socketRef = useRef<ReturnType<typeof createSocket> | null>(null);
-  const seenIdsRef = useRef<Set<string>>(new Set());
-  const initializedRef = useRef(false);
-
-  // Apply a fresh orders list; fire a toast + badge for genuinely new orders.
-  const applyOrders = useCallback((list: OrderRecord[]) => {
-    if (initializedRef.current) {
-      const added = list.filter((o) => o._id && !seenIdsRef.current.has(o._id));
-      if (added.length > 0) {
-        setNewCount((c) => c + added.length);
-        added.forEach((o) =>
-          notification.open({
-            type: 'info',
-            message: t('notification.title'),
-            description: canViewRevenue
-              ? t('notification.withTotal', {
-                  table: o.table,
-                  total: formatAmount(o.allPrice),
-                })
-              : t('notification.table', { table: o.table }),
-            placement: 'topRight',
-            duration: 6,
-            key: o._id,
-          }),
-        );
-      }
-    }
-    seenIdsRef.current = new Set(list.map((o) => o._id));
-    initializedRef.current = true;
-    setOrders(list);
-  }, [canViewRevenue, notification, t]);
-
+  const notified = useRef(new Set<string>());
   const markSeen = useCallback(() => setNewCount(0), []);
-
-  const refreshOrders = useCallback(async () => {
-    if (!canViewOrders) return;
-
-    if (ordersRequest?.key === locale) {
-      await ordersRequest.promise;
-      return;
-    }
-
-    const requestId = Symbol(locale);
-    const request = (async () => {
-      try {
-        const { data } = await clientAPI.getOrders();
-        if (currentLocaleRef.current === locale) {
-          applyOrders(normalizeList(data, locale));
-        }
-      } finally {
-        if (ordersRequest?.id === requestId) ordersRequest = null;
-      }
-    })();
-    ordersRequest = { key: locale, id: requestId, promise: request };
-
-    await request;
-  }, [applyOrders, canViewOrders, locale]);
-
+  const refreshOrders = useCallback(async () => { setRevision(value => value + 1); }, []);
   useEffect(() => {
-    if (profileLoading || !canViewOrders) {
-      setOrders([]);
-      setIsConnected(false);
-      return;
-    }
-
-    const socket = createSocket(NAMESPACE);
-    socketRef.current = socket;
-
+    if (isLoading || !canView) { setIsConnected(false); setNewCount(0); return; }
+    const socket = createSocket('/orders');
     socket.on('connect', () => {
-      setIsConnected(true);
-      socket.emit(EVT.JOIN);
+      socket.emit('join', (result: { ok: boolean }) => {
+        setIsConnected(Boolean(result?.ok));
+        if (result?.ok) void refreshOrders();
+      });
+    });
+    socket.on('orders:invalidated', (event: { id: string; action: string; table: number; total?: number }) => {
       void refreshOrders();
+      if (event.action !== 'created' || notified.current.has(event.id)) return;
+      notified.current.add(event.id);
+      if (notified.current.size > 1000) notified.current.delete(notified.current.values().next().value!);
+      setNewCount(value => value + 1);
+      notification.info({
+        message: t('notification.title'),
+        description: canViewRevenue && event.total !== undefined
+          ? t('notification.withTotal', { table: event.table, total: formatAmount(event.total) })
+          : t('notification.table', { table: event.table }),
+        key: event.id, placement: 'topRight', duration: 6,
+      });
     });
-
-    socket.on(EVT.UPDATED, (payload: unknown) => {
-      applyOrders(normalizeList(payload, locale));
-    });
-
+    socket.on('orders:updated', refreshOrders);
     socket.on('disconnect', () => setIsConnected(false));
-
-    return () => {
-      socket.removeAllListeners();
-      socket.disconnect();
-    };
-  }, [refreshOrders, applyOrders, canViewOrders, locale, profileLoading]);
-
-  return (
-    <OrdersContext.Provider
-      value={{ orders, isConnected, refreshOrders, newCount, markSeen }}
-    >
-      {children}
-    </OrdersContext.Provider>
-  );
+    return () => { socket.removeAllListeners(); socket.disconnect(); };
+  }, [isLoading, canView, canViewRevenue, notification, t, refreshOrders]);
+  return <OrdersContext.Provider value={{ revision, isConnected, refreshOrders, newCount, markSeen }}>{children}</OrdersContext.Provider>;
 }
-
-export function useOrders(): OrdersContextValue {
-  const ctx = useContext(OrdersContext);
-  if (!ctx) throw new Error('useOrders must be used within OrdersProvider');
-  return ctx;
+export function useOrders() {
+  const context = useContext(OrdersContext);
+  if (!context) throw new Error('useOrders must be used within OrdersProvider');
+  return context;
 }

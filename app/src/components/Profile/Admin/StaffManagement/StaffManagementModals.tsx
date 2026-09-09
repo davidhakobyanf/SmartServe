@@ -1,6 +1,7 @@
 import { useTranslations } from 'next-intl';
 import { Form, Input, Modal, Select, type FormInstance } from 'antd';
 import LocalizedTextFields from '@/components/Common/LocalizedTextFields';
+import RemoteSelect from '@/components/Common/RemoteSelect';
 import type { StaffRole, StaffUser } from '@/types/staff';
 import type {
   PermissionValues,
@@ -25,7 +26,6 @@ interface StaffManagementModalsProps {
   roleModalOpen: boolean;
   editingRole: StaffRole | null;
   roleForm: FormInstance<RoleFormValues>;
-  roleOptions: SelectOption[];
   permissionOptions: SelectOption[];
   onSubmitRoleSelection: (values: RoleSelectionValues) => Promise<void>;
   onSubmitReject: (values: RejectValues) => Promise<void>;
@@ -54,7 +54,9 @@ export default function StaffManagementModals(props: StaffManagementModalsProps)
         <Form form={props.roleSelectionForm} layout="vertical" onFinish={(values) => void props.onSubmitRoleSelection(values)}>
           <p className={css.modalHint}>{props.roleTarget?.name} {props.roleTarget?.surname}</p>
           <Form.Item name="roleId" label={t('modals.roleLabel')} rules={[{ required: true, message: t('validation.role') }]}>
-            <Select options={props.roleOptions} placeholder={t('modals.rolePlaceholder')} />
+            <RemoteSelect resource="roles" activeOnly enabled={Boolean(props.roleTarget)}
+              initialOptions={props.roleTarget?.role ? [{ value: props.roleTarget.role.id, label: props.roleTarget.role.name }] : []}
+              placeholder={t('modals.rolePlaceholder')} />
           </Form.Item>
         </Form>
       </Modal>

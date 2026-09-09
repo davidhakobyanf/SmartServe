@@ -11,17 +11,12 @@ import {
   TbClipboardList,
   TbSearch,
   TbFilter,
-  TbLayoutGrid,
-  TbSoup,
-  TbMeat,
-  TbCake,
-  TbGlassFull,
   TbSun,
 } from 'react-icons/tb';
 import css from './ClientDashboard.module.css';
 import { useProfileData } from '@/context/ProfileDataContext';
 import { useFetching } from '@/hoc/fetchingHook';
-import clientAPI, { setSessionToken } from '@/api/api';
+import clientAPI, { apiClient, setSessionToken } from '@/api/api';
 import ClientCardModal from '../ClientCardModal/ClientCardModal';
 import { loadMenuImages } from '@/lib/menuImages';
 import {
@@ -39,28 +34,29 @@ import { getMenuLineTotal } from '@/lib/clientMenu';
 import { createSocket } from '@/lib/ws/socket';
 import ClientMenuGrid from './ClientMenuGrid';
 import ClientOrderPanel from './ClientOrderPanel';
+import { useDebouncedValue, useServerList } from '@/hooks/useServerList';
+import ListPagination from '@/components/Common/ListPagination';
+import RemoteSelect from '@/components/Common/RemoteSelect';
 
-const MIN_PAGE_SIZE = 8;
 const MENU_NAMESPACE = '/menu';
 const MENU_UPDATED_EVENT = 'menu:updated';
 
-const CATEGORY_ICONS = [TbSoup, TbMeat, TbCake, TbGlassFull];
 
 export default function ClientDashboard() {
   const t = useTranslations('client');
+  const listT = useTranslations('common.list');
   const locale = useLocale();
   const { message } = App.useApp();
   const params = useParams();
   const sessionId = params?.clientId as string;
-  const { closed, basketItems: liveBasketItems, orders: liveOrders, connectionVersion } = useSessionLock(
+  const { closed, basketItems: liveBasketItems, orders: liveOrders, orderChange, connectionVersion } = useSessionLock(
     sessionId ?? null,
   );
   const [session, setSession] = useState<DiningSession | null>(null);
   const [sessionUnavailable, setSessionUnavailable] = useState(false);
   const [sessionLoading, setSessionLoading] = useState(true);
-  const [menuCards, setMenuCards] = useState<MenuCard[]>([]);
-  const { orders, loading: ordersLoading, error: ordersError, refreshOrders } = useClientOrders(
-    sessionId, Boolean(session && session.id === sessionId && !closed && !sessionUnavailable && session.status === 'open'), liveOrders, connectionVersion,
+  const { orders, total: ordersTotal, pageData: ordersPage, onPageChange: onOrdersPageChange, loading: ordersLoading, error: ordersError, refreshOrders } = useClientOrders(
+    sessionId, Boolean(session && session.id === sessionId && !closed && !sessionUnavailable && session.status === 'open'), liveOrders, connectionVersion, orderChange,
   );
 
   const SORT_OPTIONS = useMemo(
@@ -72,23 +68,6 @@ export default function ClientDashboard() {
     ],
     [t],
   );
-
-  const menuCategories = useMemo(() => {
-    const categories = new Map<string, string>();
-    menuCards.forEach((card) => {
-      if (card.categoryId && card.categoryName) {
-        categories.set(card.categoryId, card.categoryName);
-      }
-    });
-    return [
-      { key: 'all', label: t('categories.allItems'), icon: TbLayoutGrid },
-      ...Array.from(categories.entries()).map(([id, name], index) => ({
-        key: id,
-        label: name,
-        icon: CATEGORY_ICONS[index % CATEGORY_ICONS.length],
-      })),
-    ];
-  }, [menuCards, t]);
 
   useEffect(() => {
     setSessionToken(sessionId ?? null);
@@ -110,59 +89,6 @@ export default function ClientDashboard() {
     return () => setSessionToken(null);
   }, [sessionId]);
 
-  useEffect(() => {
-    if (!sessionId) return;
-
-    let active = true;
-    void clientAPI
-      .getPublicMenu()
-      .then(({ data }) => {
-        if (!active) return;
-        setMenuCards(
-          (data ?? []).map((product: ProductRecord) =>
-            productToMenuCard(product, locale),
-          ),
-        );
-      })
-      .catch(() => {
-        // Keep the last valid menu while a localized refresh is unavailable.
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [locale, sessionId]);
-
-  useEffect(() => {
-    if (!sessionId) return;
-
-    let active = true;
-    const socket = createSocket(MENU_NAMESPACE, { sessionToken: sessionId });
-    const refreshMenu = async () => {
-      try {
-        const { data } = await clientAPI.getPublicMenu();
-        if (active) {
-          setMenuCards(
-            (data ?? []).map((product: ProductRecord) =>
-              productToMenuCard(product, locale),
-            ),
-          );
-        }
-      } catch {
-        // Keep the last valid menu; reconnecting will trigger another refresh.
-      }
-    };
-
-    socket.on('connect', refreshMenu);
-    socket.on(MENU_UPDATED_EVENT, refreshMenu);
-
-    return () => {
-      active = false;
-      socket.removeAllListeners();
-      socket.disconnect();
-    };
-  }, [locale, sessionId]);
-
   const { callWaiter } = useWaiterClient(sessionId);
   const { profileDataList } = useProfileData();
 
@@ -172,7 +98,8 @@ export default function ClientDashboard() {
   const filterRef = useRef<HTMLDivElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
   const [search, setSearch] = useState('');
-  const filtersActive = category !== 'all' || Boolean(search.trim());
+  const [sauce, setSauce] = useState('all');
+  const filtersActive = category !== 'all' || sauce !== 'all' || Boolean(search.trim());
 
   const returnToResults = () => {
     const menu = menuRef.current;
@@ -188,13 +115,27 @@ export default function ClientDashboard() {
     setCategory(value);
   };
 
-  useEffect(() => {
-    if (!menuCategories.some(({ key }) => key === category)) setCategory('all');
-  }, [category, menuCategories]);
   const [sort, setSort] = useState('default');
-  const [columnCount, setColumnCount] = useState(1);
-  const pageSize = Math.ceil(MIN_PAGE_SIZE / columnCount) * columnCount;
-  const [visible, setVisible] = useState(MIN_PAGE_SIZE);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
+  const debouncedSearch = useDebouncedValue(search);
+  const filterKey = JSON.stringify([debouncedSearch, sort, category, sauce, pageSize]);
+  const [pageKey, setPageKey] = useState(filterKey);
+  const sessionReady = Boolean(session && session.id === sessionId && !closed && !sessionUnavailable);
+  const menuList = useServerList<ProductRecord>('/api/guest-lists/products', {
+    page: pageKey === filterKey ? page : 1, pageSize, search: debouncedSearch, sort,
+    categoryId: category === 'all' ? undefined : category,
+    sauceId: sauce === 'all' ? undefined : sauce,
+  }, sessionReady, sessionId);
+  const menuCards = useMemo(() => (menuList.data?.items ?? []).map(item => productToMenuCard(item, locale)), [menuList.data, locale]);
+  const refreshMenu = menuList.refresh;
+  useEffect(() => {
+    if (!sessionReady) return;
+    const socket = createSocket(MENU_NAMESPACE, { sessionToken: sessionId });
+    socket.on('connect', refreshMenu);
+    socket.on(MENU_UPDATED_EVENT, refreshMenu);
+    return () => { socket.removeAllListeners(); socket.disconnect(); };
+  }, [sessionId, sessionReady, refreshMenu]);
   const [basket, setBasket] = useState<MenuCard[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [orderTab, setOrderTab] = useState<'basket' | 'orders'>('basket');
@@ -213,9 +154,6 @@ export default function ClientDashboard() {
       return;
     }
 
-    setSelectedItem(null);
-    setEditingLine(null);
-    setCardModalOpen(false);
   }, [menuCards, selectedItemId]);
 
   useEffect(() => {
@@ -227,8 +165,8 @@ export default function ClientDashboard() {
   }, [liveBasketItems, locale]);
 
   useEffect(() => {
-    setImages(loadMenuImages(menuCards));
-  }, [menuCards]);
+    setImages(loadMenuImages([...menuCards, ...basket, ...(selectedItem ? [selectedItem] : [])]));
+  }, [menuCards, basket, selectedItem]);
 
   const [fetchBasket] = useFetching(async () => {
     const { data: raw } = await clientAPI.getBasketItems();
@@ -254,40 +192,6 @@ export default function ClientDashboard() {
     else message.error(t('dashboard.waiterFailed'));
   }, [callWaiter, message, t]);
 
-  const cards = useMemo(() => {
-    let list = [...menuCards];
-    if (category !== 'all') {
-      list = list.filter((card) => card.categoryId === category);
-    }
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      list = list.filter((c) => c.title.toLowerCase().includes(q));
-    }
-    switch (sort) {
-      case 'price-asc':
-        list = [...list].sort((a, b) => a.price - b.price);
-        break;
-      case 'price-desc':
-        list = [...list].sort((a, b) => b.price - a.price);
-        break;
-      case 'name':
-        list = [...list].sort((a, b) => a.title.localeCompare(b.title));
-        break;
-    }
-    // Keep unavailable dishes visible but pushed to the end.
-    return [...list].sort(
-      (a, b) => Number(b.active) - Number(a.active),
-    );
-  }, [menuCards, category, search, sort]);
-
-  // Reset pagination whenever the visible set changes.
-  useEffect(() => {
-    setVisible(pageSize);
-  }, [search, sort, category, pageSize]);
-
-  const shown = cards.slice(0, visible);
-  const hasMore = cards.length > visible;
-
   const openDetail = (item: MenuCard) => {
     setSelectedItem(item);
     setEditingLine(null);
@@ -295,10 +199,13 @@ export default function ClientDashboard() {
   };
 
   // Open the popup to EDIT an existing cart line (pre-fills its sauces & qty).
-  const openCartLine = (line: MenuCard) => {
-    const menuCard = menuCards.find((c) => c.id === line.id) ?? line;
-    openDetail(menuCard);
-    setEditingLine(line);
+  const openCartLine = async (line: MenuCard) => {
+    try {
+      const { data } = await apiClient.get('/api/guest-lists/products', { params: { id: line.id, pageSize: 1 } });
+      if (!data.items[0]) { message.error(t('dashboard.outOfStock')); return; }
+      openDetail(productToMenuCard(data.items[0], locale));
+      setEditingLine(line);
+    } catch { message.error(t('dashboard.serverError')); }
   };
 
   const quickAdd = async (item: MenuCard) => {
@@ -406,29 +313,16 @@ export default function ClientDashboard() {
           </button>
           <button type="button" className={css.orderToggle} onClick={() => { setOrderTab('orders'); setCartOpen(true); }}>
             <TbClipboardList /> {t('history.title')}
-            <span className={css.orderCount}>{orders.length}</span>
+            <span className={css.orderCount}>{ordersTotal}</span>
           </button>
           </div>
         </header>
 
         <div className={css.body}>
           <nav className={css.sidebar}>
-            <ul className={css.navList}>
-              {menuCategories.map(({ key, label, icon: Icon }) => (
-                <li key={key}>
-                  <button
-                    type="button"
-                    className={`${css.navItem} ${
-                      category === key ? css.navItemActive : ''
-                    }`}
-                    onClick={() => changeCategory(key)}
-                  >
-                    <Icon className={css.navIcon} />
-                    <span>{label}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <RemoteSelect resource="categories" guest enabled={sessionReady}
+              aria-label={t('filters.category')} value={category} onChange={changeCategory}
+              allLabel={t('categories.allItems')} style={{ width: '100%' }} />
 
             <div className={css.sidebarArt} aria-hidden>
               <img src="/images/leftIcon.png" alt="" className={css.sidebarArtImg} />
@@ -469,38 +363,48 @@ export default function ClientDashboard() {
                 <TbFilter aria-hidden="true" /> {t('filters.category')}
                 {filtersActive && <span className={css.filterBadge}>{t('filters.active')}</span>}
               </label>
-              <Select
+              <RemoteSelect
+                resource="categories" guest enabled={sessionReady}
+                allLabel={t('categories.allItems')}
                 id="menu-category"
                 aria-label={t('filters.category')}
                 size="large"
                 className={css.categorySelect}
                 value={category}
                 onChange={changeCategory}
-                options={menuCategories.map(({ key, label }) => ({ value: key, label }))}
               />
+              <RemoteSelect resource="sauces" guest enabled={sessionReady}
+                value={sauce} onChange={(value) => { returnToResults(); setSauce(value); }}
+                allLabel={listT('allSauces')} aria-label={listT('allSauces')}
+                style={{ width: '100%', marginTop: 8 }} />
               {filtersActive && (
                 <div className={css.filterSummary}>
-                  <span role="status">{t('filters.matching', { count: cards.length, total: menuCards.length })}</span>
+                  <span role="status">{t('filters.matching', { count: menuList.data?.total ?? 0, total: menuList.data?.unfilteredTotal ?? 0 })}</span>
                   <button type="button" className={css.clearFilters} onClick={() => {
                     returnToResults();
                     setCategory('all');
                     setSearch('');
+                    setSauce('all');
                   }}>{t('filters.showAll')}</button>
                 </div>
               )}
             </div>
 
             <div ref={resultsRef}>
-            {cards.length === 0 && filtersActive && <p className={css.noResults}>{t('filters.empty')}</p>}
+            {!menuList.loading && !menuList.error && menuCards.length === 0 && filtersActive && <p className={css.noResults}>{t('filters.empty')}</p>}
             <ClientMenuGrid
-              items={shown}
+              items={menuCards}
               images={images}
-              hasMore={hasMore}
+              hasMore={false}
               onOpen={openDetail}
               onQuickAdd={quickAdd}
-              onLoadMore={() => setVisible((value) => value + pageSize)}
-              onColumnCountChange={setColumnCount}
+              onLoadMore={() => {}}
             />
+            <ListPagination data={menuList.data} loading={menuList.loading} error={menuList.error}
+              onRetry={refreshMenu} onChange={(nextPage, size) => {
+                setPageKey(JSON.stringify([debouncedSearch, sort, category, sauce, size]));
+                setPage(nextPage); setPageSize(size); returnToResults();
+              }} />
             </div>
           </main>
           <ClientOrderPanel
@@ -517,6 +421,8 @@ export default function ClientDashboard() {
             tab={orderTab}
             onTabChange={setOrderTab}
             orders={orders}
+            ordersTotal={ordersTotal}
+            historyPagination={<ListPagination data={ordersPage} loading={ordersLoading} error={ordersError} onRetry={refreshOrders} onChange={onOrdersPageChange} />}
             ordersLoading={ordersLoading}
             ordersError={ordersError}
             onRefreshOrders={refreshOrders}
@@ -527,11 +433,7 @@ export default function ClientDashboard() {
       <ClientCardModal
         cardModalOpen={cardModalOpen}
         setCardModalOpen={setCardModalOpen}
-        item={
-          selectedItem
-            ? menuCards.find((c) => c.id === selectedItem.id) ?? null
-            : null
-        }
+        item={selectedItem}
         images={images}
         editItem={editingLine}
       />
