@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Input, Select, Dropdown, Empty, Switch } from 'antd';
 import { TbPlus, TbSearch, TbDotsVertical } from 'react-icons/tb';
@@ -50,15 +50,18 @@ export default function MenuManagement() {
     sauceId: sauce === 'all' ? undefined : sauce,
   }, permissions.includes('menu.view') && activeSection === 'products');
   const fetchProfile = productList.refresh;
+  const refreshRef = useRef(fetchProfile);
+  refreshRef.current = fetchProfile;
   const cards = useMemo(() => (productList.data?.items ?? []).map(item => productToMenuCard(item, locale)), [productList.data, locale]);
   const images = useMemo(() => loadMenuImages([...cards, ...(selectedItem ? [selectedItem] : [])]), [cards, selectedItem]);
   useEffect(() => {
     if (!permissions.includes('menu.view')) return;
     const socket = createSocket('/menu');
-    socket.on('connect', fetchProfile);
-    socket.on('menu:updated', fetchProfile);
+    const refreshCurrentPage = () => { void refreshRef.current(); };
+    socket.on('connect', refreshCurrentPage);
+    socket.on('menu:updated', refreshCurrentPage);
     return () => { socket.removeAllListeners(); socket.disconnect(); };
-  }, [fetchProfile, permissions]);
+  }, [permissions]);
 
 
   const [editCard] = useFetching(async (card: Partial<MenuCard>) => {

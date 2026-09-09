@@ -90,7 +90,8 @@ describe("OrdersService", () => {
       SESSION_DOMAIN_EVENTS.BASKET_CHANGED,
       { sessionId: "session-1", items: [] },
     );
-    expect(events.emit).toHaveBeenCalledWith(ORDER_DOMAIN_EVENTS.CHANGED, []);
+    expect(events.emit).toHaveBeenCalledWith(ORDER_DOMAIN_EVENTS.CHANGED, { action: 'created', order: completeOrder });
+    expect(ordersRepo.find).not.toHaveBeenCalled();
   });
 
   it("does not create an order from an empty basket", async () => {
@@ -116,7 +117,8 @@ describe("OrdersService", () => {
 
     expect(result.status).toBe("completed");
     expect(result.completedAt).toBeInstanceOf(Date);
-    expect(events.emit).toHaveBeenCalledWith(ORDER_DOMAIN_EVENTS.CHANGED, []);
+    expect(events.emit).toHaveBeenCalledWith(ORDER_DOMAIN_EVENTS.CHANGED, { action: 'updated', order: result });
+    expect(ordersRepo.find).not.toHaveBeenCalled();
   });
 
   it.each(["preparing", "ready"] as const)("saves %s without marking the order completed", async (status) => {
@@ -126,6 +128,7 @@ describe("OrdersService", () => {
     const result = await service.updateStatus("order-1", status);
     expect(result.status).toBe(status);
     expect(result.completedAt).toBeNull();
-    expect(events.emit).toHaveBeenCalledWith(ORDER_DOMAIN_EVENTS.CHANGED, []);
+    expect(events.emit).toHaveBeenCalledWith(ORDER_DOMAIN_EVENTS.CHANGED, { action: 'updated', order: result });
+    expect(ordersRepo.find).not.toHaveBeenCalled();
   });
 });

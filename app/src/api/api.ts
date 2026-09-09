@@ -33,7 +33,7 @@ instance.interceptors.request.use((config) => {
     const accessToken = localStorage.getItem('accessToken');
     const locale = document.documentElement.lang || 'en';
 
-    config.headers.set('Accept-Language', locale);
+    if (!config.headers.has('Accept-Language')) config.headers.set('Accept-Language', locale);
 
     if (accessToken) {
       config.headers.set('Authorization', `Bearer ${accessToken}`);

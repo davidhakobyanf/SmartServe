@@ -1,3 +1,5 @@
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Optional } from '@nestjs/common';
 import { storedImageContent } from "../common/http/image-response";
 import { isForeignKeyViolation } from "../database/database-error";
 import {
@@ -27,6 +29,7 @@ export class CategoriesService {
 
     @InjectRepository(Product)
     private readonly productsRepository: Repository<Product>,
+    @Optional() private readonly events?: EventEmitter2,
   ) {}
 
   findAll(): Promise<Category[]> {
@@ -81,7 +84,9 @@ export class CategoriesService {
       ...image,
     });
 
-    return this.categoryRepository.save(category);
+    const saved = await this.categoryRepository.save(category);
+    this.events?.emit('menu:catalog-changed');
+    return saved;
   }
 
   async update(id: string, dto: UpdateCategoryDto): Promise<Category> {
@@ -124,7 +129,9 @@ export class CategoriesService {
 
     Object.assign(category, imageReplacement(dto.image, dto.removeImage, "category-image"));
 
-    return this.categoryRepository.save(category);
+    const saved = await this.categoryRepository.save(category);
+    this.events?.emit('menu:catalog-changed');
+    return saved;
   }
 
   async remove(id: string): Promise<{ success: true }> {
@@ -156,6 +163,7 @@ export class CategoriesService {
       throw error;
     }
 
+    this.events?.emit('menu:catalog-changed');
     return { success: true };
   }
 }

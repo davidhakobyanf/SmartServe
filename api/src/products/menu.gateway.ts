@@ -26,4 +26,9 @@ export class MenuGateway {
   onProductChanged(payload: ProductChangedPayload) {
     this.server.emit(MENU_WS_EVENTS.UPDATED, payload);
   }
+
+  @OnEvent('menu:catalog-changed')
+  onCatalogChanged() {
+    this.server.emit(MENU_WS_EVENTS.UPDATED, { reason: 'catalog-changed' });
+  }
 }

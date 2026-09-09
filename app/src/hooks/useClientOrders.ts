@@ -18,7 +18,7 @@ export function useClientOrders(token: string | null, enabled: boolean, liveOrde
   const notified = useRef(new Set<string>());
   const refreshRef = useRef(list.refresh);
   refreshRef.current = list.refresh;
-  const notifyReady = useRef((id: string) => {});
+  const notifyReady = useRef<(id: string) => void>(() => {});
   notifyReady.current = (id) => {
     if (notified.current.has(id)) return;
     notified.current.add(id);

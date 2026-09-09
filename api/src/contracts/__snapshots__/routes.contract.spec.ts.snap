@@ -307,6 +307,297 @@ exports[`HTTP route registry preserves every public route and its transport meta
       {
         "data": undefined,
         "index": 0,
+        "kind": "4",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 1,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "ListingController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "GET",
+    "path": "products",
+    "permissions": [
+      "menu.view",
+    ],
+    "prefix": "api/lists",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "4",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 1,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "ListingController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "GET",
+    "path": "categories",
+    "permissions": [
+      "menu.view",
+    ],
+    "prefix": "api/lists",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "4",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 1,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "ListingController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "GET",
+    "path": "sauces",
+    "permissions": [
+      "menu.view",
+    ],
+    "prefix": "api/lists",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "4",
+        "pipes": [],
+      },
+      {
+        "data": undefined,
+        "index": 1,
+        "kind": "custom",
+        "pipes": [],
+      },
+    ],
+    "controller": "ListingController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "GET",
+    "path": "orders",
+    "permissions": [
+      "orders.view",
+    ],
+    "prefix": "api/lists",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "4",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 1,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "ListingController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "GET",
+    "path": "users",
+    "permissions": [
+      "users.view",
+    ],
+    "prefix": "api/lists",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "4",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 1,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "ListingController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "GET",
+    "path": "roles",
+    "permissions": [
+      "roles.manage",
+    ],
+    "prefix": "api/lists",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "4",
+        "pipes": [],
+      },
+      {
+        "data": undefined,
+        "index": 1,
+        "kind": "custom",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 2,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "ListingController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "GET",
+    "path": "tables",
+    "permissions": [
+      "tables.view",
+    ],
+    "prefix": "api/lists",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "4",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 1,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "GuestListingController",
+    "guards": [
+      "OpenSessionGuard",
+    ],
+    "method": "GET",
+    "path": "products",
+    "permissions": [],
+    "prefix": "api/guest-lists",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "4",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 1,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "GuestListingController",
+    "guards": [
+      "OpenSessionGuard",
+    ],
+    "method": "GET",
+    "path": "categories",
+    "permissions": [],
+    "prefix": "api/guest-lists",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "4",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 1,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "GuestListingController",
+    "guards": [
+      "OpenSessionGuard",
+    ],
+    "method": "GET",
+    "path": "sauces",
+    "permissions": [],
+    "prefix": "api/guest-lists",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "4",
+        "pipes": [],
+      },
+      {
+        "data": undefined,
+        "index": 1,
+        "kind": "0",
+        "pipes": [],
+      },
+    ],
+    "controller": "GuestListingController",
+    "guards": [
+      "OpenSessionGuard",
+    ],
+    "method": "GET",
+    "path": "orders",
+    "permissions": [],
+    "prefix": "api/guest-lists",
+  },
+  {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
         "kind": "custom",
         "pipes": [],
       },

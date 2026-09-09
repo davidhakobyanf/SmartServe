@@ -1,6 +1,6 @@
 // SmartServe — PostgreSQL schema (paste into https://dbdiagram.io)
 // Source of truth: api/src/entities/*.entity.ts and api/src/migrations/*.ts
-// Updated: 2026-09-08, through AddOrderPreparationStatuses1788860000000.
+// Updated: 2026-09-09, through AddListingIndexes1788930000000.
 // Application tables only; TypeORM's internal migration history is omitted.
 // This diagram documents the schema; apply database changes using migrations.
 
@@ -50,6 +50,10 @@ Table users {
   lastLoginAt timestamptz [null]
   createdAt timestamp [not null]
   updatedAt timestamp [not null]
+
+  indexes {
+    (createdAt, id) [name: 'IDX_users_created_page', note: 'createdAt DESC, id ASC']
+  }
 }
 
 Table categories {
@@ -80,6 +84,11 @@ Table products {
   imageData bytea [null, note: 'select:false; served via GET /api/product-images/:id']
   createdAt timestamptz [not null]
   updatedAt timestamptz [not null]
+
+  indexes {
+    (categoryId, id) [name: 'IDX_products_category_page']
+    (createdAt, id) [name: 'IDX_products_created_page', note: 'createdAt DESC, id ASC']
+  }
 }
 
 Table sauces {
@@ -161,6 +170,8 @@ Table orders {
   indexes {
     tableId
     sessionId
+    (status, createdAt, id) [name: 'IDX_orders_status_page']
+    (sessionId, createdAt, id) [name: 'IDX_orders_session_page', note: 'sessionId ASC, createdAt DESC, id ASC']
   }
 }
 

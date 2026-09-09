@@ -1,3 +1,5 @@
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Optional } from '@nestjs/common';
 import { storedImageContent } from "../common/http/image-response";
 import {
   BadRequestException,
@@ -22,6 +24,7 @@ export class SaucesService {
   constructor(
     @InjectRepository(Sauce)
     private readonly saucesRepo: Repository<Sauce>,
+    @Optional() private readonly events?: EventEmitter2,
   ) {}
 
   findAll(): Promise<Sauce[]> {
@@ -75,7 +78,9 @@ export class SaucesService {
       ...image,
     });
 
-    return this.saucesRepo.save(sauce);
+    const saved = await this.saucesRepo.save(sauce);
+    this.events?.emit('menu:catalog-changed');
+    return saved;
   }
 
   async update(id: string, dto: UpdateSauceDto): Promise<Sauce> {
@@ -119,7 +124,9 @@ export class SaucesService {
 
     Object.assign(sauce, imageReplacement(dto.image, dto.removeImage, "sauce-image"));
 
-    return this.saucesRepo.save(sauce);
+    const saved = await this.saucesRepo.save(sauce);
+    this.events?.emit('menu:catalog-changed');
+    return saved;
   }
 
   async remove(id: string): Promise<{ success: true }> {
@@ -127,6 +134,7 @@ export class SaucesService {
     if (!result.affected) {
       throw new NotFoundException("Sauce not found");
     }
+    this.events?.emit('menu:catalog-changed');
     return { success: true };
   }
 }

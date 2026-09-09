@@ -112,6 +112,32 @@ describe("WebSocket compatibility", () => {
     expect(emit.mock.calls).toMatchSnapshot();
   });
 
+  it("invalidates order pages without broadcasting history or leaking revenue", () => {
+    const order = orderFixture();
+    ordersGateway.onOrdersChanged({ order, action: "created" });
+    expect(to.mock.calls).toEqual([["orders"], ["revenue"]]);
+    const event = { id: order.id, action: "created", status: order.status, table: order.table.number };
+    expect(emit.mock.calls).toEqual([
+      ["orders:invalidated", event],
+      ["orders:invalidated", { ...event, total: order.total }],
+    ]);
+  });
+
+  it("sends a ready notification only to the changed order's session", () => {
+    const order = { ...orderFixture(), status: "ready" as const };
+    sessionsGateway.onOrdersChanged({ order, action: "updated" });
+    expect(to.mock.calls).toEqual([[`session:${order.sessionId}`]]);
+    expect(emit.mock.calls).toEqual([["order:changed", { id: order.id, sessionId: order.sessionId, status: "ready" }]]);
+    jest.clearAllMocks();
+    sessionsGateway.onOrdersChanged({ order: { ...order, session: { ...sessionFixture(), status: "closed" } }, action: "updated" });
+    expect(emit).not.toHaveBeenCalled();
+  });
+
+  it("invalidates menu pages after a category or sauce change", () => {
+    menuGateway.onCatalogChanged();
+    expect(emit).toHaveBeenCalledWith("menu:updated", { reason: "catalog-changed" });
+  });
+
   it("sends guest orders only to their session and skips closed visits", () => {
     const first = { ...orderFixture(), id: "first", sessionId: "session-1" };
     const ready = { ...orderFixture(), id: "ready", sessionId: "session-1", status: "ready" as const };

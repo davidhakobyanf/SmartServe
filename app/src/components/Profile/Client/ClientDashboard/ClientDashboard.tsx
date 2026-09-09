@@ -129,13 +129,16 @@ export default function ClientDashboard() {
   }, sessionReady, sessionId);
   const menuCards = useMemo(() => (menuList.data?.items ?? []).map(item => productToMenuCard(item, locale)), [menuList.data, locale]);
   const refreshMenu = menuList.refresh;
+  const refreshMenuRef = useRef(refreshMenu);
+  refreshMenuRef.current = refreshMenu;
   useEffect(() => {
     if (!sessionReady) return;
     const socket = createSocket(MENU_NAMESPACE, { sessionToken: sessionId });
-    socket.on('connect', refreshMenu);
-    socket.on(MENU_UPDATED_EVENT, refreshMenu);
+    const refreshCurrentPage = () => { void refreshMenuRef.current(); };
+    socket.on('connect', refreshCurrentPage);
+    socket.on(MENU_UPDATED_EVENT, refreshCurrentPage);
     return () => { socket.removeAllListeners(); socket.disconnect(); };
-  }, [sessionId, sessionReady, refreshMenu]);
+  }, [sessionId, sessionReady]);
   const [basket, setBasket] = useState<MenuCard[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [orderTab, setOrderTab] = useState<'basket' | 'orders'>('basket');

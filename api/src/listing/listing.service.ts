@@ -17,11 +17,15 @@ import { roleResponse } from '../roles/role-response';
 import { tableResponse } from '../tables/table-response';
 
 // Only internal, constant column names are passed to these SQL helpers.
-export const literalSearch = (value: string) => `%${value.replace(/[\\%_]/g, '\\$&')}%`;
+export const literalSearch = (value: string) => `%${value.toLowerCase().replace(/[\\%_]/g, '\\$&')}%`;
+// PostgreSQL databases using C/POSIX collation do not fold Cyrillic/Armenian
+// with ILIKE. Explicit folding keeps all three supported languages searchable.
+const upper = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯԱԲԳԴԵԶԷԸԹԺԻԼԽԾԿՀՁՂՃՄՅՆՇՈՉՊՋՌՍՎՏՐՑՒՓՔՕՖ';
+const folded = (expression: string) => `LOWER(TRANSLATE(${expression}, '${upper}', '${upper.toLowerCase()}'))`;
 const translated = (json: string, legacy: string, locale?: string) =>
   `COALESCE(NULLIF(BTRIM(${json}->>'${normalizeContentLocale(locale)}'), ''), NULLIF(BTRIM(${json}->>'en'), ''), NULLIF(BTRIM(${json}->>'am'), ''), NULLIF(BTRIM(${json}->>'ru'), ''), ${legacy}, '')`;
 const textMatch = (json: string, legacy: string) =>
-  `(${legacy} ILIKE :search OR EXISTS (SELECT 1 FROM jsonb_each_text(${json}) AS tr WHERE tr.value ILIKE :search))`;
+  `(${folded(legacy)} LIKE :search OR EXISTS (SELECT 1 FROM jsonb_each_text(${json}) AS tr WHERE ${folded('tr.value')} LIKE :search))`;
 
 @Injectable()
 export class ListingService {
@@ -119,7 +123,7 @@ export class ListingService {
     const stats = { total: 0, pending: 0, active: 0 };
     counts.forEach(row => { stats.total += Number(row.count); if (row.status === 'pending' || row.status === 'active') stats[row.status as 'pending' | 'active'] = Number(row.count); });
     if (query.status && query.status !== 'all') qb.andWhere('u.status::text = :status', { status: query.status });
-    if (query.search) qb.andWhere(`(concat_ws(' ', u.name, u.surname, u.email, u.status::text) ILIKE :search OR ${textMatch('r."nameTranslations"', 'r.name')})`, { search: literalSearch(query.search) });
+    if (query.search) qb.andWhere(`(${folded("concat_ws(' ', u.name, u.surname, u.email, u.status::text)")} LIKE :search OR ${textMatch('r."nameTranslations"', 'r.name')})`, { search: literalSearch(query.search) });
     qb.orderBy('u.createdAt', 'DESC').addOrderBy('u.id', 'ASC');
     const result = await this.page(qb, query);
     return { ...result, unfilteredTotal: stats.total, stats, items: result.items.map(u => staffUserResponse(u, locale)) };
