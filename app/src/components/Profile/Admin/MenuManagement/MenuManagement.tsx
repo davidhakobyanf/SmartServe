@@ -27,8 +27,9 @@ type MenuSection = 'products' | 'categories' | 'sauces';
 export default function MenuManagement() {
   const t = useTranslations('menu');
   const locale = useLocale();
-  const { permissions } = useProfileData();
+  const { permissions, isLoading: profileLoading } = useProfileData();
   const listT = useTranslations('common.list');
+  const canViewMenu = permissions.includes('menu.view');
   const canManageCategories = permissions.includes('categories.manage');
   const canManageProducts = permissions.includes('products.manage');
   const [search, setSearch] = useState('');
@@ -44,13 +45,14 @@ export default function MenuManagement() {
   const debouncedSearch = useDebouncedValue(search);
   const filterKey = JSON.stringify([category, sauce, sort, debouncedSearch, pageSize]);
   const [pageKey, setPageKey] = useState(filterKey);
-  const {ready: menuReady, revision: menuRevision} = useMenuConnection(permissions.includes('menu.view'));
+  const {ready: menuReady, revision: menuRevision} = useMenuConnection(canViewMenu);
   const productList = useServerList<ProductRecord>('/api/lists/products', {
     page: filterKey === pageKey ? page : 1, pageSize, search: debouncedSearch, sort,
     categoryId: category === 'all' ? undefined : category,
     sauceId: sauce === 'all' ? undefined : sauce,
   }, menuReady && activeSection === 'products');
   const fetchProfile = productList.refresh;
+  const menuLoading = profileLoading || (canViewMenu && !menuReady) || (productList.loading && !productList.data);
   const invalidateMenu = productList.invalidate;
   const cards = useMemo(() => (productList.data?.items ?? []).map(item => productToMenuCard(item, locale)), [productList.data, locale]);
   const images = useMemo(() => loadMenuImages([...cards, ...(selectedItem ? [selectedItem] : [])]), [cards, selectedItem]);
@@ -216,7 +218,7 @@ export default function MenuManagement() {
             />
           </div>
 
-          {cards.length === 0 && !productList.loading && !productList.error ? (
+          {cards.length === 0 && !menuLoading && !productList.error ? (
             <div className={css.empty}>
               <Empty description={t('empty')} />
             </div>
@@ -311,7 +313,7 @@ export default function MenuManagement() {
               })}
             </div>
           )}
-          <ListPagination data={productList.data} loading={productList.loading} error={productList.error}
+          <ListPagination data={productList.data} loading={menuLoading} error={productList.error}
             onRetry={fetchProfile} onChange={(nextPage, size) => {
               setPage(nextPage); setPageSize(size);
               setPageKey(JSON.stringify([category, sauce, sort, debouncedSearch, size]));

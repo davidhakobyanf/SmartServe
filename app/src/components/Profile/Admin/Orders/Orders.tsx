@@ -57,8 +57,9 @@ export default function Orders() {
   const t = useTranslations('orders');
   const locale = useLocale();
   const { message } = App.useApp();
-  const { revision, markSeen, isConnected } = useOrders();
-  const { permissions } = useProfileData();
+  const { revision, ready: ordersReady, markSeen, isConnected } = useOrders();
+  const { permissions, isLoading: profileLoading } = useProfileData();
+  const canViewOrders = permissions.includes('orders.view');
   const canViewRevenue = permissions.includes('revenue.view');
   const canManageOrders = permissions.includes('orders.manage');
   const [search, setSearch] = useState('');
@@ -70,7 +71,8 @@ export default function Orders() {
   const [pageKey, setPageKey] = useState(filterKey);
   const orderList = useServerList<RelationalOrder>('/api/lists/orders', {
     page: pageKey === filterKey ? page : 1, pageSize, status: filter, search: debouncedSearch,
-  }, permissions.includes('orders.view'));
+  }, ordersReady);
+  const ordersLoading = profileLoading || (canViewOrders && !ordersReady) || (orderList.loading && !orderList.data);
   const refreshOrders = orderList.refresh;
   const invalidateOrders = orderList.invalidate;
   const lastRevision = useRef(revision);
@@ -199,7 +201,7 @@ export default function Orders() {
         </div>
         {loadError && <p role="alert" className={css.error}>{t('board.loadError')}</p>}
         <div className={css.resultSummary} role="status">{t('board.showing', { count: orderList.data?.total ?? 0, total: orderList.data?.unfilteredTotal ?? 0 })}</div>
-        {filtered.length === 0 && !orderList.loading && !orderList.error ? (
+        {filtered.length === 0 && !ordersLoading && !orderList.error ? (
           <div className={css.emptyState}>
             <TbChefHat aria-hidden="true" />
             <h3>{t(search.trim() ? 'board.noMatches' : filter === 'active' ? 'board.noActive' : 'empty')}</h3>
@@ -258,7 +260,7 @@ export default function Orders() {
             );
           })}
         </div>}
-        <ListPagination data={orderList.data} loading={orderList.loading} error={orderList.error} onRetry={refreshOrders}
+        <ListPagination data={orderList.data} loading={ordersLoading} error={orderList.error} onRetry={refreshOrders}
           onChange={(next, size) => { setPage(next); setPageSize(size); setPageKey(JSON.stringify([filter, debouncedSearch, size])); }} />
       </section>
     </div>

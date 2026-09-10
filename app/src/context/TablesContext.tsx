@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { App } from 'antd';
 import { useTranslations } from 'next-intl';
+import { requestAuthScope } from '@/api/api';
 import { useProfileData } from '@/context/ProfileDataContext';
 import { createSocket } from '@/lib/ws/socket';
 
@@ -12,6 +13,7 @@ type TablesUpdate =
 
 interface TablesContextValue {
   revision: number;
+  ready: boolean;
   refreshTables: () => Promise<void>;
   newCount: number;
   markSeen: () => void;
@@ -24,7 +26,8 @@ export function TablesProvider({ children }: { children: React.ReactNode }) {
   const { notification } = App.useApp();
   const { permissions, isLoading: profileLoading } = useProfileData();
   const canViewTables = permissions.includes('tables.view');
-  const canViewQr = permissions.includes('tables.qr.manage');
+  const scope = JSON.stringify([canViewTables, requestAuthScope()]);
+  const [readyScope, setReadyScope] = useState('');
   const [revision, setRevision] = useState(0);
   const [newCount, setNewCount] = useState(0);
   const notifiedSessions = useRef(new Set<string>());
@@ -44,12 +47,26 @@ export function TablesProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    void refreshTables();
+    // Join before the initial HTTP snapshot so opening the page needs only one
+    // read and no table update can be lost between subscribing and loading.
+    // Keep HTTP usable when WebSockets are unavailable.
+    let bootstrapped = false;
+    const fallback = window.setTimeout(() => {
+      bootstrapped = true;
+      setReadyScope(scope);
+    }, 1500);
     const socket = createSocket('/tables');
     socket.on('connect', () => {
       socket.emit('join', (result: { ok: boolean }) => {
-        // Fetch after joining so a change during connection setup is not lost.
-        if (result?.ok && socket.connected) void refreshTables();
+        if (!result?.ok || !socket.connected) return;
+        window.clearTimeout(fallback);
+        if (bootstrapped) {
+          // A reconnect catches changes missed while the socket was offline.
+          void refreshTables();
+        } else {
+          bootstrapped = true;
+          setReadyScope(scope);
+        }
       });
     });
     socket.on('tables:updated', (payload: TablesUpdate) => {
@@ -73,13 +90,16 @@ export function TablesProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => {
+      window.clearTimeout(fallback);
       socket.removeAllListeners();
       socket.disconnect();
     };
-  }, [canViewTables, canViewQr, profileLoading, refreshTables, notification, t, markSeen]);
+  }, [canViewTables, profileLoading, refreshTables, notification, t, markSeen, scope]);
+
+  const ready = canViewTables && readyScope === scope;
 
   return (
-    <TablesContext.Provider value={{ revision, refreshTables, newCount, markSeen }}>
+    <TablesContext.Provider value={{ revision, ready, refreshTables, newCount, markSeen }}>
       {children}
     </TablesContext.Provider>
   );

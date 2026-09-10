@@ -53,11 +53,12 @@ export default function TablesManagement() {
   const t = useTranslations('tables');
   const commonT = useTranslations('common');
   const { message } = App.useApp();
-  const { permissions } = useProfileData();
+  const { permissions, isLoading: profileLoading } = useProfileData();
+  const canViewTables = permissions.includes('tables.view');
   const canManageTables = permissions.includes('tables.manage');
   const canManageQr = permissions.includes('tables.qr.manage');
   const [form] = Form.useForm<TableFormValues>();
-  const { revision, newCount, markSeen } = useTables();
+  const { revision, ready: tablesReady, newCount, markSeen } = useTables();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('all');
   const [page, setPage] = useState(1);
@@ -65,8 +66,11 @@ export default function TablesManagement() {
   const debounced = useDebouncedValue(search);
   const filterKey = JSON.stringify([debounced, status, pageSize]);
   const [pageKey, setPageKey] = useState(filterKey);
-  const list = useServerList<RestaurantTable>('/api/lists/tables', { page: pageKey === filterKey ? page : 1, pageSize, search: debounced, status }, permissions.includes('tables.view'));
-  const { items: tables, loading, refresh: loadTables } = list;
+  const list = useServerList<RestaurantTable>('/api/lists/tables', { page: pageKey === filterKey ? page : 1, pageSize, search: debounced, status }, tablesReady);
+  const { items: tables, refresh: loadTables } = list;
+  // Keep the current rows visible during socket catch-up and manual refreshes.
+  // The full-page spinner is only for the first snapshot or a changed query.
+  const loading = profileLoading || (canViewTables && !tablesReady) || (list.loading && !list.data);
   const invalidateTables = list.invalidate;
   const lastRevision = useRef(revision);
   useEffect(() => {
