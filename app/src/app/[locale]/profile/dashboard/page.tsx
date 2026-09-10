@@ -77,7 +77,7 @@ export default function ProfileDashboardPage() {
     lastRevision.current = revisionKey;
   }, [data, dashboard, revisionKey]);
 
-  const series: DashboardSeriesPoint[] = data?.series ?? [];
+  const series = useMemo<DashboardSeriesPoint[]>(() => data?.series ?? [], [data?.series]);
   const delayedOrders = useMemo(
     () => data?.recentOrders.filter(order => order.ageMinutes >= LATE_MINUTES) ?? [],
     [data?.recentOrders],

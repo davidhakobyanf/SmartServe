@@ -5,7 +5,6 @@ import { useParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { App, Input, Select, ConfigProvider } from 'antd';
 import {
-  TbUser,
   TbBell,
   TbShoppingCart,
   TbClipboardList,
@@ -31,6 +30,7 @@ import { useSessionLock } from '@/hooks/useSessionLock';
 import { useClientOrders } from '@/hooks/useClientOrders';
 import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
 import { getMenuLineTotal } from '@/lib/clientMenu';
+import { formatAmount } from '@/lib/formatters';
 import { useMenuConnection } from '@/hooks/useMenuConnection';
 import ClientMenuGrid from './ClientMenuGrid';
 import ClientOrderPanel from './ClientOrderPanel';
@@ -286,29 +286,34 @@ export default function ClientDashboard() {
       <div className={css.panel}>
         <header className={css.topbar}>
           <div className={css.tableChip}>
-            <TbUser />
-            <span>{t('dashboard.tableChip', { table: session?.table.number ?? '…' })}</span>
+            <span className={css.liveDot} aria-hidden="true" />
+            <span className={css.tableLabel}>{t('dashboard.tableChip', { table: session?.table.number ?? '…' })}</span>
+            <strong className={css.tableTotal}>{formatAmount(total)} ֏</strong>
           </div>
-          <LanguageSwitcher size="small" />
+          <div className={css.languageControl}>
+            <LanguageSwitcher size="small" />
+          </div>
           <button
             type="button"
             className={css.callBtn}
             onClick={() => void handleCallWaiter()}
+            aria-label={t('dashboard.callWaiter')}
           >
-            <TbBell /> {t('dashboard.callWaiter')}
+            <TbBell /> <span className={css.actionLabel}>{t('dashboard.callWaiter')}</span>
           </button>
           <div className={css.orderActions}>
           <button
             type="button"
             className={css.orderToggle}
             onClick={() => { setOrderTab('basket'); setCartOpen(true); }}
+            aria-label={t('history.basket')}
           >
             <TbShoppingCart />
-            {t('history.basket')}
+            <span className={css.toggleLabel}>{t('history.basket')}</span>
             <span className={css.orderCount}>{count}</span>
           </button>
-          <button type="button" className={css.orderToggle} onClick={() => { setOrderTab('orders'); setCartOpen(true); }}>
-            <TbClipboardList /> {t('history.title')}
+          <button type="button" className={css.orderToggle} onClick={() => { setOrderTab('orders'); setCartOpen(true); }} aria-label={t('history.title')}>
+            <TbClipboardList /> <span className={css.toggleLabel}>{t('history.title')}</span>
             <span className={css.orderCount}>{ordersTotal}</span>
           </button>
           </div>
@@ -396,11 +401,13 @@ export default function ClientDashboard() {
               onQuickAdd={quickAdd}
               onLoadMore={() => {}}
             />
-            <ListPagination data={menuList.data} loading={menuList.loading} error={menuList.error}
-              onRetry={refreshMenu} onChange={(nextPage, size) => {
-                setPageKey(JSON.stringify([debouncedSearch, sort, category, sauce, size]));
-                setPage(nextPage); setPageSize(size); returnToResults();
-              }} />
+            <div className={css.menuPagination}>
+              <ListPagination data={menuList.data} loading={menuList.loading} error={menuList.error}
+                onRetry={refreshMenu} onChange={(nextPage, size) => {
+                  setPageKey(JSON.stringify([debouncedSearch, sort, category, sauce, size]));
+                  setPage(nextPage); setPageSize(size); returnToResults();
+                }} />
+            </div>
             </div>
           </main>
           <ClientOrderPanel
@@ -418,7 +425,7 @@ export default function ClientDashboard() {
             onTabChange={setOrderTab}
             orders={orders}
             ordersTotal={ordersTotal}
-            historyPagination={<ListPagination data={ordersPage} loading={ordersLoading} error={ordersError} onRetry={refreshOrders} onChange={onOrdersPageChange} />}
+            historyPagination={<div className={css.historyPagination}><ListPagination data={ordersPage} loading={ordersLoading} error={ordersError} onRetry={refreshOrders} onChange={onOrdersPageChange} /></div>}
             ordersLoading={ordersLoading}
             ordersError={ordersError}
             onRefreshOrders={refreshOrders}

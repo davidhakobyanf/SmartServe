@@ -75,6 +75,7 @@
 }
 
 .orderToggle {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -877,5 +878,981 @@
   .grid {
     grid-template-columns: 1fr;
     gap: 16px;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   SmartServe · guest ordering — dense redesign (mobile-first)
+   ПАСТИТЬ В КОНЕЦ существующего ClientDashboard.module.css.
+   Ничего не удаляйте: правила ниже переопределяют старые (тот же файл,
+   та же специфичность → выигрывает последнее). Разметку в .tsx менять не нужно.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.page {
+  --ss-red: #e21d2c;
+  --ss-red-dark: #c91826;
+  --ss-red-tint: #fdeced;
+  --ss-ink: #17171b;
+  --ss-muted: #7c7c88;
+  --ss-line: #e6e6ea;
+  --ss-bg: #f4f4f6;
+  --ss-card: #fff;
+  --ss-r: 14px;
+
+  min-height: 100dvh;
+  padding: 0;
+  background: var(--ss-bg);
+  font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  color: var(--ss-ink);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-width: 1440px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* ── top bar: тёмная плашка со «счётом стола» ───────────────────────────── */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 0;
+  background: var(--ss-ink);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(20, 20, 26, .16);
+}
+.tableChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .12);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.tableChip svg { font-size: 15px; color: #5ee08a; }
+.callBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ss-red);
+  color: #fff;
+  font: 800 12.5px "Plus Jakarta Sans", sans-serif;
+  cursor: pointer;
+}
+.callBtn:hover { background: var(--ss-red-dark); }
+.orderActions { display: flex; gap: 6px; margin-left: auto; }
+.orderToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, .06);
+  color: #fff;
+  font: 700 12.5px "Plus Jakarta Sans", sans-serif;
+  cursor: pointer;
+}
+.orderToggle:hover { background: rgba(255, 255, 255, .14); }
+.orderCount {
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 7px;
+  background: var(--ss-red);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* ── тело: без сайдбарной пустоты на мобиле ─────────────────────────────── */
+.body {
+  display: block;
+  gap: 0;
+  padding: 0;
+}
+.sidebar { display: none; }
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: none;
+  padding: 10px 12px 104px;
+  overflow: visible;
+}
+.menuTitle {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -.01em;
+}
+.menuTitle::after { content: none; }
+
+.tools {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+}
+.search { flex: 1; }
+.search :global(.ant-input-affix-wrapper),
+.search:global(.ant-input-affix-wrapper) {
+  height: 38px;
+  border-radius: 11px;
+  border-color: var(--ss-line);
+  background: var(--ss-card);
+  font-size: 13.5px;
+}
+.searchIcon { color: #a3a3af; font-size: 16px; }
+.sort { width: 132px; }
+.sort :global(.ant-select-selector) {
+  height: 38px !important;
+  border-radius: 11px !important;
+  border-color: var(--ss-line) !important;
+  font-size: 13px;
+}
+
+/* фильтры — компактной полосой, не блоком на пол-экрана */
+.categoryFilter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.categoryFilterActive { background: transparent; }
+.categoryLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--ss-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+.filterBadge {
+  padding: 2px 7px;
+  border-radius: 7px;
+  background: var(--ss-red-tint);
+  color: var(--ss-red);
+  font-size: 10.5px;
+  font-weight: 800;
+}
+.categorySelect { flex: 1 1 150px; min-width: 0; }
+.categorySelect :global(.ant-select-selector),
+.categoryFilter :global(.ant-select-selector) {
+  height: 36px !important;
+  border-radius: 11px !important;
+  border-color: var(--ss-line) !important;
+  background: var(--ss-card) !important;
+  font-size: 13px;
+}
+.categoryFilter :global(.ant-select) { margin-top: 0 !important; }
+.filterSummary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  color: var(--ss-muted);
+  font-size: 11.5px;
+}
+.clearFilters {
+  border: 0;
+  background: none;
+  color: var(--ss-red);
+  font: 800 11.5px "Plus Jakarta Sans", sans-serif;
+  cursor: pointer;
+}
+.noResults { margin: 6px 0; color: var(--ss-muted); font-size: 13px; }
+
+/* ── сетка блюд: 2 колонки на телефоне, плотно ──────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 2px 0 0;
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--ss-r);
+  background: var(--ss-card);
+  box-shadow: 0 1px 2px rgba(20, 20, 26, .06);
+  transition: box-shadow .16s ease, transform .16s ease;
+}
+.card:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(20, 20, 26, .10); }
+.cardDisabled { opacity: .6; }
+.imgWrap {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  padding: 0;
+  border: 0;
+  background: #eeeef2;
+  cursor: pointer;
+}
+.img { width: 100%; height: 100%; object-fit: cover; }
+.imgFallback {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #f1f1f5, #e6e6ec);
+}
+.unavailBadge {
+  position: absolute;
+  left: 7px;
+  top: 7px;
+  padding: 2px 7px;
+  border-radius: 7px;
+  background: rgba(23, 23, 27, .74);
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .03em;
+}
+.cardBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 9px 9px;
+}
+.cardTitleButton { padding: 0; border: 0; background: none; text-align: left; cursor: pointer; }
+.cardTitle {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.cardDesc {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  margin: 0;
+  color: var(--ss-muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+.cardFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 6px;
+}
+.price {
+  color: var(--ss-red);
+  font-family: "Space Grotesk", "Plus Jakarta Sans", monospace;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.addBtn {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 11px;
+  background: var(--ss-red);
+  color: #fff;
+  font-size: 0;
+  cursor: pointer;
+}
+.addBtn svg { font-size: 18px; }
+.addBtn:hover { background: var(--ss-red-dark); }
+.addBtn:disabled {
+  background: #f2f2f5;
+  color: var(--ss-muted);
+  font-size: 10px;
+  font-weight: 800;
+  width: auto;
+  padding: 0 9px;
+  cursor: not-allowed;
+}
+.loadMoreWrap { display: flex; justify-content: center; margin-top: 10px; }
+.loadMore {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--ss-line);
+  border-radius: 12px;
+  background: var(--ss-card);
+  font: 700 13px "Plus Jakarta Sans", sans-serif;
+  cursor: pointer;
+}
+
+/* ── панель заказа: на телефоне — bottom sheet ──────────────────────────── */
+.order {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  width: auto;
+  max-height: 88dvh;
+  padding: 0;
+  border: 0;
+  border-radius: 20px 20px 0 0;
+  background: var(--ss-card);
+  box-shadow: 0 -12px 40px rgba(20, 20, 26, .24);
+  transform: translateY(100%);
+  transition: transform .26s cubic-bezier(.22, .8, .28, 1);
+}
+.orderOpen { transform: translateY(0); }
+.orderHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 8px;
+}
+.orderHead h3 { margin: 0; font-size: 17px; font-weight: 800; }
+.orderClose {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--ss-line);
+  border-radius: 11px;
+  background: var(--ss-card);
+  cursor: pointer;
+}
+.orderTabs {
+  display: flex;
+  gap: 4px;
+  margin: 0 16px 10px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--ss-bg);
+}
+.orderTabs button {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ss-muted);
+  font: 700 12.5px "Plus Jakarta Sans", sans-serif;
+  cursor: pointer;
+}
+.orderTabs button[aria-pressed='true'] {
+  background: var(--ss-card);
+  color: var(--ss-ink);
+  font-weight: 800;
+  box-shadow: 0 1px 2px rgba(20, 20, 26, .08);
+}
+.orderList {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 16px 8px;
+  overflow-y: auto;
+}
+.orderEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 34px 12px;
+  color: var(--ss-muted);
+  text-align: center;
+}
+.orderEmpty svg { font-size: 30px; color: #c3c3cd; }
+.orderEmpty p { margin: 0; font-size: 13px; }
+.orderItem {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 9px;
+  border: 0;
+  border-radius: 13px;
+  background: #fafafb;
+}
+.orderThumbButton { padding: 0; border: 0; background: none; cursor: pointer; }
+.orderThumb,
+.orderThumbFallback {
+  display: block;
+  width: 48px;
+  height: 48px;
+  border-radius: 11px;
+  object-fit: cover;
+  background: linear-gradient(135deg, #f1f1f5, #e6e6ec);
+}
+.orderItemInfo { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 3px; }
+.orderItemTop { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.orderItemNameButton {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ss-ink);
+  font: 700 13px "Plus Jakarta Sans", sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+.removeBtn {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ss-muted);
+  cursor: pointer;
+}
+.removeBtn:hover { background: var(--ss-red-tint); color: var(--ss-red); }
+.orderItemPrice {
+  color: var(--ss-red);
+  font-family: "Space Grotesk", "Plus Jakarta Sans", monospace;
+  font-size: 13px;
+  font-weight: 700;
+}
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  align-self: flex-start;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--ss-line);
+  border-radius: 10px;
+  background: var(--ss-card);
+}
+.stepper button {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 7px;
+  background: var(--ss-red-tint);
+  color: var(--ss-red);
+  cursor: pointer;
+}
+.stepper span { min-width: 12px; text-align: center; font-size: 13px; font-weight: 800; }
+
+.orderFooter {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 16px calc(16px + env(safe-area-inset-bottom));
+  border-top: 1px solid #f1f1f4;
+  background: var(--ss-card);
+}
+.totalRow { display: flex; align-items: baseline; justify-content: space-between; font-size: 13px; color: var(--ss-muted); }
+.totalValue {
+  color: var(--ss-ink);
+  font-family: "Space Grotesk", "Plus Jakarta Sans", monospace;
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+}
+.placeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  height: 52px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--ss-red);
+  color: #fff;
+  font: 800 15px "Plus Jakarta Sans", sans-serif;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgba(226, 29, 44, .3);
+}
+.placeBtn:hover:not(:disabled) { background: var(--ss-red-dark); }
+.placeBtn:disabled { background: #f2f2f5; color: var(--ss-muted); box-shadow: none; cursor: not-allowed; }
+.placeLock, .placeArrow { font-size: 16px; }
+.kitchenNote {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--ss-muted);
+  font-size: 11px;
+}
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  border: 0;
+  background: rgba(20, 20, 26, .45);
+  cursor: pointer;
+}
+
+/* ── закрытая сессия ───────────────────────────────────────────────────── */
+.closed { display: grid; place-items: center; min-height: 100dvh; padding: 20px; background: var(--ss-bg); }
+.closedCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: 340px;
+  padding: 28px 22px;
+  border-radius: 18px;
+  background: var(--ss-card);
+  text-align: center;
+  box-shadow: 0 12px 30px rgba(20, 20, 26, .12);
+}
+.closedIcon { font-size: 34px; }
+.closedCard h2 { margin: 0; font-size: 19px; font-weight: 800; }
+.closedCard p { margin: 0; color: var(--ss-muted); font-size: 13px; }
+
+/* ── планшет: 3 колонки, фильтры в строку ──────────────────────────────── */
+@media (min-width: 700px) {
+  .topbar { padding: 12px 18px; }
+  .menu { padding: 14px 18px 110px; gap: 10px; }
+  .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .cardTitle { font-size: 14.5px; }
+  .cardDesc { font-size: 12px; }
+  .price { font-size: 15px; }
+  .addBtn { width: 42px; height: 42px; border-radius: 13px; }
+  .addBtn svg { font-size: 21px; }
+  .order {
+    right: 14px;
+    bottom: 14px;
+    left: auto;
+    width: 400px;
+    max-height: calc(100dvh - 28px);
+    border-radius: 20px;
+    transform: translateY(calc(100% + 20px));
+  }
+  .orderOpen { transform: translateY(0); }
+}
+
+/* ── ноутбук: панель заказа закреплена справа, сетка 4 колонки ─────────── */
+@media (min-width: 1100px) {
+  .body {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr) 336px;
+    align-items: stretch;
+    min-height: calc(100dvh - 58px);
+  }
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px 14px;
+    border: 0;
+    border-radius: 0;
+    background: var(--ss-ink);
+  }
+  .sidebar :global(.ant-select-selector) {
+    border-color: rgba(255, 255, 255, .18) !important;
+    background: rgba(255, 255, 255, .08) !important;
+    color: #fff !important;
+  }
+  .sidebar :global(.ant-select-selection-item) { color: #fff !important; }
+  .sidebarArt { margin-top: auto; opacity: .9; }
+  .sidebarArtImg { width: 100%; height: auto; }
+  .sidebarUser {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, .07);
+    color: #fff;
+  }
+  .avatar {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--ss-red);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+  }
+  .userNote { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: rgba(255, 255, 255, .75); }
+
+  .menu { max-height: calc(100dvh - 58px); padding: 18px 20px 24px; overflow-y: auto; }
+  .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+  .order {
+    position: sticky;
+    top: 58px;
+    right: auto;
+    bottom: auto;
+    width: auto;
+    max-height: calc(100dvh - 58px);
+    border-left: 1px solid #ececf0;
+    border-radius: 0;
+    box-shadow: none;
+    transform: none;
+  }
+  .orderClose { display: none; }
+  .backdrop { display: none; }
+}
+
+/* SmartServe integration fixes: make the redesign coexist with the existing
+   responsive rules and the real dashboard markup. */
+.page {
+  height: auto;
+}
+
+.panel {
+  height: auto;
+  overflow: visible;
+}
+
+.topbar {
+  flex-wrap: nowrap;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.topbar::-webkit-scrollbar {
+  display: none;
+}
+
+.tableChip {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.liveDot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #5ee08a;
+  box-shadow: 0 0 0 4px rgba(94, 224, 138, .13);
+}
+
+.tableLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tableTotal {
+  flex: 0 0 auto;
+  padding-left: 8px;
+  border-left: 1px solid rgba(255, 255, 255, .18);
+  color: #fff;
+  font-family: "Space Grotesk", "Plus Jakarta Sans", system-ui, sans-serif;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.languageControl {
+  flex: 0 0 auto;
+}
+
+.languageControl :global(.ant-select-selector) {
+  min-height: 34px !important;
+  border: 1px solid rgba(255, 255, 255, .18) !important;
+  border-radius: 11px !important;
+  background: rgba(255, 255, 255, .06) !important;
+  color: #fff !important;
+}
+
+.languageControl :global(.ant-select-selection-item),
+.languageControl :global(.ant-select-arrow) {
+  color: #fff !important;
+}
+
+.callBtn,
+.orderActions,
+.orderToggle {
+  flex: 0 0 auto;
+}
+
+.orderActions {
+  min-width: 0;
+}
+
+.categoryFilter {
+  position: static;
+  top: auto;
+  z-index: auto;
+  margin-right: 0;
+  margin-left: 0;
+}
+
+.search {
+  max-width: none;
+}
+
+.sort {
+  min-width: 132px;
+  margin-left: 0;
+}
+
+.cardDesc {
+  min-height: 0;
+}
+
+.addBtn {
+  box-shadow: none;
+}
+
+.order {
+  top: auto;
+  height: auto;
+  max-width: none;
+  overflow: hidden;
+}
+
+.orderHead h3 {
+  padding: 0;
+}
+
+.orderHead h3::after {
+  content: none;
+}
+
+.totalRow {
+  margin: 0;
+}
+
+.backdrop {
+  display: block;
+}
+
+.historyList {
+  gap: 10px;
+  padding-bottom: 16px;
+}
+
+.historyRefresh {
+  min-height: 36px;
+  border-color: var(--ss-line);
+  border-radius: 11px;
+  background: var(--ss-card);
+  color: var(--ss-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.historyCard {
+  padding: 12px;
+  border: 0;
+  border-radius: 13px;
+  background: #fafafb;
+}
+
+.historyHeading {
+  color: var(--ss-ink);
+  font-size: 13px;
+}
+
+.historyHeading time,
+.historyItems small {
+  color: var(--ss-muted);
+}
+
+.historyStatus {
+  margin: 9px 0;
+  font-size: 11px;
+}
+
+.historyItems {
+  gap: 7px;
+}
+
+.historyItems li {
+  color: var(--ss-ink);
+  font-size: 12px;
+}
+
+.historyTotal {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-color: var(--ss-line);
+  color: var(--ss-ink);
+  font-size: 12px;
+}
+
+.menuPagination > div,
+.historyPagination > div {
+  padding: 8px 0 !important;
+}
+
+.menuPagination :global(.ant-pagination),
+.historyPagination :global(.ant-pagination) {
+  font-size: 12px;
+}
+
+@media (max-width: 699px) {
+  .topbar {
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .tableChip {
+    height: 32px;
+    padding: 0 9px;
+  }
+
+  .languageControl :global(.ant-select) {
+    width: 42px;
+  }
+
+  .languageControl :global(.ant-select-selector) {
+    padding: 0 8px !important;
+  }
+
+  .languageControl :global(.ant-select-selection-item) {
+    width: 0;
+    padding: 0 !important;
+    overflow: hidden;
+    opacity: 0;
+  }
+
+  .languageControl :global(.ant-select-arrow) {
+    inset-inline-end: 12px;
+  }
+
+  .callBtn,
+  .orderToggle {
+    width: 34px;
+    height: 32px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .callBtn svg,
+  .orderToggle svg {
+    flex: 0 0 auto;
+    font-size: 17px;
+  }
+
+  .actionLabel,
+  .toggleLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .orderActions {
+    flex: 0 0 auto;
+    gap: 5px;
+    margin-left: auto;
+  }
+
+  .orderActions .orderToggle {
+    flex: 0 0 auto;
+    min-width: 34px;
+    min-height: 32px;
+    white-space: nowrap;
+  }
+
+  .orderCount {
+    position: absolute;
+    align-self: flex-start;
+    min-width: 16px;
+    height: 16px;
+    margin-top: -22px;
+    margin-left: 22px;
+    padding: 0 4px;
+    border: 2px solid var(--ss-ink);
+    border-radius: 999px;
+    font-size: 9px;
+  }
+
+  .tools {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .sort {
+    width: 116px;
+    min-width: 116px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+}
+
+@media (max-width: 430px) {
+  .tableTotal {
+    display: none;
+  }
+
+  .menu {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .sort {
+    width: 104px;
+    min-width: 104px;
+  }
+}
+
+@media (min-width: 700px) {
+  .topbar {
+    overflow: visible;
+  }
+}
+
+@media (min-width: 1100px) {
+  .order {
+    top: 58px;
+    height: auto;
+    max-width: none;
+    overflow: hidden;
+  }
+
+  .backdrop {
+    display: none;
   }
 }
