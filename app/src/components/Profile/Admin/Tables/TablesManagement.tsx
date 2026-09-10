@@ -67,9 +67,12 @@ export default function TablesManagement() {
   const [pageKey, setPageKey] = useState(filterKey);
   const list = useServerList<RestaurantTable>('/api/lists/tables', { page: pageKey === filterKey ? page : 1, pageSize, search: debounced, status }, permissions.includes('tables.view'));
   const { items: tables, loading, refresh: loadTables } = list;
-  const refreshRef = useRef(loadTables);
-  refreshRef.current = loadTables;
-  useEffect(() => { void refreshRef.current(); }, [revision]);
+  const invalidateTables = list.invalidate;
+  const lastRevision = useRef(revision);
+  useEffect(() => {
+    if (lastRevision.current !== revision) invalidateTables();
+    lastRevision.current = revision;
+  }, [revision, invalidateTables]);
   const [saving, setSaving] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<RestaurantTable | null>(null);

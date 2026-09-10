@@ -31,15 +31,13 @@ import { useSessionLock } from '@/hooks/useSessionLock';
 import { useClientOrders } from '@/hooks/useClientOrders';
 import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
 import { getMenuLineTotal } from '@/lib/clientMenu';
-import { createSocket } from '@/lib/ws/socket';
+import { useMenuConnection } from '@/hooks/useMenuConnection';
 import ClientMenuGrid from './ClientMenuGrid';
 import ClientOrderPanel from './ClientOrderPanel';
 import { useDebouncedValue, useServerList } from '@/hooks/useServerList';
 import ListPagination from '@/components/Common/ListPagination';
 import RemoteSelect from '@/components/Common/RemoteSelect';
 
-const MENU_NAMESPACE = '/menu';
-const MENU_UPDATED_EVENT = 'menu:updated';
 
 
 export default function ClientDashboard() {
@@ -122,23 +120,18 @@ export default function ClientDashboard() {
   const filterKey = JSON.stringify([debouncedSearch, sort, category, sauce, pageSize]);
   const [pageKey, setPageKey] = useState(filterKey);
   const sessionReady = Boolean(session && session.id === sessionId && !closed && !sessionUnavailable);
+  const {ready: menuReady, revision: menuRevision} = useMenuConnection(sessionReady, sessionId);
   const menuList = useServerList<ProductRecord>('/api/guest-lists/products', {
     page: pageKey === filterKey ? page : 1, pageSize, search: debouncedSearch, sort,
     categoryId: category === 'all' ? undefined : category,
     sauceId: sauce === 'all' ? undefined : sauce,
-  }, sessionReady, sessionId);
+  }, menuReady, sessionId);
   const menuCards = useMemo(() => (menuList.data?.items ?? []).map(item => productToMenuCard(item, locale)), [menuList.data, locale]);
   const refreshMenu = menuList.refresh;
-  const refreshMenuRef = useRef(refreshMenu);
-  refreshMenuRef.current = refreshMenu;
+  const invalidateMenu = menuList.invalidate;
   useEffect(() => {
-    if (!sessionReady) return;
-    const socket = createSocket(MENU_NAMESPACE, { sessionToken: sessionId });
-    const refreshCurrentPage = () => { void refreshMenuRef.current(); };
-    socket.on('connect', refreshCurrentPage);
-    socket.on(MENU_UPDATED_EVENT, refreshCurrentPage);
-    return () => { socket.removeAllListeners(); socket.disconnect(); };
-  }, [sessionId, sessionReady]);
+    if (menuRevision > 0) invalidateMenu();
+  }, [menuRevision, invalidateMenu]);
   const [basket, setBasket] = useState<MenuCard[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [orderTab, setOrderTab] = useState<'basket' | 'orders'>('basket');

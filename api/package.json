@@ -8,6 +8,7 @@
     "start:dev": "nest start --watch",
     "start:prod": "node dist/main",
     "test": "jest --runInBand",
+    "test:performance": "RUN_PERFORMANCE_TESTS=true jest --runInBand src/listing/listing.performance.spec.ts",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage --runInBand",
     "typeorm": "node -r ts-node/register -r tsconfig-paths/register ./node_modules/typeorm/cli.js",

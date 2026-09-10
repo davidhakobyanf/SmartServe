@@ -23,7 +23,7 @@ let profileRequest: {
   promise: Promise<void>;
 } | null = null;
 let cachedProfile: Profile | null = null;
-let cachedForAuthenticatedUser = false;
+let cachedAccessToken: string | null = null;
 let cachedPermissions: Permission[] = [];
 let cachedProfileLocale: string | null = null;
 
@@ -48,14 +48,13 @@ export function ProfileDataProvider({ children }: { children: ReactNode }) {
 
   const fetchProfile = useCallback(async (options?: { force?: boolean }) => {
     const force = options?.force ?? false;
-    const hasAccessToken =
-      typeof window !== 'undefined' &&
-      Boolean(localStorage.getItem('accessToken'));
+    const accessToken = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    const hasAccessToken = Boolean(accessToken);
 
     if (
       !force &&
       cachedProfile &&
-      cachedForAuthenticatedUser === hasAccessToken &&
+      cachedAccessToken === accessToken &&
       cachedProfileLocale === locale
     ) {
       setProfileDataList(cachedProfile);
@@ -67,7 +66,7 @@ export function ProfileDataProvider({ children }: { children: ReactNode }) {
     if (!hasAccessToken) {
       cachedProfile = emptyProfile;
       cachedPermissions = [];
-      cachedForAuthenticatedUser = false;
+      cachedAccessToken = null;
       cachedProfileLocale = locale;
       setProfileDataList(emptyProfile);
       setPermissions([]);
@@ -75,7 +74,7 @@ export function ProfileDataProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const requestKey = `${hasAccessToken}:${locale}`;
+    const requestKey = `${accessToken}:${locale}`;
     if (profileRequest?.key === requestKey) {
       await profileRequest.promise;
       return;
@@ -85,13 +84,12 @@ export function ProfileDataProvider({ children }: { children: ReactNode }) {
     const request = (async () => {
       try {
         setIsLoading(true);
-        const { data: currentUser } = await clientAPI.getMe();
         const { data: res } = await clientAPI.getProfile();
-        if (res && currentLocaleRef.current === locale) {
+        if (res && currentLocaleRef.current === locale && localStorage.getItem('accessToken') === accessToken) {
           const profile = { ...res, card: [] };
           cachedProfile = profile;
-          cachedPermissions = currentUser.permissions ?? [];
-          cachedForAuthenticatedUser = true;
+          cachedPermissions = res.permissions ?? [];
+          cachedAccessToken = accessToken;
           cachedProfileLocale = locale;
           setProfileDataList(profile);
           setPermissions(cachedPermissions);

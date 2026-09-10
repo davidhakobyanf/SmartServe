@@ -90,7 +90,8 @@ describe("Persistence and domain-event ordering", () => {
 
   it("publishes basket updates only after deletion succeeds", async () => {
     const events = { emit: jest.fn() };
-    const repo = { delete: jest.fn(async () => { throw new Error("delete failed"); }), find: jest.fn() };
+    const repo = { delete: jest.fn(async () => { throw new Error("delete failed"); }), find: jest.fn(), manager: { transaction: jest.fn() } };
+    repo.manager.transaction.mockImplementation(async callback => callback({getRepository:(entity:unknown)=>entity===BasketItem?repo:{findOne:async()=>({status:'open'})}}));
     const service = new BasketItemsService(repo as never, {} as never, events as never);
     await expect(service.clear(SESSION_ID)).rejects.toThrow("delete failed");
     expect(events.emit).not.toHaveBeenCalled();

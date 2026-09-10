@@ -72,9 +72,12 @@ export default function Orders() {
     page: pageKey === filterKey ? page : 1, pageSize, status: filter, search: debouncedSearch,
   }, permissions.includes('orders.view'));
   const refreshOrders = orderList.refresh;
-  const refreshRef = useRef(refreshOrders);
-  refreshRef.current = refreshOrders;
-  useEffect(() => { void refreshRef.current(); }, [revision]);
+  const invalidateOrders = orderList.invalidate;
+  const lastRevision = useRef(revision);
+  useEffect(() => {
+    if (lastRevision.current !== revision) invalidateOrders();
+    lastRevision.current = revision;
+  }, [revision, invalidateOrders]);
   const filtered = useMemo(() => (orderList.data?.items ?? []).map(order => normalizeOrderRecord(order, locale)), [orderList.data, locale]);
   const filterCounts = orderList.data?.filterCounts ?? {};
   const stats = { total: 0, items: 0, tables: 0, revenue: 0, ...orderList.data?.stats };
@@ -90,11 +93,10 @@ export default function Orders() {
     return () => window.clearInterval(timer);
   }, []);
 
-  // Fetch the latest orders and clear the "new orders" badge on open.
+  // The list hook loads data. Opening the page only clears the badge.
   useEffect(() => {
-    void refreshOrders().catch(() => setLoadError(true));
     markSeen();
-  }, [refreshOrders, markSeen]);
+  }, [markSeen]);
 
   const reload = async () => {
     setRefreshing(true);

@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
+import { PublicReadCache } from './public-read-cache';
 import { DataSource, In, ObjectLiteral, SelectQueryBuilder } from 'typeorm';
 import { Product } from '../entities/product.entity';
 import { Category } from '../entities/category.entity';
@@ -30,6 +32,11 @@ const textMatch = (json: string, legacy: string) =>
 @Injectable()
 export class ListingService {
   constructor(private readonly db: DataSource) {}
+  private readonly publicCache = new PublicReadCache();
+
+  @OnEvent('products:changed')
+  @OnEvent('menu:catalog-changed')
+  invalidatePublicMenu() { this.publicCache.clear(); }
 
   private async page<T extends ObjectLiteral>(qb: SelectQueryBuilder<T>, query: ListQueryDto) {
     const total = await qb.clone().getCount();
@@ -40,9 +47,14 @@ export class ListingService {
     return { items, total, page, pageSize, totalPages };
   }
 
-  async products(query: ListQueryDto, locale?: string, publicMenu = false) {
+  products(query: ListQueryDto, locale?: string, publicMenu = false) {
+    const read = () => this.readProducts(query, locale, publicMenu);
+    return publicMenu ? this.publicCache.get(JSON.stringify(['products', query, locale]), read) : read();
+  }
+
+  private async readProducts(query: ListQueryDto, locale?: string, publicMenu = false) {
     const repo = this.db.getRepository(Product);
-    const qb = repo.createQueryBuilder('p').innerJoin('p.category', 'c');
+    const qb = repo.createQueryBuilder('p').select('p.id').innerJoin('p.category', 'c');
     if (publicMenu) qb.where('c.isActive = true');
     const unfilteredTotal = await qb.clone().getCount();
     if (query.id) qb.andWhere('p.id = :id', { id: query.id });
@@ -68,7 +80,12 @@ export class ListingService {
     return { ...result, unfilteredTotal, items: result.items.map(p => productResponse(byId.get(p.id)!, publicMenu, locale)) };
   }
 
-  async assets(kind: 'categories' | 'sauces', query: ListQueryDto, locale?: string, publicMenu = false) {
+  assets(kind: 'categories' | 'sauces', query: ListQueryDto, locale?: string, publicMenu = false) {
+    const read = () => this.readAssets(kind, query, locale, publicMenu);
+    return publicMenu ? this.publicCache.get(JSON.stringify([kind, query, locale]), read) : read();
+  }
+
+  private async readAssets(kind: 'categories' | 'sauces', query: ListQueryDto, locale?: string, publicMenu = false) {
     const repo = this.db.getRepository<Category | Sauce>(kind === 'categories' ? Category : Sauce);
     const qb = repo.createQueryBuilder('a');
     if (publicMenu || query.isActive) qb.where('a.isActive = :active', { active: publicMenu || query.isActive === 'true' });
@@ -92,17 +109,24 @@ export class ListingService {
 
   async orders(query: ListQueryDto, financials: boolean, sessionId?: string) {
     const repo = this.db.getRepository(Order);
-    const qb = repo.createQueryBuilder('o').leftJoinAndSelect('o.table', 't');
+    const qb = repo.createQueryBuilder('o').select('o.id').leftJoin('o.table', 't');
     if (sessionId) qb.where('o.sessionId = :sessionId', { sessionId });
-    const counts = await qb.clone().select('o.status', 'status').addSelect('COUNT(*)', 'count').groupBy('o.status').getRawMany();
-    const filterCounts: Record<string, number> = { all: 0, active: 0, history: 0, placed: 0, preparing: 0, ready: 0, completed: 0, cancelled: 0 };
-    counts.forEach(row => { filterCounts[row.status] = Number(row.count); filterCounts.all += Number(row.count); });
-    filterCounts.history = filterCounts.completed + filterCounts.cancelled;
-    filterCounts.active = filterCounts.all - filterCounts.history;
-    const aggregate = await qb.clone().select('COUNT(DISTINCT o.tableId)', 'tables').addSelect('SUM(CASE WHEN o.status = \'completed\' THEN o.total ELSE 0 END)', 'revenue').getRawOne();
     const quantity = this.db.createQueryBuilder().select('COALESCE(SUM(i.quantity), 0)', 'items').from('order_items', 'i');
     if (sessionId) quantity.innerJoin('orders', 'o', 'o.id = i."orderId" AND o."sessionId" = :sessionId', { sessionId });
-    const stats = { total: filterCounts.all, items: Number((await quantity.getRawOne()).items), tables: Number(aggregate.tables), ...(financials ? { revenue: Number(aggregate.revenue ?? 0) } : {}) };
+    // One aggregate round-trip instead of three for every page/socket refresh.
+    const summary = qb.clone().select('COUNT(*)', 'all')
+      .addSelect('COUNT(DISTINCT o.tableId)', 'tables')
+      .addSelect("SUM(CASE WHEN o.status = 'completed' THEN o.total ELSE 0 END)", 'revenue')
+      .addSelect(`(${quantity.getQuery()})`, 'items').setParameters(quantity.getParameters());
+    for (const status of ['placed', 'preparing', 'ready', 'completed', 'cancelled']) {
+      summary.addSelect(`COUNT(*) FILTER (WHERE o.status = '${status}')`, status);
+    }
+    const aggregate = await summary.getRawOne();
+    const filterCounts: Record<string, number> = { all: Number(aggregate.all), active: 0, history: 0 };
+    for (const status of ['placed', 'preparing', 'ready', 'completed', 'cancelled']) filterCounts[status] = Number(aggregate[status]);
+    filterCounts.history = filterCounts.completed + filterCounts.cancelled;
+    filterCounts.active = filterCounts.all - filterCounts.history;
+    const stats = { total: filterCounts.all, items: Number(aggregate.items), tables: Number(aggregate.tables), ...(financials ? { revenue: Number(aggregate.revenue ?? 0) } : {}) };
     const status = query.status;
     if (status === 'active') qb.andWhere("o.status IN ('placed', 'preparing', 'ready')");
     else if (status === 'history') qb.andWhere("o.status IN ('completed', 'cancelled')");

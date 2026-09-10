@@ -5,6 +5,7 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { BasketItem } from "src/entities/basket-item.entity";
+import { DiningSession } from 'src/entities/dining-session.entity';
 import { Product } from "src/entities/product.entity";
 import { Repository } from "typeorm";
 import { AddBasketItemDto } from "./dto/add-basket-item.dto";
@@ -19,6 +20,7 @@ import { matchesSauceSelection, normalizeSauceIds, selectSauceSnapshots } from "
 
 @Injectable()
 export class BasketItemsService {
+  private transactional = false;
   constructor(
     @InjectRepository(BasketItem)
     private readonly basketItemsRepo: Repository<BasketItem>,
@@ -30,10 +32,24 @@ export class BasketItemsService {
   ) {}
 
   private async notifyBasketChanged(sessionId: string): Promise<void> {
+    if (this.transactional) return; // Only the outer operation emits, after COMMIT.
     this.events.emit(SESSION_DOMAIN_EVENTS.BASKET_CHANGED, {
       sessionId,
       items: await this.findAll(sessionId),
     });
+  }
+
+  private async withSessionLock<T>(sessionId: string, operation: (service: BasketItemsService) => Promise<T>): Promise<T> {
+    const committed = await this.basketItemsRepo.manager.transaction(async manager => {
+      const session = await manager.getRepository(DiningSession).findOne({where:{id:sessionId},lock:{mode:'pessimistic_write'}});
+      if (!session || session.status !== 'open') throw new BadRequestException('Session is closed or invalid');
+      const scoped = new BasketItemsService(manager.getRepository(BasketItem), manager.getRepository(Product), this.events);
+      scoped.transactional = true;
+      const result = await operation(scoped);
+      return { result, items: await scoped.findAll(sessionId) };
+    });
+    this.events.emit(SESSION_DOMAIN_EVENTS.BASKET_CHANGED, { sessionId, items: committed.items });
+    return committed.result;
   }
 
   private resolveSauces(
@@ -61,6 +77,7 @@ export class BasketItemsService {
   }
 
   async add(sessionId: string, dto: AddBasketItemDto): Promise<BasketItem> {
+    if (!this.transactional) return this.withSessionLock(sessionId, service => service.add(sessionId, dto));
     const product = await this.productsRepo.findOne({
       where: {
         id: dto.productId,
@@ -128,6 +145,7 @@ export class BasketItemsService {
     itemId: string,
     dto: UpdateBasketItemDto,
   ): Promise<BasketItem> {
+    if (!this.transactional) return this.withSessionLock(sessionId, service => service.update(sessionId, itemId, dto));
     const item = await this.basketItemsRepo.findOne({
       where: {
         id: itemId,
@@ -160,6 +178,7 @@ export class BasketItemsService {
   }
 
   async remove(sessionId: string, itemId: string): Promise<{ success: true }> {
+    if (!this.transactional) return this.withSessionLock(sessionId, service => service.remove(sessionId, itemId));
     const result = await this.basketItemsRepo.delete({
       id: itemId,
       sessionId,
@@ -173,6 +192,7 @@ export class BasketItemsService {
     return { success: true };
   }
   async clear(sessionId: string): Promise<{ success: true }> {
+    if (!this.transactional) return this.withSessionLock(sessionId, service => service.clear(sessionId));
     await this.basketItemsRepo.delete({ sessionId });
     await this.notifyBasketChanged(sessionId);
     return { success: true };

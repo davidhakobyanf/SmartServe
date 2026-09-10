@@ -1,6 +1,9 @@
 import { BadRequestException } from "@nestjs/common";
 import { BasketItemsService } from "./basket-items.service";
 import { SESSION_DOMAIN_EVENTS } from "src/sessions/session.events";
+import { BasketItem } from 'src/entities/basket-item.entity';
+import { Product } from 'src/entities/product.entity';
+import { DiningSession } from 'src/entities/dining-session.entity';
 
 describe("BasketItemsService", () => {
   const basketItemsRepo = {
@@ -9,6 +12,7 @@ describe("BasketItemsService", () => {
     create: jest.fn(),
     save: jest.fn(),
     delete: jest.fn(),
+    manager: { transaction: jest.fn() },
   };
   const productsRepo = { findOne: jest.fn() };
   const events = { emit: jest.fn() };
@@ -17,6 +21,12 @@ describe("BasketItemsService", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    basketItemsRepo.manager.transaction.mockImplementation(async callback => callback({ getRepository: (entity: unknown) => {
+      if (entity === BasketItem) return basketItemsRepo;
+      if (entity === Product) return productsRepo;
+      if (entity === DiningSession) return {findOne:async()=>({status:'open'})};
+      throw new Error('Unexpected repository');
+    } }));
     service = new BasketItemsService(
       basketItemsRepo as never,
       productsRepo as never,
@@ -111,5 +121,22 @@ describe("BasketItemsService", () => {
     expect(basketItemsRepo.delete).toHaveBeenCalledWith({
       sessionId: "session-1",
     });
+  });
+  it('does not publish a snapshot if COMMIT fails', async () => {
+    basketItemsRepo.delete.mockResolvedValue({affected:1});
+    basketItemsRepo.find.mockResolvedValue([]);
+    basketItemsRepo.manager.transaction.mockImplementation(async callback => {
+      await callback({getRepository:(entity:unknown)=>entity===BasketItem?basketItemsRepo:{findOne:async()=>({status:'open'})}});
+      throw new Error('commit failed');
+    });
+    await expect(service.clear('session-1')).rejects.toThrow('commit failed');
+    expect(events.emit).not.toHaveBeenCalled();
+  });
+  it('locks and rechecks the session inside the transaction', async () => {
+    const findOne=jest.fn(async()=>({status:'closed'}));
+    basketItemsRepo.manager.transaction.mockImplementation(async callback=>callback({getRepository:()=>({findOne})}));
+    await expect(service.clear('session-1')).rejects.toThrow('Session is closed');
+    expect(findOne).toHaveBeenCalledWith({where:{id:'session-1'},lock:{mode:'pessimistic_write'}});
+    expect(basketItemsRepo.delete).not.toHaveBeenCalled();
   });
 });

@@ -18,6 +18,8 @@ export default function RemoteSelect({ resource, guest, activeOnly, enabled = tr
   const locale = useLocale();
   const t = useTranslations('common.list');
   const [search, setSearch] = useState('');
+  const [opened, setOpened] = useState(false);
+  const fetchedAt = useRef(0);
   const debounced = useDebouncedValue(search);
   const [page, setPage] = useState(1);
   const [batch, setBatch] = useState<{ key: string; options: Option[] }>({ key: '', options: [] });
@@ -28,7 +30,7 @@ export default function RemoteSelect({ resource, guest, activeOnly, enabled = tr
   const list = useServerList<{ id: string; name: string; price?: number }>(`/api/${guest ? 'guest-lists' : 'lists'}/${resource}`, {
     search: debounced, page: batch.key === key ? page : 1, pageSize: 24,
     isActive: activeOnly ? 'true' : undefined,
-  }, enabled);
+  }, enabled && opened);
   // A selection can come from another control (e.g. the sticky menu filter),
   // and its option may be beyond the first page of this dropdown.
   const selectedId = typeof props.value === 'string' && props.value !== 'all' ? props.value : undefined;
@@ -37,6 +39,7 @@ export default function RemoteSelect({ resource, guest, activeOnly, enabled = tr
   }, enabled && !!selectedId && !labels.current.has(selectedId) && !initialOptions.some(option => option.value === selectedId));
   useEffect(() => {
     if (!list.data) return;
+    fetchedAt.current = Date.now();
     const next = list.data.items.map(item => ({ value: item.id, label: item.name }));
     next.forEach(option => labels.current.set(option.value, option));
     const actualPage = list.data.page;
@@ -52,7 +55,13 @@ export default function RemoteSelect({ resource, guest, activeOnly, enabled = tr
     ...initialOptions.filter(option => selected.includes(option.value)), ...options,
   ].map(option => [option.value, option])).values());
   return <Select {...props} showSearch filterOption={false} options={merged} loading={list.loading}
-    onOpenChange={(open) => { if (open) void list.refresh(); props.onOpenChange?.(open); }}
+    onOpenChange={(open) => {
+      if (open) {
+        setOpened(true);
+        if (opened && Date.now() - fetchedAt.current > 30000) void list.refresh();
+      }
+      props.onOpenChange?.(open);
+    }}
     onSearch={(value) => { setPage(1); setSearch(value); }}
     onPopupScroll={(event) => {
       const target = event.currentTarget;

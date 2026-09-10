@@ -17,6 +17,10 @@ import { DiningTable } from '../entities/dining-table.entity';
 import { DiningSession } from '../entities/dining-session.entity';
 import { Order } from '../entities/order.entity';
 import { OrderItem } from '../entities/order-item.entity';
+import { ProductsService } from '../products/products.service';
+import { CategoriesService } from '../categories/categories.service';
+import { SaucesService } from '../sauces/sauces.service';
+import { SessionsService } from '../sessions/sessions.service';
 
 // Explicit opt-in only. Each run owns an isolated random schema and removes
 // only that schema; no fixtures or migrations touch the developer's tables.
@@ -173,5 +177,21 @@ integration('Paginated read models on PostgreSQL', () => {
   });
   it.each<Record<string, string | number>>([{page: 0}, {pageSize: 101}, {sort: 'DROP TABLE'}, {categoryId: 'invalid'}])('rejects invalid HTTP parameters %j', async query => {
     expect((await get('products', query)).status).toBe(400);
+  });
+  it('invalidates cached public projections on product/category/sauce writes', async () => {
+    await get('products', { id: target.id }, ownSession.id, true);
+    await app.get(ProductsService).update(target.id, {titleTranslations:{en:'Updated soup',am:'Նոր ապուր',ru:'Новый суп'}});
+    expect((await get('products',{id:target.id},ownSession.id,true)).body.items[0].title).toBe('Նոր ապուր');
+    await get('products',{sauceId:sauce.id},ownSession.id,true);
+    await app.get(SaucesService).update(sauce.id,{isActive:false});
+    expect((await get('products',{sauceId:sauce.id},ownSession.id,true)).body.total).toBe(0);
+    await app.get(CategoriesService).update(category.id,{isActive:false});
+    expect((await get('products',{id:target.id},ownSession.id,true)).body.total).toBe(0);
+  });
+  it('checks session authorization even when a public page is already cached', async () => {
+    await get('products',{},ownSession.id,true);
+    await app.get(SessionsService).close(ownSession.id);
+    expect((await get('products',{},ownSession.id,true)).status).toBe(403);
+    expect((await get('products',{},otherSession.id,true)).status).toBe(200);
   });
 });

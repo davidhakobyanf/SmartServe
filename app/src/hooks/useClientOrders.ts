@@ -16,8 +16,8 @@ export function useClientOrders(token: string | null, enabled: boolean, liveOrde
   const list = useServerList<RelationalOrder>('/api/guest-lists/orders', { page, pageSize }, enabled && Boolean(token), token ?? '');
   const statuses = useRef(new Map<string, OrderStatus>());
   const notified = useRef(new Set<string>());
-  const refreshRef = useRef(list.refresh);
-  refreshRef.current = list.refresh;
+  const refreshRef = useRef(list.invalidate);
+  refreshRef.current = list.invalidate;
   const notifyReady = useRef<(id: string) => void>(() => {});
   notifyReady.current = (id) => {
     if (notified.current.has(id)) return;
@@ -25,7 +25,11 @@ export function useClientOrders(token: string | null, enabled: boolean, liveOrde
     notification.success({ message: t('history.readyTitle'), description: t('history.readyDescription', { id: id.slice(-5).toUpperCase() }), placement: 'topRight', duration: 8, key: `order-ready-${id}` });
   };
   useEffect(() => { setPage(1); statuses.current.clear(); notified.current.clear(); }, [token]);
-  useEffect(() => { if (enabled) void refreshRef.current(); }, [enabled, connectionVersion, liveOrders]);
+  const lastConnection = useRef(connectionVersion);
+  useEffect(() => {
+    if (enabled && (connectionVersion !== lastConnection.current || liveOrders)) refreshRef.current();
+    lastConnection.current = connectionVersion;
+  }, [enabled, connectionVersion, liveOrders]);
   useEffect(() => {
     if (!enabled || !change || change.sessionId !== token) return;
     if (change.status === 'ready') notifyReady.current(change.id);

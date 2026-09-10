@@ -28,6 +28,11 @@ export function setSessionToken(token: string | null): void {
   sessionToken = token;
 }
 
+// Used only as an in-memory request identity; never log this value.
+export function requestAuthScope(): string {
+  return JSON.stringify([typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null, sessionToken]);
+}
+
 instance.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
     const accessToken = localStorage.getItem('accessToken');
