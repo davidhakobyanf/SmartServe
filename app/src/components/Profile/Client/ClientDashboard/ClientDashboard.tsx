@@ -9,11 +9,8 @@ import {
   TbShoppingCart,
   TbClipboardList,
   TbSearch,
-  TbFilter,
-  TbSun,
 } from 'react-icons/tb';
 import css from './ClientDashboard.module.css';
-import { useProfileData } from '@/context/ProfileDataContext';
 import { useFetching } from '@/hoc/fetchingHook';
 import clientAPI, { apiClient, setSessionToken } from '@/api/api';
 import ClientCardModal from '../ClientCardModal/ClientCardModal';
@@ -88,7 +85,6 @@ export default function ClientDashboard() {
   }, [sessionId]);
 
   const { callWaiter } = useWaiterClient(sessionId);
-  const { profileDataList } = useProfileData();
 
   const [images, setImages] = useState<MenuImage[]>([]);
   const [category, setCategory] = useState('all');
@@ -121,6 +117,10 @@ export default function ClientDashboard() {
   const [pageKey, setPageKey] = useState(filterKey);
   const sessionReady = Boolean(session && session.id === sessionId && !closed && !sessionUnavailable);
   const {ready: menuReady, revision: menuRevision} = useMenuConnection(sessionReady, sessionId);
+  const categoryList = useServerList<{ id: string; name: string }>('/api/guest-lists/categories', {
+    page: 1,
+    pageSize: 96,
+  }, menuReady, sessionId);
   const menuList = useServerList<ProductRecord>('/api/guest-lists/products', {
     page: pageKey === filterKey ? page : 1, pageSize, search: debouncedSearch, sort,
     categoryId: category === 'all' ? undefined : category,
@@ -129,9 +129,13 @@ export default function ClientDashboard() {
   const menuCards = useMemo(() => (menuList.data?.items ?? []).map(item => productToMenuCard(item, locale)), [menuList.data, locale]);
   const refreshMenu = menuList.refresh;
   const invalidateMenu = menuList.invalidate;
+  const invalidateCategories = categoryList.invalidate;
   useEffect(() => {
-    if (menuRevision > 0) invalidateMenu();
-  }, [menuRevision, invalidateMenu]);
+    if (menuRevision > 0) {
+      invalidateMenu();
+      invalidateCategories();
+    }
+  }, [menuRevision, invalidateMenu, invalidateCategories]);
   const [basket, setBasket] = useState<MenuCard[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [orderTab, setOrderTab] = useState<'basket' | 'orders'>('basket');
@@ -242,8 +246,6 @@ export default function ClientDashboard() {
 
   const total = basket.reduce((sum, item) => sum + getMenuLineTotal(item), 0);
   const count = basket.reduce((n, it) => n + (it.count ?? 1), 0);
-  const avatarInitial = (profileDataList.name?.[0] ?? 'N').toUpperCase();
-
   const [placeOrder, placing] = useFetching(async () => {
     if (basket.length === 0 || placingRef.current) return;
     placingRef.current = true;
@@ -320,25 +322,32 @@ export default function ClientDashboard() {
         </header>
 
         <div className={css.body}>
-          <nav className={css.sidebar}>
-            <RemoteSelect resource="categories" guest enabled={sessionReady}
-              aria-label={t('filters.category')} value={category} onChange={changeCategory}
-              allLabel={t('categories.allItems')} style={{ width: '100%' }} />
-
-            <div className={css.sidebarArt} aria-hidden>
-              <img src="/images/leftIcon.png" alt="" className={css.sidebarArtImg} />
-            </div>
-
-            <div className={css.sidebarUser}>
-              <span className={css.avatar}>{avatarInitial}</span>
-              <span className={css.userNote}>
-                <TbSun /> {t('dashboard.enjoyMeal')}
-              </span>
-            </div>
-          </nav>
-
           <main ref={menuRef} className={`${css.menu} ss-scroll`}>
             <h2 className={css.menuTitle}>{t('dashboard.menuTitle')}</h2>
+
+            <div className={`${css.categoryChips} ss-scroll`} role="tablist" aria-label={t('filters.category')}>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={category === 'all'}
+                className={category === 'all' ? css.categoryChipActive : ''}
+                onClick={() => changeCategory('all')}
+              >
+                {t('categories.allItems')}
+              </button>
+              {categoryList.items.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={category === item.id}
+                  className={category === item.id ? css.categoryChipActive : ''}
+                  onClick={() => changeCategory(item.id)}
+                >
+                  {item.name}
+                </button>
+              ))}
+            </div>
 
             <div className={css.tools}>
               <Input
@@ -360,24 +369,10 @@ export default function ClientDashboard() {
             </div>
 
             <div ref={filterRef} className={`${css.categoryFilter} ${filtersActive ? css.categoryFilterActive : ''}`}>
-              <label className={css.categoryLabel} htmlFor="menu-category">
-                <TbFilter aria-hidden="true" /> {t('filters.category')}
-                {filtersActive && <span className={css.filterBadge}>{t('filters.active')}</span>}
-              </label>
-              <RemoteSelect
-                resource="categories" guest enabled={sessionReady}
-                allLabel={t('categories.allItems')}
-                id="menu-category"
-                aria-label={t('filters.category')}
-                size="large"
-                className={css.categorySelect}
-                value={category}
-                onChange={changeCategory}
-              />
               <RemoteSelect resource="sauces" guest enabled={sessionReady}
                 value={sauce} onChange={(value) => { returnToResults(); setSauce(value); }}
                 allLabel={listT('allSauces')} aria-label={listT('allSauces')}
-                style={{ width: '100%', marginTop: 8 }} />
+                showSearch={false} size="large" className={css.sauceSelect} />
               {filtersActive && (
                 <div className={css.filterSummary}>
                   <span role="status">{t('filters.matching', { count: menuList.data?.total ?? 0, total: menuList.data?.unfilteredTotal ?? 0 })}</span>

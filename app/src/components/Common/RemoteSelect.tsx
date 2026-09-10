@@ -14,7 +14,7 @@ interface Props extends Omit<SelectProps, 'options'> {
   allLabel?: string;
 }
 
-export default function RemoteSelect({ resource, guest, activeOnly, enabled = true, initialOptions = [], allLabel, ...props }: Props) {
+export default function RemoteSelect({ resource, guest, activeOnly, enabled = true, initialOptions = [], allLabel, showSearch = true, ...props }: Props) {
   const locale = useLocale();
   const t = useTranslations('common.list');
   const [search, setSearch] = useState('');
@@ -54,7 +54,7 @@ export default function RemoteSelect({ resource, guest, activeOnly, enabled = tr
     ...(selectedDetail.data?.items ?? []).filter(item => item.id === selectedId).map(item => ({ value: item.id, label: item.name })),
     ...initialOptions.filter(option => selected.includes(option.value)), ...options,
   ].map(option => [option.value, option])).values());
-  return <Select {...props} showSearch filterOption={false} options={merged} loading={list.loading}
+  return <Select {...props} showSearch={showSearch} filterOption={showSearch ? false : undefined} options={merged} loading={list.loading}
     onOpenChange={(open) => {
       if (open) {
         setOpened(true);
@@ -62,7 +62,7 @@ export default function RemoteSelect({ resource, guest, activeOnly, enabled = tr
       }
       props.onOpenChange?.(open);
     }}
-    onSearch={(value) => { setPage(1); setSearch(value); }}
+    onSearch={showSearch ? (value) => { setPage(1); setSearch(value); } : undefined}
     onPopupScroll={(event) => {
       const target = event.currentTarget;
       if (target.scrollTop + target.clientHeight >= target.scrollHeight - 24 && !list.loading && list.data && page < list.data.totalPages) setPage(page + 1);
