@@ -1,8 +1,73 @@
 {
   "pageTitle": "Панель управления",
-  "pageSubtitle": "Обзор активности вашего ресторана",
-  "searchPlaceholder": "введите текст для поиска",
-  "bookmark": "закладка {title}",
-  "extras": "Добавки",
-  "price": "{price} драм"
+  "pageSubtitle": "Главное о работе ресторана в одном месте",
+  "periodLabel": "Период отчёта",
+  "periods": { "today": "сегодня", "7d": "7 дней", "30d": "30 дней" },
+  "refresh": "Обновить",
+  "loading": "Собираем данные ресторана…",
+  "loadError": "Не удалось загрузить панель управления",
+  "refreshError": "Не удалось обновить данные. Показана последняя доступная версия.",
+  "retry": "Повторить",
+  "hidden": "Скрыто",
+  "viewAll": "Открыть все",
+  "updatedAt": "Обновлено: {value}",
+  "metrics": {
+    "title": "Основные показатели",
+    "orders": "Заказы: {period}",
+    "activeOrders": "Активные заказы",
+    "occupiedTables": "Занятые столы",
+    "revenue": "Выручка: {period}"
+  },
+  "attention": {
+    "title": "Требует внимания",
+    "subtitle": "Ситуации, на которые стоит отреагировать",
+    "allClear": "Всё под контролем",
+    "allClearHint": "Срочных действий сейчас нет",
+    "waiter": "Стол {table} вызывает официанта",
+    "waiterHint": "Ожидает сотрудника",
+    "delayedOrder": "Заказ стола {table} задерживается",
+    "lowStock": "Осталось: {count}"
+  },
+  "quickActions": {
+    "title": "Быстрые действия",
+    "subtitle": "Переход к основным разделам",
+    "orders": "Управлять заказами",
+    "menu": "Управлять меню",
+    "tables": "Управлять столами",
+    "waiter": "Вызовы официанта"
+  },
+  "chart": {
+    "title": "Динамика заказов",
+    "subtitle": "Активность за период: {period}",
+    "averageCheck": "Средний чек",
+    "ariaLabel": "График количества заказов",
+    "tooltip": "Заказов: {orders}, выручка: {revenue}",
+    "tooltipNoRevenue": "Заказов: {orders}"
+  },
+  "recentOrders": {
+    "title": "Текущая очередь",
+    "live": "Обновляется автоматически",
+    "offline": "Нет связи — доступно ручное обновление",
+    "empty": "Активных заказов нет",
+    "table": "Стол {table}",
+    "items": "Блюд: {count}"
+  },
+  "topProducts": {
+    "title": "Популярные блюда",
+    "subtitle": "Лидеры продаж: {period}",
+    "empty": "Для выбранного периода пока нет данных",
+    "sold": "Продано: {count}"
+  },
+  "statuses": {
+    "placed": "Новые",
+    "preparing": "Готовятся",
+    "ready": "Готовы",
+    "completed": "Завершены",
+    "cancelled": "Отменены"
+  },
+  "time": {
+    "justNow": "только что",
+    "minutes": "{count} мин",
+    "hours": "{count} ч"
+  }
 }

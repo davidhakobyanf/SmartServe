@@ -294,6 +294,39 @@ exports[`HTTP route registry preserves every public route and its transport meta
     "prefix": "api/category-images",
   },
   {
+    "arguments": [
+      {
+        "data": undefined,
+        "index": 0,
+        "kind": "4",
+        "pipes": [],
+      },
+      {
+        "data": undefined,
+        "index": 1,
+        "kind": "custom",
+        "pipes": [],
+      },
+      {
+        "data": "accept-language",
+        "index": 2,
+        "kind": "6",
+        "pipes": [],
+      },
+    ],
+    "controller": "DashboardController",
+    "guards": [
+      "JwtAuthGuard",
+      "PermissionsGuard",
+    ],
+    "method": "GET",
+    "path": "/",
+    "permissions": [
+      "dashboard.view",
+    ],
+    "prefix": "api/dashboard",
+  },
+  {
     "arguments": [],
     "controller": "HealthController",
     "guards": [],

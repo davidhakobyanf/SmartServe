@@ -1,8 +1,73 @@
 {
   "pageTitle": "Dashboard",
-  "pageSubtitle": "Overview of your restaurant activity",
-  "searchPlaceholder": "input search text",
-  "bookmark": "bookmark {title}",
-  "extras": "Add-ons",
-  "price": "{price} AMD"
+  "pageSubtitle": "The essentials of your restaurant operation in one place",
+  "periodLabel": "Reporting period",
+  "periods": { "today": "today", "7d": "7 days", "30d": "30 days" },
+  "refresh": "Refresh",
+  "loading": "Gathering restaurant data…",
+  "loadError": "Could not load the dashboard",
+  "refreshError": "Could not refresh the data. Showing the latest available version.",
+  "retry": "Retry",
+  "hidden": "Hidden",
+  "viewAll": "View all",
+  "updatedAt": "Updated: {value}",
+  "metrics": {
+    "title": "Key metrics",
+    "orders": "Orders: {period}",
+    "activeOrders": "Active orders",
+    "occupiedTables": "Occupied tables",
+    "revenue": "Revenue: {period}"
+  },
+  "attention": {
+    "title": "Needs attention",
+    "subtitle": "Situations that may need a response",
+    "allClear": "Everything is under control",
+    "allClearHint": "There are no urgent actions right now",
+    "waiter": "Table {table} is calling a waiter",
+    "waiterHint": "Waiting for a team member",
+    "delayedOrder": "Table {table}'s order is delayed",
+    "lowStock": "Remaining: {count}"
+  },
+  "quickActions": {
+    "title": "Quick actions",
+    "subtitle": "Open the main work areas",
+    "orders": "Manage orders",
+    "menu": "Manage menu",
+    "tables": "Manage tables",
+    "waiter": "Waiter calls"
+  },
+  "chart": {
+    "title": "Order activity",
+    "subtitle": "Activity for: {period}",
+    "averageCheck": "Average check",
+    "ariaLabel": "Chart of order counts",
+    "tooltip": "Orders: {orders}, revenue: {revenue}",
+    "tooltipNoRevenue": "Orders: {orders}"
+  },
+  "recentOrders": {
+    "title": "Current queue",
+    "live": "Updates automatically",
+    "offline": "Offline — manual refresh is available",
+    "empty": "There are no active orders",
+    "table": "Table {table}",
+    "items": "Dishes: {count}"
+  },
+  "topProducts": {
+    "title": "Popular dishes",
+    "subtitle": "Best sellers: {period}",
+    "empty": "There is no data for the selected period yet",
+    "sold": "Sold: {count}"
+  },
+  "statuses": {
+    "placed": "New",
+    "preparing": "Preparing",
+    "ready": "Ready",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
+  "time": {
+    "justNow": "just now",
+    "minutes": "{count} min",
+    "hours": "{count} hr"
+  }
 }
