@@ -114,6 +114,29 @@ svg {
   .ant-modal-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
   .ant-modal-footer { flex: 0 0 auto; }
   .ant-btn { min-height: 40px; }
+
+  /* iOS Safari zooms focused controls whose text is smaller than 16px. */
+  input,
+  select,
+  textarea,
+  .ant-input,
+  .ant-input-number-input,
+  .ant-select-selection-item,
+  .ant-select-selection-placeholder,
+  .ant-select-selection-search-input,
+  .ant-picker-input > input {
+    font-size: 16px !important;
+  }
+
+  button,
+  [role='button'],
+  [role='tab'],
+  .ant-select,
+  .ant-pagination-item,
+  .ant-pagination-prev,
+  .ant-pagination-next {
+    touch-action: manipulation;
+  }
 }
 
 /* Waiter-call toast: on close, slide out to the right and fade to transparent.

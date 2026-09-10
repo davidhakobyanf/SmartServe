@@ -110,11 +110,7 @@ export default function ClientDashboard() {
   };
 
   const [sort, setSort] = useState('default');
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(12);
   const debouncedSearch = useDebouncedValue(search);
-  const filterKey = JSON.stringify([debouncedSearch, sort, category, sauce, pageSize]);
-  const [pageKey, setPageKey] = useState(filterKey);
   const sessionReady = Boolean(session && session.id === sessionId && !closed && !sessionUnavailable);
   const {ready: menuReady, revision: menuRevision} = useMenuConnection(sessionReady, sessionId);
   const categoryList = useServerList<{ id: string; name: string }>('/api/guest-lists/categories', {
@@ -122,12 +118,11 @@ export default function ClientDashboard() {
     pageSize: 96,
   }, menuReady, sessionId);
   const menuList = useServerList<ProductRecord>('/api/guest-lists/products', {
-    page: pageKey === filterKey ? page : 1, pageSize, search: debouncedSearch, sort,
+    page: 1, pageSize: 100, search: debouncedSearch, sort,
     categoryId: category === 'all' ? undefined : category,
     sauceId: sauce === 'all' ? undefined : sauce,
   }, menuReady, sessionId);
   const menuCards = useMemo(() => (menuList.data?.items ?? []).map(item => productToMenuCard(item, locale)), [menuList.data, locale]);
-  const refreshMenu = menuList.refresh;
   const invalidateMenu = menuList.invalidate;
   const invalidateCategories = categoryList.invalidate;
   useEffect(() => {
@@ -137,6 +132,11 @@ export default function ClientDashboard() {
     }
   }, [menuRevision, invalidateMenu, invalidateCategories]);
   const [basket, setBasket] = useState<MenuCard[]>([]);
+  const quantitySyncRef = useRef(new Map<string, {
+    desired: number;
+    confirmed: number;
+    running: boolean;
+  }>());
   const [cartOpen, setCartOpen] = useState(false);
   const [orderTab, setOrderTab] = useState<'basket' | 'orders'>('basket');
   const placingRef = useRef(false);
@@ -158,9 +158,11 @@ export default function ClientDashboard() {
 
   useEffect(() => {
     if (liveBasketItems) {
-      setBasket(
-        liveBasketItems.map((item) => basketItemToMenuCard(item, locale)),
-      );
+      setBasket(liveBasketItems.map((item) => {
+        const card = basketItemToMenuCard(item, locale);
+        const pending = quantitySyncRef.current.get(item.id);
+        return pending ? { ...card, count: pending.desired } : card;
+      }));
     }
   }, [liveBasketItems, locale]);
 
@@ -200,12 +202,24 @@ export default function ClientDashboard() {
 
   // Open the popup to EDIT an existing cart line (pre-fills its sauces & qty).
   const openCartLine = async (line: MenuCard) => {
+    const cachedProduct = menuCards.find((item) => item.id === line.id);
+    setSelectedItem(cachedProduct ?? line);
+    setEditingLine(line);
+    setCardModalOpen(true);
+    if (cachedProduct) return;
+
     try {
-      const { data } = await apiClient.get('/api/guest-lists/products', { params: { id: line.id, pageSize: 1 } });
-      if (!data.items[0]) { message.error(t('dashboard.outOfStock')); return; }
-      openDetail(productToMenuCard(data.items[0], locale));
-      setEditingLine(line);
-    } catch { message.error(t('dashboard.serverError')); }
+      const { data } = await apiClient.get<{ items: ProductRecord[] }>('/api/guest-lists/products', { params: { id: line.id, pageSize: 1 } });
+      if (!data.items[0]) {
+        setCardModalOpen(false);
+        message.error(t('dashboard.outOfStock'));
+        return;
+      }
+      setSelectedItem(productToMenuCard(data.items[0], locale));
+    } catch {
+      // The editor is already usable with the basket snapshot. A failed
+      // background refresh should not make the popup feel unresponsive.
+    }
   };
 
   const quickAdd = async (item: MenuCard) => {
@@ -226,12 +240,62 @@ export default function ClientDashboard() {
     }
   };
 
+  const syncQuantity = async (basketItemId: string) => {
+    const state = quantitySyncRef.current.get(basketItemId);
+    if (!state || state.running) return;
+    state.running = true;
+    let failed = false;
+
+    try {
+      while (true) {
+        const target = state.desired;
+        await clientAPI.updateBasketItem(basketItemId, { quantity: target });
+        state.confirmed = target;
+        if (state.desired === target) break;
+      }
+    } catch {
+      failed = true;
+      setBasket((items) => items.map((item) =>
+        item.basketItemId === basketItemId
+          ? { ...item, count: state.confirmed }
+          : item,
+      ));
+      message.error(t('dashboard.serverError'));
+      void fetchBasket();
+    } finally {
+      const current = quantitySyncRef.current.get(basketItemId);
+      if (current === state) {
+        state.running = false;
+        if (failed || state.desired === state.confirmed) {
+          quantitySyncRef.current.delete(basketItemId);
+        } else {
+          void syncQuantity(basketItemId);
+        }
+      }
+    }
+  };
+
   const changeCount = async (line: MenuCard, next: number) => {
-    if (!line.basketItemId) return;
-    await clientAPI.updateBasketItem(line.basketItemId, {
-      quantity: Math.max(1, next),
+    const basketItemId = line.basketItemId;
+    if (!basketItemId) return;
+    const quantity = Math.max(1, next);
+
+    setBasket((items) => items.map((item) =>
+      item.basketItemId === basketItemId ? { ...item, count: quantity } : item,
+    ));
+
+    const pending = quantitySyncRef.current.get(basketItemId);
+    if (pending) {
+      pending.desired = quantity;
+      return;
+    }
+
+    quantitySyncRef.current.set(basketItemId, {
+      desired: quantity,
+      confirmed: line.count ?? 1,
+      running: false,
     });
-    await fetchBasket();
+    void syncQuantity(basketItemId);
   };
 
   const removeItem = async (item: MenuCard) => {
@@ -396,13 +460,6 @@ export default function ClientDashboard() {
               onQuickAdd={quickAdd}
               onLoadMore={() => {}}
             />
-            <div className={css.menuPagination}>
-              <ListPagination data={menuList.data} loading={menuList.loading} error={menuList.error}
-                onRetry={refreshMenu} onChange={(nextPage, size) => {
-                  setPageKey(JSON.stringify([debouncedSearch, sort, category, sauce, size]));
-                  setPage(nextPage); setPageSize(size); returnToResults();
-                }} />
-            </div>
             </div>
           </main>
           <ClientOrderPanel
