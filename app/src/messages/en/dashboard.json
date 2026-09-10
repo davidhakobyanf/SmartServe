@@ -41,7 +41,8 @@
     "subtitle": "Activity for: {period}",
     "averageCheck": "Average check",
     "ariaLabel": "Chart of order counts",
-    "tooltip": "Orders: {orders}, revenue: {revenue}",
+    "peak": "Peak",
+    "tooltip": "Orders: {orders}; revenue: {revenue}",
     "tooltipNoRevenue": "Orders: {orders}"
   },
   "recentOrders": {

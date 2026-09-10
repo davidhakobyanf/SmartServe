@@ -14,6 +14,10 @@ export interface DashboardMetrics {
 export interface DashboardSeriesPoint {
   bucket: string;
   orders: number;
+  placed: number;
+  preparing: number;
+  ready: number;
+  completed: number;
   revenue: number | null;
 }
 

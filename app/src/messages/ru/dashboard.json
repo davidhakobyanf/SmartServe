@@ -41,8 +41,9 @@
     "subtitle": "Активность за период: {period}",
     "averageCheck": "Средний чек",
     "ariaLabel": "График количества заказов",
-    "tooltip": "Заказов: {orders}, выручка: {revenue}",
-    "tooltipNoRevenue": "Заказов: {orders}"
+    "peak": "Пик",
+    "tooltip": "Заказы: {orders}; выручка: {revenue}",
+    "tooltipNoRevenue": "Заказы: {orders}"
   },
   "recentOrders": {
     "title": "Текущая очередь",

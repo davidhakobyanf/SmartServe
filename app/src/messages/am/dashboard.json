@@ -41,6 +41,7 @@
     "subtitle": "Ակտիվությունը տվյալ ժամանակահատվածում՝ {period}",
     "averageCheck": "Միջին հաշիվ",
     "ariaLabel": "Պատվերների քանակի գրաֆիկ",
+    "peak": "Գագաթ",
     "tooltip": "Պատվերներ՝ {orders}, հասույթ՝ {revenue}",
     "tooltipNoRevenue": "Պատվերներ՝ {orders}"
   },

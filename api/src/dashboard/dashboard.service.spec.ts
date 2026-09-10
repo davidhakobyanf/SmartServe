@@ -17,7 +17,10 @@ describe("DashboardService", () => {
         period_orders: "8", active_orders: "3", placed: "1",
         preparing: "1", ready: "1", revenue: "12500", average_check: "6250",
       }])
-      .mockResolvedValueOnce([{ bucket: "2026-09-10T12:00:00", orders: "2", revenue: "5500" }])
+      .mockResolvedValueOnce([{
+        bucket: "2026-09-10T12:00:00", orders: "2", placed: "0",
+        preparing: "1", ready: "0", completed: "1", revenue: "5500",
+      }])
       .mockResolvedValueOnce([{
         id: "order-1", table_number: "7", status: "preparing", total: "5500",
         created_at: new Date("2026-09-10T08:00:00Z"), item_count: "2", age_minutes: "12",
@@ -54,7 +57,10 @@ describe("DashboardService", () => {
         totalTables: 10,
       },
       statusCounts: { placed: 1, preparing: 1, ready: 1 },
-      series: [{ bucket: "2026-09-10T12:00:00", orders: 2, revenue: 5500 }],
+      series: [{
+        bucket: "2026-09-10T12:00:00", orders: 2, placed: 0,
+        preparing: 1, ready: 0, completed: 1, revenue: 5500,
+      }],
       recentOrders: [{ id: "order-1", tableNumber: 7, total: 5500, itemCount: 2, ageMinutes: 12 }],
       topProducts: [{ productId: "product-1", title: "Բուրգեր", quantity: 4, revenue: 8000 }],
       lowStock: [{ id: "product-2", title: "Աղցան", stockQuantity: 2 }],

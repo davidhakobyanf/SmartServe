@@ -87,6 +87,10 @@ export class DashboardService {
               SELECT
                 to_char(b.bucket, '${bucketFormat}') AS bucket,
                 COUNT(o.id) FILTER (WHERE o.status <> 'cancelled') AS orders,
+                COUNT(o.id) FILTER (WHERE o.status = 'placed') AS placed,
+                COUNT(o.id) FILTER (WHERE o.status = 'preparing') AS preparing,
+                COUNT(o.id) FILTER (WHERE o.status = 'ready') AS ready,
+                COUNT(o.id) FILTER (WHERE o.status = 'completed') AS completed,
                 COALESCE(SUM(o.total) FILTER (WHERE o.status = 'completed'), 0) AS revenue
               FROM buckets b
               LEFT JOIN orders o
@@ -210,6 +214,10 @@ export class DashboardService {
       series: series.map((row: Record<string, unknown>) => ({
         bucket: String(row.bucket),
         orders: number(row.orders),
+        placed: number(row.placed),
+        preparing: number(row.preparing),
+        ready: number(row.ready),
+        completed: number(row.completed),
         revenue: canViewRevenue ? number(row.revenue) : null,
       })),
       recentOrders: recentOrders.map((row: Record<string, unknown>) => ({
