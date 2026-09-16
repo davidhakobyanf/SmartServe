@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
-import { TbChevronDown, TbPlus } from 'react-icons/tb';
+import { TbChevronDown } from 'react-icons/tb';
 import type { MenuCard, MenuImage } from '@/types';
 import { formatAmount } from '@/lib/formatters';
+import { PlusIcon } from '@/components/Common/InterfaceIcons';
 import css from './ClientDashboard.module.css';
 
 interface ClientMenuGridProps {
@@ -57,7 +58,7 @@ export default function ClientMenuGrid({ items, images, hasMore, onOpen, onQuick
                 <div className={css.cardFoot}>
                   <span className={css.price}>{formatAmount(item.price)} ֏</span>
                   <button type="button" className={css.addBtn} disabled={unavailable} onClick={() => void onQuickAdd(item)}>
-                    {!unavailable && <TbPlus />} {unavailable ? t('dashboard.outOfStock') : t('dashboard.add')}
+                    {!unavailable && <PlusIcon />} {unavailable ? t('dashboard.outOfStock') : t('dashboard.add')}
                   </button>
                 </div>
               </div>

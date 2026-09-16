@@ -1,0 +1,11 @@
+.switcher :global(.ant-select-arrow) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.switcher :global(.ant-select-arrow svg) {
+  width: 16px;
+  height: 16px;
+}

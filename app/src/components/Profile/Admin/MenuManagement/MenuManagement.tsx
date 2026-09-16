@@ -3,7 +3,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Input, Select, Dropdown, Empty, Switch } from 'antd';
-import { TbPlus, TbSearch, TbDotsVertical } from 'react-icons/tb';
+import { TbSearch, TbDotsVertical } from 'react-icons/tb';
+import { PlusIcon } from '@/components/Common/InterfaceIcons';
 import clientAPI from '@/api/api';
 import { useFetching } from '@/hoc/fetchingHook';
 import { useProfileData } from '@/context/ProfileDataContext';
@@ -144,7 +145,7 @@ export default function MenuManagement() {
               className={css.btnPrimary}
               onClick={() => setAddOpen(true)}
             >
-              <TbPlus /> {t('addNewItem')}
+              <PlusIcon /> {t('addNewItem')}
             </button>
           ) : null
         }

@@ -10,10 +10,10 @@ import {
   Spin,
 } from 'antd';
 import {
-  TbPlus,
   TbRefresh,
   TbSearch,
 } from 'react-icons/tb';
+import { PlusIcon } from '@/components/Common/InterfaceIcons';
 import staffApi from '@/api/staffApi';
 import {
   PERMISSIONS,
@@ -287,7 +287,7 @@ export default function StaffManagement() {
         actions={
           <>
           {view === 'roles' && canManageRoles && (
-            <Button type="primary" icon={<TbPlus />} onClick={openCreateRole}>
+            <Button type="primary" icon={<PlusIcon />} onClick={openCreateRole}>
               {t('actions.createRole')}
             </Button>
           )}

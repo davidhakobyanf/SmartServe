@@ -1,6 +1,7 @@
 import { useTranslations } from 'next-intl';
-import { TbArrowRight, TbLock, TbMinus, TbPlus, TbShoppingCart, TbTrash, TbX } from 'react-icons/tb';
+import { TbArrowRight, TbLock, TbMinus, TbShoppingCart, TbTrash, TbX } from 'react-icons/tb';
 import type { MenuCard, MenuImage } from '@/types';
+import { PlusIcon } from '@/components/Common/InterfaceIcons';
 import { formatAmount } from '@/lib/formatters';
 import { getBasketLineKey, getMenuLineTotal } from '@/lib/clientMenu';
 import css from './ClientDashboard.module.css';
@@ -62,7 +63,7 @@ export default function ClientOrderPanel({ open, basket, images, total, onClose,
                   <div className={css.stepper}>
                     <button type="button" onClick={() => void onChangeCount(item, (item.count ?? 1) - 1)} aria-label={t('order.decrease')}><TbMinus /></button>
                     <span>{item.count ?? 1}</span>
-                    <button type="button" onClick={() => void onChangeCount(item, (item.count ?? 1) + 1)} aria-label={t('order.increase')}><TbPlus /></button>
+                    <button type="button" onClick={() => void onChangeCount(item, (item.count ?? 1) + 1)} aria-label={t('order.increase')}><PlusIcon /></button>
                   </div>
                 </div>
               </div>

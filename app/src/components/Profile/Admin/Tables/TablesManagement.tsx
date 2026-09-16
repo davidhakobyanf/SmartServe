@@ -21,12 +21,12 @@ import {
   TbCopy,
   TbDownload,
   TbEdit,
-  TbPlus,
   TbQrcode,
   TbRefresh,
   TbTable,
   TbX,
 } from 'react-icons/tb';
+import { PlusIcon } from '@/components/Common/InterfaceIcons';
 import tablesApi from '@/api/tablesApi';
 import type { RestaurantTable, TablePayload } from '@/types/tables';
 import css from './TablesManagement.module.css';
@@ -188,7 +188,7 @@ export default function TablesManagement() {
             {t('actions.refresh')}
           </Button>
           {canManageTables && (
-            <Button type="primary" icon={<TbPlus />} onClick={openCreate}>
+            <Button type="primary" icon={<PlusIcon />} onClick={openCreate}>
               {t('actions.add')}
             </Button>
           )}
@@ -227,7 +227,7 @@ export default function TablesManagement() {
           <div className={css.empty}>
             <Empty description={t('empty')} />
             {canManageTables && (
-              <Button type="primary" icon={<TbPlus />} onClick={openCreate}>
+              <Button type="primary" icon={<PlusIcon />} onClick={openCreate}>
                 {t('actions.addFirst')}
               </Button>
             )}

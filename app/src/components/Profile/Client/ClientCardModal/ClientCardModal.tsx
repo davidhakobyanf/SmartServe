@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { App, Modal } from 'antd';
-import { TbX, TbMinus, TbPlus, TbCheck } from 'react-icons/tb';
+import { TbX, TbMinus, TbCheck } from 'react-icons/tb';
 import css from './ClientCardModal.module.css';
+import { PlusIcon } from '@/components/Common/InterfaceIcons';
 import { useFetching } from '@/hoc/fetchingHook';
 import clientAPI from '@/api/api';
 import type { MenuCard, MenuImage } from '@/types';
@@ -156,7 +157,7 @@ export default function ClientCardModal({
                   className={css.stepBtn}
                   onClick={() => setQuantity((q) => q + 1)}
                 >
-                  <TbPlus />
+                  <PlusIcon />
                 </button>
               </div>
             </div>

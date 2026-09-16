@@ -108,8 +108,15 @@
 }
 
 .languageControl :global(.ant-select-arrow) {
-  inset-inline-end: 12px;
+  inset-inline-end: 0;
+  width: 100%;
+  justify-content: center;
   color: #fff !important;
+}
+
+.languageControl :global(.ant-select-arrow svg) {
+  width: 18px;
+  height: 18px;
 }
 
 .callBtn,
@@ -514,7 +521,8 @@
 }
 
 .addBtn svg {
-  font-size: 21px;
+  width: 22px;
+  height: 22px;
 }
 
 .addBtn:disabled {
