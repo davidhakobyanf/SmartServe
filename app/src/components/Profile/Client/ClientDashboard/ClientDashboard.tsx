@@ -234,7 +234,7 @@ export default function ClientDashboard() {
         quantity: 1,
       });
       await fetchBasket();
-      message.success(t('dashboard.addedToBasket'));
+      message.success(t('dashboard.addedToBasket'), 1.5);
     } catch {
       message.error(t('dashboard.serverError'));
     }

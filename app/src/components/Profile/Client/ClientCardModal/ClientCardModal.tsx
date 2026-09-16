@@ -98,7 +98,7 @@ export default function ClientCardModal({
       return;
     }
     if (editItem) message.success(t('card.updated'));
-    else message.success(t('card.added'));
+    else message.success(t('dashboard.addedToBasket'), 1.5);
     setCardModalOpen(false);
   };
 

@@ -104,6 +104,14 @@ svg {
   max-width: 100%;
 }
 
+/* Messages are informational overlays and must not block controls beneath. */
+.ant-message,
+.ant-message-notice,
+.ant-message-notice-wrapper,
+.ant-message-notice-content {
+  pointer-events: none !important;
+}
+
 .ant-modal {
   max-width: calc(100vw - 24px);
 }
