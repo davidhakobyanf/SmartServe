@@ -58,7 +58,7 @@ export default function ClientMenuGrid({ items, images, hasMore, onOpen, onQuick
                 <div className={css.cardFoot}>
                   <span className={css.price}>{formatAmount(item.price)} ֏</span>
                   <button type="button" className={css.addBtn} disabled={unavailable} onClick={() => void onQuickAdd(item)}>
-                    {!unavailable && <PlusIcon />} {unavailable ? t('dashboard.outOfStock') : t('dashboard.add')}
+                    {unavailable ? t('dashboard.outOfStock') : <PlusIcon />}
                   </button>
                 </div>
               </div>
