@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { App, Modal } from 'antd';
 import { TbX, TbMinus, TbCheck } from 'react-icons/tb';
@@ -28,6 +28,7 @@ export default function ClientCardModal({
 }: ClientCardModalProps) {
   const t = useTranslations('client');
   const { message } = App.useApp();
+  const modalPanelRef = useRef<HTMLDivElement>(null);
   const [quantity, setQuantity] = useState(1);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
 
@@ -111,6 +112,14 @@ export default function ClientCardModal({
       centered
       width={860}
       zIndex={1100}
+      destroyOnHidden
+      panelRef={modalPanelRef}
+      afterOpenChange={(open) => {
+        if (!open) return;
+        modalPanelRef.current
+          ?.querySelector<HTMLElement>('.ant-modal-body')
+          ?.scrollTo({ top: 0, left: 0 });
+      }}
       className={css.modal}
       styles={{ body: { padding: 0 } }}
     >

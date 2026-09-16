@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { TbArrowRight, TbLock, TbMinus, TbShoppingCart, TbTrash, TbX } from 'react-icons/tb';
 import type { MenuCard, MenuImage } from '@/types';
@@ -33,6 +33,7 @@ interface ClientOrderPanelProps {
 
 export default function ClientOrderPanel({ open, basket, images, total, onClose, onOpenItem, onChangeCount, onRemove, onPlaceOrder, placing, tab, onTabChange, orders, ordersTotal, historyPagination, ordersLoading, ordersError, onRefreshOrders }: ClientOrderPanelProps) {
   const t = useTranslations('client');
+  const panelRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     if (!open || !window.matchMedia('(max-width: 1199px)').matches) return;
@@ -70,9 +71,17 @@ export default function ClientOrderPanel({ open, basket, images, total, onClose,
     };
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return;
+    panelRef.current
+      ?.querySelector<HTMLElement>(`.${css.orderList}`)
+      ?.scrollTo({ top: 0, left: 0 });
+  }, [open, tab]);
+
   return (
     <>
       <aside
+        ref={panelRef}
         className={`${css.order} ${open ? css.orderOpen : ''}`}
         role="dialog"
         aria-modal={open}
