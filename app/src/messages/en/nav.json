@@ -11,5 +11,13 @@
   "settings": "Settings",
   "logout": "Logout",
   "online": "Online",
-  "ownerFallback": "Restaurant Owner"
+  "ownerFallback": "Restaurant Owner",
+  "connection": {
+    "loadingTitle": "Loading restaurant data",
+    "loadingMessage": "Checking the connection and your session.",
+    "reconnecting": "The service is updating. Reconnecting…",
+    "unavailableTitle": "Service temporarily unavailable",
+    "unavailableMessage": "An update may be in progress. The connection will recover automatically.",
+    "retry": "Retry"
+  }
 }

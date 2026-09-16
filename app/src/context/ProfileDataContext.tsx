@@ -1,5 +1,6 @@
 'use client';
 
+import axios from 'axios';
 import {
   createContext,
   useState,
@@ -17,6 +18,13 @@ import type { Permission } from '@/types/staff';
 
 const emptyProfile: Profile = { name: '', surname: '', card: [] };
 
+export type ProfileConnectionState =
+  | 'loading'
+  | 'ready'
+  | 'reconnecting'
+  | 'unavailable'
+  | 'expired';
+
 let profileRequest: {
   key: string;
   id: symbol;
@@ -33,6 +41,7 @@ interface ProfileDataContextValue {
   fetchProfile: (options?: { force?: boolean }) => Promise<void>;
   isLoading: boolean;
   permissions: Permission[];
+  connectionState: ProfileConnectionState;
 }
 
 const ProfileDataContext = createContext<ProfileDataContextValue | null>(null);
@@ -45,11 +54,27 @@ export function ProfileDataProvider({ children }: { children: ReactNode }) {
   const [profileDataList, setProfileDataList] = useState<Profile>(emptyProfile);
   const [isLoading, setIsLoading] = useState(true);
   const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [connectionState, setConnectionState] =
+    useState<ProfileConnectionState>('loading');
+  const [retryAttempt, setRetryAttempt] = useState(0);
 
   const fetchProfile = useCallback(async (options?: { force?: boolean }) => {
     const force = options?.force ?? false;
-    const accessToken = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-    const hasAccessToken = Boolean(accessToken);
+    const accessToken = typeof window !== 'undefined'
+      ? localStorage.getItem('accessToken')
+      : null;
+
+    if (!accessToken) {
+      cachedProfile = null;
+      cachedPermissions = [];
+      cachedAccessToken = null;
+      cachedProfileLocale = locale;
+      setProfileDataList(emptyProfile);
+      setPermissions([]);
+      setConnectionState('expired');
+      setIsLoading(false);
+      return;
+    }
 
     if (
       !force &&
@@ -59,17 +84,7 @@ export function ProfileDataProvider({ children }: { children: ReactNode }) {
     ) {
       setProfileDataList(cachedProfile);
       setPermissions(cachedPermissions);
-      setIsLoading(false);
-      return;
-    }
-
-    if (!hasAccessToken) {
-      cachedProfile = emptyProfile;
-      cachedPermissions = [];
-      cachedAccessToken = null;
-      cachedProfileLocale = locale;
-      setProfileDataList(emptyProfile);
-      setPermissions([]);
+      setConnectionState('ready');
       setIsLoading(false);
       return;
     }
@@ -84,21 +99,50 @@ export function ProfileDataProvider({ children }: { children: ReactNode }) {
     const request = (async () => {
       try {
         setIsLoading(true);
-        const { data: res } = await clientAPI.getProfile();
-        if (res && currentLocaleRef.current === locale && localStorage.getItem('accessToken') === accessToken) {
-          const profile = { ...res, card: [] };
-          cachedProfile = profile;
-          cachedPermissions = res.permissions ?? [];
-          cachedAccessToken = accessToken;
-          cachedProfileLocale = locale;
-          setProfileDataList(profile);
+        const { data: response } = await clientAPI.getProfile();
+        if (
+          currentLocaleRef.current !== locale ||
+          localStorage.getItem('accessToken') !== accessToken
+        ) {
+          return;
+        }
+
+        const profile: Profile = { ...response, card: [] };
+        cachedProfile = profile;
+        cachedPermissions = response.permissions ?? [];
+        cachedAccessToken = accessToken;
+        cachedProfileLocale = locale;
+        setProfileDataList(profile);
+        setPermissions(cachedPermissions);
+        setConnectionState('ready');
+        setRetryAttempt(0);
+      } catch (error) {
+        if (currentLocaleRef.current !== locale) return;
+
+        const status = axios.isAxiosError(error)
+          ? error.response?.status
+          : undefined;
+
+        if (status === 401 || status === 403) {
+          localStorage.removeItem('accessToken');
+          sessionStorage.setItem('smartserve:auth-notice', 'session-expired');
+          cachedProfile = null;
+          cachedPermissions = [];
+          cachedAccessToken = null;
+          cachedProfileLocale = null;
+          setProfileDataList(emptyProfile);
+          setPermissions([]);
+          setConnectionState('expired');
+          return;
+        }
+
+        const hasCachedProfile = Boolean(cachedProfile?.id);
+        if (cachedProfile) {
+          setProfileDataList(cachedProfile);
           setPermissions(cachedPermissions);
         }
-      } catch {
-        if (currentLocaleRef.current === locale) {
-          cachedPermissions = [];
-          setPermissions([]);
-        }
+        setConnectionState(hasCachedProfile ? 'reconnecting' : 'unavailable');
+        setRetryAttempt((attempt) => attempt + 1);
       } finally {
         if (profileRequest?.id === requestId) {
           setIsLoading(false);
@@ -115,6 +159,38 @@ export function ProfileDataProvider({ children }: { children: ReactNode }) {
     void fetchProfile();
   }, [fetchProfile, pathname]);
 
+  useEffect(() => {
+    if (
+      connectionState !== 'reconnecting' &&
+      connectionState !== 'unavailable'
+    ) {
+      return;
+    }
+
+    const exponent = Math.min(Math.max(retryAttempt - 1, 0), 4);
+    const delay = Math.min(30_000, 2_000 * 2 ** exponent);
+    const timer = window.setTimeout(() => {
+      void fetchProfile({ force: true });
+    }, delay);
+
+    return () => window.clearTimeout(timer);
+  }, [connectionState, fetchProfile, retryAttempt]);
+
+  useEffect(() => {
+    const validateSession = () => {
+      if (document.visibilityState === 'visible') {
+        void fetchProfile({ force: true });
+      }
+    };
+    const interval = window.setInterval(validateSession, 5 * 60 * 1000);
+    document.addEventListener('visibilitychange', validateSession);
+
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', validateSession);
+    };
+  }, [fetchProfile]);
+
   return (
     <ProfileDataContext.Provider
       value={{
@@ -123,6 +199,7 @@ export function ProfileDataProvider({ children }: { children: ReactNode }) {
         fetchProfile,
         isLoading,
         permissions,
+        connectionState,
       }}
     >
       {children}
@@ -131,9 +208,9 @@ export function ProfileDataProvider({ children }: { children: ReactNode }) {
 }
 
 export function useProfileData(): ProfileDataContextValue {
-  const ctx = useContext(ProfileDataContext);
-  if (!ctx) {
+  const context = useContext(ProfileDataContext);
+  if (!context) {
     throw new Error('useProfileData must be used within ProfileDataProvider');
   }
-  return ctx;
+  return context;
 }

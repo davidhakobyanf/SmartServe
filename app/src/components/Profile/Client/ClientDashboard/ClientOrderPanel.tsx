@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { TbArrowRight, TbLock, TbMinus, TbShoppingCart, TbTrash, TbX } from 'react-icons/tb';
 import type { MenuCard, MenuImage } from '@/types';
@@ -32,9 +33,51 @@ interface ClientOrderPanelProps {
 
 export default function ClientOrderPanel({ open, basket, images, total, onClose, onOpenItem, onChangeCount, onRemove, onPlaceOrder, placing, tab, onTabChange, orders, ordersTotal, historyPagination, ordersLoading, ordersError, onRefreshOrders }: ClientOrderPanelProps) {
   const t = useTranslations('client');
+
+  useEffect(() => {
+    if (!open || !window.matchMedia('(max-width: 1199px)').matches) return;
+
+    const scrollY = window.scrollY;
+    const body = document.body;
+    const root = document.documentElement;
+    const previousBodyStyles = {
+      position: body.style.position,
+      top: body.style.top,
+      right: body.style.right,
+      left: body.style.left,
+      width: body.style.width,
+      overflow: body.style.overflow,
+    };
+    const previousOverscroll = root.style.overscrollBehavior;
+
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}px`;
+    body.style.right = '0';
+    body.style.left = '0';
+    body.style.width = '100%';
+    body.style.overflow = 'hidden';
+    root.style.overscrollBehavior = 'none';
+
+    return () => {
+      body.style.position = previousBodyStyles.position;
+      body.style.top = previousBodyStyles.top;
+      body.style.right = previousBodyStyles.right;
+      body.style.left = previousBodyStyles.left;
+      body.style.width = previousBodyStyles.width;
+      body.style.overflow = previousBodyStyles.overflow;
+      root.style.overscrollBehavior = previousOverscroll;
+      window.scrollTo(0, scrollY);
+    };
+  }, [open]);
+
   return (
     <>
-      <aside className={`${css.order} ${open ? css.orderOpen : ''}`} aria-label={t('history.panelTitle')}>
+      <aside
+        className={`${css.order} ${open ? css.orderOpen : ''}`}
+        role="dialog"
+        aria-modal={open}
+        aria-label={t('history.panelTitle')}
+      >
         <div className={css.orderHead}>
           <h3>{tab === 'basket' ? t('history.basket') : t('history.title')}</h3>
           <button type="button" className={css.orderClose} onClick={onClose} aria-label={t('card.close')}><TbX /></button>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import css from "./Login.module.css";
 import { App, Button, Form, Input, Checkbox } from "antd";
 import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
@@ -21,6 +22,14 @@ export default function Login({ form, setCheck }: LoginProps) {
   const t = useTranslations("auth");
   const router = useRouter();
   const { message } = App.useApp();
+
+  useEffect(() => {
+    const notice = sessionStorage.getItem("smartserve:auth-notice");
+    if (notice !== "session-expired") return;
+
+    sessionStorage.removeItem("smartserve:auth-notice");
+    message.warning(t("login.toast.sessionExpired"));
+  }, [message, t]);
 
   const handleLogin = async (values: LoginFormValues) => {
     try {
