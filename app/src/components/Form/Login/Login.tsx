@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import css from "./Login.module.css";
 import { App, Button, Form, Input, Checkbox } from "antd";
 import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
@@ -10,6 +10,7 @@ import type { FormInstance } from "antd";
 import { API_URL } from "@/lib/apiUrl";
 import type { LoginFormValues } from "@/types";
 import clientAPI from "@/api/api";
+import { useProfileData } from "@/context/ProfileDataContext";
 
 interface LoginProps {
   form: FormInstance;
@@ -22,6 +23,8 @@ export default function Login({ form, setCheck }: LoginProps) {
   const t = useTranslations("auth");
   const router = useRouter();
   const { message } = App.useApp();
+  const { fetchProfile } = useProfileData();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const notice = sessionStorage.getItem("smartserve:auth-notice");
@@ -32,6 +35,7 @@ export default function Login({ form, setCheck }: LoginProps) {
   }, [message, t]);
 
   const handleLogin = async (values: LoginFormValues) => {
+    setIsSubmitting(true);
     try {
       const response = await fetch(`${API_URL}/api/user/login`, {
         method: "POST",
@@ -43,8 +47,11 @@ export default function Login({ form, setCheck }: LoginProps) {
       if (response.ok) {
         localStorage.setItem("accessToken", data.accessToken);
 
-        message.success(t("login.toast.success"));
         const { data: currentUser } = await clientAPI.getMe();
+        // The provider is mounted on the login page too. Refresh it before
+        // navigation so the profile layout never sees the pre-login
+        // `expired` state and redirects a valid first login back home.
+        await fetchProfile({ force: true });
         const destinations = [
           ["menu.view", "/profile/menu"],
           ["orders.view", "/profile/orders"],
@@ -56,7 +63,8 @@ export default function Login({ form, setCheck }: LoginProps) {
         const destination = destinations.find(([permission]) =>
           currentUser.permissions.includes(permission),
         )?.[1];
-        router.push(destination ?? "/profile/account");
+        message.success(t("login.toast.success"));
+        router.replace(destination ?? "/profile/account");
       } else {
         if (data.status === "pending") {
           message.warning(t("login.toast.pending"));
@@ -83,6 +91,8 @@ export default function Login({ form, setCheck }: LoginProps) {
       }
     } catch {
       message.error(t("login.toast.error"));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -136,7 +146,13 @@ export default function Login({ form, setCheck }: LoginProps) {
           </button>
         </div>
 
-        <Button type="primary" htmlType="submit" size="large" block>
+        <Button
+          type="primary"
+          htmlType="submit"
+          size="large"
+          loading={isSubmitting}
+          block
+        >
           {t("login.submit")}
         </Button>
       </Form>

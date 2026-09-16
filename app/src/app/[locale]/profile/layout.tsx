@@ -51,14 +51,14 @@ export default function ProfileLayout({
     const accessToken = localStorage.getItem("accessToken");
     if (!accessToken) {
       router.replace("/");
+      return;
     }
-  }, [router]);
 
-  useEffect(() => {
-    if (connectionState === "expired") {
-      router.replace("/");
+   
+    if (connectionState === "expired" && !isLoading) {
+      void fetchProfile({ force: true });
     }
-  }, [connectionState, router]);
+  }, [connectionState, fetchProfile, isLoading, router]);
 
   useEffect(() => {
     if (
