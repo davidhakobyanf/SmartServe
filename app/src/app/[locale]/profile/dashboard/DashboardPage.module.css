@@ -53,7 +53,7 @@
 .pipelineList li[data-status='ready'] .track > span { background:var(--success); }
 .pipelineList li[data-status='late'] .track > span { background:var(--danger); }
 .pipelineActions { display:flex; gap:8px; margin-top:auto; }
-.pipelineActions a { flex:1; padding:8px 10px; border:1px solid var(--border-strong); border-radius:9px; color:var(--text); font-size:12px; font-weight:650; text-align:center; text-decoration:none; }
+.pipelineActions a { display:flex; flex:1; align-items:center; justify-content:center; min-width:0; padding:8px 10px; border:1px solid var(--border-strong); border-radius:9px; color:var(--text); font-size:12px; font-weight:650; line-height:1.35; text-align:center; text-decoration:none; }
 .pipelineActions a:first-child { border-color:var(--primary); color:var(--primary); }
 .pipelineActions a:hover { border-color:var(--primary); color:var(--primary); }
 .liveDot,.offlineDot { width:8px; height:8px; flex:0 0 8px; border-radius:50%; background:var(--success); }

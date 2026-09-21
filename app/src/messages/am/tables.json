@@ -2,7 +2,7 @@
   "pageTitle": "Սեղաններ",
   "pageSubtitle": "Կառավարեք սեղանները, ակտիվ սեսիաները և մշտական QR կոդերը",
   "stats": { "total": "Ընդհանուր սեղաններ", "open": "Զբաղված", "available": "Ազատ", "inactive": "Անջատված" },
-  "columns": { "table": "Սեղան", "status": "Կարգավիճակ", "session": "Ակտիվ սեսիա", "qr": "QR կոդ", "actions": "Գործողություններ" },
+  "columns": { "table": "Սեղան", "status": "Կարգավիճակ", "session": "Ակտիվ սեսիա", "orderTotal": "Պատվերների գումարը", "qr": "QR կոդ", "actions": "Գործողություններ" },
   "status": { "available": "Ազատ", "occupied": "Բացված", "inactive": "Անջատված" },
   "actions": { "refresh": "Թարմացնել", "add": "Ավելացնել սեղան", "addFirst": "Ստեղծել առաջին սեղանը", "edit": "Փոփոխել", "showQr": "Ցույց տալ QR-ը", "close": "Փակել սեղանը", "copy": "Պատճենել հղումը", "download": "Ներբեռնել QR-ը" },
   "form": { "createTitle": "Նոր սեղան", "editTitle": "Փոփոխել սեղանը", "number": "Սեղանի համարը", "numberRequired": "Մուտքագրեք սեղանի համարը", "numberPlaceholder": "Օրինակ՝ 1", "name": "Անվանում կամ գոտի", "namePlaceholder": "Օրինակ՝ Տեռասա", "active": "Սեղանն ակտիվ է", "save": "Պահպանել", "cancel": "Չեղարկել" },

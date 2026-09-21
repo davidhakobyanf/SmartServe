@@ -64,6 +64,17 @@
   border-block-end: 0;
 }
 
+.assetAvatar {
+  position: relative;
+  display: block;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.assetAvatar img { object-fit: cover; }
+
 @media screen and (max-width: 1180px) {
   .assetWorkspace {
     grid-template-columns: 1fr;

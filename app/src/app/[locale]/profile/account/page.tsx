@@ -14,6 +14,7 @@ import {
   type UploadProps,
 } from 'antd';
 import ImgCrop from 'antd-img-crop';
+import SkeletonImage from '@/components/Common/SkeletonImage/SkeletonImage';
 import { useTranslations } from 'next-intl';
 import { useParams } from 'next/navigation';
 import {
@@ -264,7 +265,10 @@ export default function AccountPage() {
           <ImgCrop aspect={1} cropShape="round" showGrid={false} zoomSlider rotationSlider showReset quality={0.9} beforeCrop={validateAvatar} modalTitle={t('avatar.editorTitle')} modalOk={t('avatar.apply')} modalCancel={t('cancel')} resetText={t('avatar.reset')} modalProps={{ centered: true }}>
             <Upload accept={IMAGE_ACCEPT} showUploadList={false} beforeUpload={uploadAvatar} disabled={savingAvatar}>
               <button type="button" className={css.avatarButton} disabled={savingAvatar}>
-                <Avatar size={126} src={avatarSrc}>{initials}</Avatar>
+                <span className={css.avatarFrame}>
+                  <Avatar size={126}>{initials}</Avatar>
+                  {avatarSrc && <SkeletonImage src={avatarSrc} alt={fullName} className={css.avatarPhoto} loading="eager" fallback={null} />}
+                </span>
                 <span className={css.camera}><TbCamera /></span>
                 {savingAvatar && <span className={css.avatarLoading}><Spin /></span>}
               </button>

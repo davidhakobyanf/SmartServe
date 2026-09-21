@@ -2,7 +2,7 @@
   "pageTitle": "Tables",
   "pageSubtitle": "Manage tables, active sessions and permanent QR codes",
   "stats": { "total": "Total tables", "open": "Occupied", "available": "Available", "inactive": "Inactive" },
-  "columns": { "table": "Table", "status": "Status", "session": "Active session", "qr": "QR code", "actions": "Actions" },
+  "columns": { "table": "Table", "status": "Status", "session": "Active session", "orderTotal": "Order total", "qr": "QR code", "actions": "Actions" },
   "status": { "available": "Available", "occupied": "Open", "inactive": "Inactive" },
   "actions": { "refresh": "Refresh", "add": "Add table", "addFirst": "Create first table", "edit": "Edit", "showQr": "Show QR", "close": "Close table", "copy": "Copy link", "download": "Download QR" },
   "form": { "createTitle": "New table", "editTitle": "Edit table", "number": "Table number", "numberRequired": "Enter a table number", "numberPlaceholder": "For example: 1", "name": "Name or area", "namePlaceholder": "For example: Terrace", "active": "Table is active", "save": "Save", "cancel": "Cancel" },

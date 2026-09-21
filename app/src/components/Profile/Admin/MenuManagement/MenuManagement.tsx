@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { Input, Select, Dropdown, Empty, Switch } from 'antd';
 import { TbSearch, TbDotsVertical } from 'react-icons/tb';
 import { PlusIcon } from '@/components/Common/InterfaceIcons';
+import SkeletonImage from '@/components/Common/SkeletonImage/SkeletonImage';
 import clientAPI from '@/api/api';
 import { useFetching } from '@/hoc/fetchingHook';
 import { useProfileData } from '@/context/ProfileDataContext';
@@ -234,11 +235,11 @@ export default function MenuManagement() {
                       onClick={() => canManageProducts && openCard(item)}
                     >
                       {src ? (
-                        <img
+                        <SkeletonImage
                           src={src}
                           alt={item.title}
-                          loading="lazy"
                           className={css.img}
+                          fallback={<div className={css.imgFallback} />}
                         />
                       ) : (
                         <div className={css.imgFallback} />

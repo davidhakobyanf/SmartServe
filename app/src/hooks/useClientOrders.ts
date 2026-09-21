@@ -44,6 +44,6 @@ export function useClientOrders(token: string | null, enabled: boolean, liveOrde
     }
   }, [list.data]);
   const orders = useMemo(() => (list.data?.items ?? []).map(order => normalizeOrderRecord(order, locale)), [list.data, locale]);
-  return { orders, total: list.data?.total ?? 0, pageData: list.data, loading: list.loading, error: list.error, refreshOrders: list.refresh,
+  return { orders, total: list.data?.total ?? 0, payableTotal: list.data?.stats?.payableTotal ?? null, pageData: list.data, loading: list.loading, error: list.error, refreshOrders: list.refresh,
     onPageChange: (next: number, size: number) => { setPage(next); setPageSize(size); } };
 }

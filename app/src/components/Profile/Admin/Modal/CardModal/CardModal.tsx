@@ -7,6 +7,7 @@ import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import DeleteCardModal from './DeleteCardModal/DeleteCardModal';
 import EditCardModal from './EditCardModal/EditCardModal';
 import { formatAmount } from '@/lib/formatters';
+import SkeletonImage from '@/components/Common/SkeletonImage/SkeletonImage';
 import type { MenuCard, MenuImage } from '@/types';
 import css from './CardModal.module.css';
 
@@ -73,10 +74,12 @@ export default function CardModal({
             <div className={css.hero}>
               <div className={css.imagePanel}>
                 {imageSrc ? (
-                  <img
+                  <SkeletonImage
                     src={imageSrc}
                     alt={item.title}
                     className={css.cardImage}
+                    loading="eager"
+                    fallback={<div className={css.imageFallback}>{t('card.noImage')}</div>}
                   />
                 ) : (
                   <div className={css.imageFallback}>{t('card.noImage')}</div>

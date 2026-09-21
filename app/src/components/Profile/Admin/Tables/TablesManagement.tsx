@@ -32,6 +32,8 @@ import type { RestaurantTable, TablePayload } from '@/types/tables';
 import css from './TablesManagement.module.css';
 import { useProfileData } from '@/context/ProfileDataContext';
 import { useTables } from '@/context/TablesContext';
+import { useOrders } from '@/context/OrdersContext';
+import { formatAmount } from '@/lib/formatters';
 import LocalizedTextFields from '@/components/Common/LocalizedTextFields';
 import {
   cleanLocalizedText,
@@ -57,8 +59,10 @@ export default function TablesManagement() {
   const canViewTables = permissions.includes('tables.view');
   const canManageTables = permissions.includes('tables.manage');
   const canManageQr = permissions.includes('tables.qr.manage');
+  const canViewRevenue = permissions.includes('revenue.view');
   const [form] = Form.useForm<TableFormValues>();
   const { revision, ready: tablesReady, newCount, markSeen } = useTables();
+  const { revision: ordersRevision } = useOrders();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('all');
   const [page, setPage] = useState(1);
@@ -72,11 +76,12 @@ export default function TablesManagement() {
   // The full-page spinner is only for the first snapshot or a changed query.
   const loading = profileLoading || (canViewTables && !tablesReady) || (list.loading && !list.data);
   const invalidateTables = list.invalidate;
-  const lastRevision = useRef(revision);
+  const revisionKey = `${revision}:${ordersRevision}`;
+  const lastRevision = useRef(revisionKey);
   useEffect(() => {
-    if (lastRevision.current !== revision) invalidateTables();
-    lastRevision.current = revision;
-  }, [revision, invalidateTables]);
+    if (lastRevision.current !== revisionKey) invalidateTables();
+    lastRevision.current = revisionKey;
+  }, [revisionKey, invalidateTables]);
   const [saving, setSaving] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<RestaurantTable | null>(null);
@@ -234,12 +239,13 @@ export default function TablesManagement() {
           </div>
         ) : (
           <div className={css.tableWrap}>
-            <table className={css.table}>
+            <table className={`${css.table} ${canViewRevenue ? css.tableWithTotal : ''}`}>
               <thead>
                 <tr>
                   <th>{t('columns.table')}</th>
                   <th>{t('columns.status')}</th>
                   <th>{t('columns.session')}</th>
+                  {canViewRevenue && <th>{t('columns.orderTotal')}</th>}
                   <th>{t('columns.qr')}</th>
                   <th className={css.right}>{t('columns.actions')}</th>
                 </tr>
@@ -269,6 +275,15 @@ export default function TablesManagement() {
                         <span className={css.muted}>—</span>
                       )}
                     </td>
+                    {canViewRevenue && (
+                      <td data-label={t('columns.orderTotal')}>
+                        {table.activeSession && table.activeOrderTotal !== null && table.activeOrderTotal !== undefined ? (
+                          <strong className={css.orderTotal}>{formatAmount(table.activeOrderTotal)} ֏</strong>
+                        ) : (
+                          <span className={css.muted}>—</span>
+                        )}
+                      </td>
+                    )}
                     <td data-label={t('columns.qr')}>
                       {canManageQr && table.publicToken ? (
                         <Button icon={<TbQrcode />} onClick={() => setQrTable(table)}>

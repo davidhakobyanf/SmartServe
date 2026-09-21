@@ -21,6 +21,7 @@ import { resolveMenuImageSrc } from '@/lib/menuImages';
 import type { MenuCard } from '@/types';
 import RemoteSelect from '@/components/Common/RemoteSelect';
 import LocalizedTextFields from '@/components/Common/LocalizedTextFields';
+import UploadImageSkeleton from '@/components/Common/SkeletonImage/UploadImageSkeleton';
 import {
   cleanLocalizedText,
   hasLocalizedText,
@@ -221,6 +222,7 @@ export default function EditCardModal({
                 <Upload
                   className={formCss.imageUpload}
                   listType="picture-card"
+                  itemRender={(node, file) => <UploadImageSkeleton node={node} file={file} />}
                   fileList={fileList}
                   onChange={({ fileList: fl }) => setFileList(fl)}
                   beforeUpload={beforeImageUpload}

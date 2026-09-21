@@ -45,6 +45,7 @@
   gap: 28px;
 }
 .hero {
+  position: relative;
   width: 320px;
   flex-shrink: 0;
   aspect-ratio: 1 / 1;

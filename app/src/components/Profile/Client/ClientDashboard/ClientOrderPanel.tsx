@@ -3,6 +3,7 @@ import { useTranslations } from 'next-intl';
 import { TbArrowRight, TbLock, TbMinus, TbShoppingCart, TbTrash, TbX } from 'react-icons/tb';
 import type { MenuCard, MenuImage } from '@/types';
 import { PlusIcon } from '@/components/Common/InterfaceIcons';
+import SkeletonImage from '@/components/Common/SkeletonImage/SkeletonImage';
 import { formatAmount } from '@/lib/formatters';
 import { getBasketLineKey, getMenuLineTotal } from '@/lib/clientMenu';
 import css from './ClientDashboard.module.css';
@@ -25,15 +26,18 @@ interface ClientOrderPanelProps {
   onTabChange: (tab: 'basket' | 'orders') => void;
   orders: OrderRecord[];
   ordersTotal: number;
+  ordersPayableTotal: number | null;
   historyPagination: ReactNode;
   ordersLoading: boolean;
   ordersError: boolean;
   onRefreshOrders: () => Promise<void>;
 }
 
-export default function ClientOrderPanel({ open, basket, images, total, onClose, onOpenItem, onChangeCount, onRemove, onPlaceOrder, placing, tab, onTabChange, orders, ordersTotal, historyPagination, ordersLoading, ordersError, onRefreshOrders }: ClientOrderPanelProps) {
+export default function ClientOrderPanel({ open, basket, images, total, onClose, onOpenItem, onChangeCount, onRemove, onPlaceOrder, placing, tab, onTabChange, orders, ordersTotal, ordersPayableTotal, historyPagination, ordersLoading, ordersError, onRefreshOrders }: ClientOrderPanelProps) {
   const t = useTranslations('client');
   const panelRef = useRef<HTMLElement>(null);
+  const productLineCounts = new Map<string, number>();
+  for (const line of basket) productLineCounts.set(line.id, (productLineCounts.get(line.id) ?? 0) + 1);
 
   useEffect(() => {
     if (!open || !window.matchMedia('(max-width: 1199px)').matches) return;
@@ -95,7 +99,15 @@ export default function ClientOrderPanel({ open, basket, images, total, onClose,
           <button type="button" aria-pressed={tab === 'basket'} onClick={() => onTabChange('basket')}>{t('history.basket')} <span>{basket.reduce((sum, item) => sum + (item.count ?? 1), 0)}</span></button>
           <button type="button" aria-pressed={tab === 'orders'} onClick={() => onTabChange('orders')}>{t('history.title')} <span>{ordersTotal}</span></button>
         </div>
-        {tab === 'orders' ? <ClientOrderHistory orders={orders} loading={ordersLoading} error={ordersError} onRefresh={onRefreshOrders} pagination={historyPagination} /> : <>
+        {tab === 'orders' ? <>
+          <ClientOrderHistory orders={orders} loading={ordersLoading} error={ordersError} onRefresh={onRefreshOrders} pagination={historyPagination} />
+          {ordersPayableTotal !== null && (
+            <div className={css.historyPayableTotal} role="status">
+              <span>{t('history.totalToPay')}</span>
+              <strong>{formatAmount(ordersPayableTotal)} ֏</strong>
+            </div>
+          )}
+        </> : <>
         <div className={`${css.orderList} ss-scroll`}>
           {basket.length === 0 ? (
             <div className={css.orderEmpty}><TbShoppingCart /><p>{t('order.empty')}</p></div>
@@ -104,13 +116,18 @@ export default function ClientOrderPanel({ open, basket, images, total, onClose,
             return (
               <div key={getBasketLineKey(item)} className={css.orderItem}>
                 <button type="button" className={css.orderThumbButton} onClick={() => onOpenItem(item)} aria-label={item.title}>
-                  {src ? <img src={src} alt="" className={css.orderThumb} /> : <span className={css.orderThumbFallback} />}
+                  {src ? <SkeletonImage src={src} alt="" className={css.orderThumb} fallback={<span className={css.orderThumbFallback} />} /> : <span className={css.orderThumbFallback} />}
                 </button>
                 <div className={css.orderItemInfo}>
                   <div className={css.orderItemTop}>
                     <button type="button" className={css.orderItemNameButton} onClick={() => onOpenItem(item)}>{item.title}</button>
                     <button type="button" className={css.removeBtn} onClick={() => void onRemove(item)} aria-label={t('order.removeItem', { name: item.title })}><TbTrash /></button>
                   </div>
+                  {(item.sauces.length > 0 || (productLineCounts.get(item.id) ?? 0) > 1) && (
+                    <span className={css.orderItemVariant}>
+                      {item.sauces.length ? item.sauces.map((sauce) => sauce.name).join(', ') : t('dashboard.noSauce')}
+                    </span>
+                  )}
                   <span className={css.orderItemPrice}>{formatAmount(getMenuLineTotal(item))} ֏</span>
                   <div className={css.stepper}>
                     <button type="button" onClick={() => void onChangeCount(item, (item.count ?? 1) - 1)} aria-label={t('order.decrease')}><TbMinus /></button>

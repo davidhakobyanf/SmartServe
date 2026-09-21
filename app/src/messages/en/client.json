@@ -7,6 +7,10 @@
     "menuTitle": "Our Menu",
     "searchPlaceholder": "Search for dishes...",
     "add": "Add",
+    "noSauce": "No sauce",
+    "variantsInBasket": "Variants in basket",
+    "chooseVariant": "Choose a variant in the basket",
+    "quantityInBasket": "In basket: {count}",
     "outOfStock": "Out of stock",
     "loadMore": "Load More",
     "waiterCalled": "Great, please wait for the waiter.",
@@ -17,7 +21,7 @@
     "orderPlaced": "Your order has been placed.",
     "orderFailed": "Couldn't place the order"
   },
-  "history": {"panelTitle":"Your basket and orders","basket":"Basket","title":"My orders","empty":"No orders yet. Choose dishes and place your first order.","loading":"Loading orders…","refresh":"Refresh","loadError":"Could not load orders. Please try again.","orderNumber":"Order #{id}","readyTitle":"Your order is ready!","readyDescription":"Order #{id} is ready. Enjoy your meal!"},
+  "history": {"panelTitle":"Your basket and orders","basket":"Basket","title":"My orders","empty":"No orders yet. Choose dishes and place your first order.","loading":"Loading orders…","refresh":"Refresh","loadError":"Could not load orders. Please try again.","orderNumber":"Order #{id}","totalToPay":"Total to pay","readyTitle":"Your order is ready!","readyDescription":"Order #{id} is ready. Enjoy your meal!"},
   "filters": {
     "category": "Category",
     "active": "Filter is on",

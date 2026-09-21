@@ -25,6 +25,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher/LanguageSwitcher';
 import css from './Sidebar.module.css';
 import type { Permission } from '@/types/staff';
 import { profileImageApiUrl } from '@/lib/entityImages';
+import SkeletonImage from '@/components/Common/SkeletonImage/SkeletonImage';
 
 type NavItem = {
   href: string;
@@ -142,13 +143,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         <span className={css.avatar}>
           {initials.toUpperCase()}
           {avatarSrc && (
-            <img
+            <SkeletonImage
               src={avatarSrc}
               alt={fullName}
               className={css.avatarImage}
-              onError={(event) => {
-                event.currentTarget.style.display = 'none';
-              }}
+              fallback={null}
             />
           )}
         </span>

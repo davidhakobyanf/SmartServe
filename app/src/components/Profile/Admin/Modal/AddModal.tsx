@@ -18,6 +18,7 @@ import { IMAGE_ACCEPT, validateImageFile } from '@/lib/imageValidation';
 import type { MenuCard } from '@/types';
 import RemoteSelect from '@/components/Common/RemoteSelect';
 import LocalizedTextFields from '@/components/Common/LocalizedTextFields';
+import UploadImageSkeleton from '@/components/Common/SkeletonImage/UploadImageSkeleton';
 import {
   cleanLocalizedText,
   hasLocalizedText,
@@ -186,6 +187,7 @@ export default function AddModal({
                 <Upload
                   className={formCss.imageUpload}
                   listType="picture-card"
+                  itemRender={(node, file) => <UploadImageSkeleton node={node} file={file} />}
                   fileList={fileList}
                   onChange={onChange}
                   beforeUpload={beforeImageUpload}

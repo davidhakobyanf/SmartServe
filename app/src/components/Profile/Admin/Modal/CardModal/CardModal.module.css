@@ -34,6 +34,7 @@
 }
 
 .imagePanel {
+  position: relative;
   min-height: 280px;
   overflow: hidden;
   border: 1px solid var(--border);

@@ -17,6 +17,8 @@ import { ordersResponse } from '../orders/order-response';
 import { staffUserResponse } from '../users/user-response';
 import { roleResponse } from '../roles/role-response';
 import { tableResponse } from '../tables/table-response';
+import { getEffectivePermissions } from '../common/auth/effective-permissions';
+import { Permission } from '../common/auth/permission';
 
 // Only internal, constant column names are passed to these SQL helpers.
 export const literalSearch = (value: string) => `%${value.toLowerCase().replace(/[\\%_]/g, '\\$&')}%`;
@@ -28,6 +30,7 @@ const translated = (json: string, legacy: string, locale?: string) =>
   `COALESCE(NULLIF(BTRIM(${json}->>'${normalizeContentLocale(locale)}'), ''), NULLIF(BTRIM(${json}->>'en'), ''), NULLIF(BTRIM(${json}->>'am'), ''), NULLIF(BTRIM(${json}->>'ru'), ''), ${legacy}, '')`;
 const textMatch = (json: string, legacy: string) =>
   `(${folded(legacy)} LIKE :search OR EXISTS (SELECT 1 FROM jsonb_each_text(${json}) AS tr WHERE ${folded('tr.value')} LIKE :search))`;
+const payableOrderTotal = "COALESCE(SUM(o.total) FILTER (WHERE o.status <> 'cancelled'), 0)";
 
 @Injectable()
 export class ListingService {
@@ -118,6 +121,7 @@ export class ListingService {
       .addSelect('COUNT(DISTINCT o.tableId)', 'tables')
       .addSelect("SUM(CASE WHEN o.status = 'completed' THEN o.total ELSE 0 END)", 'revenue')
       .addSelect(`(${quantity.getQuery()})`, 'items').setParameters(quantity.getParameters());
+    if (financials) summary.addSelect(payableOrderTotal, 'payableTotal');
     for (const status of ['placed', 'preparing', 'ready', 'completed', 'cancelled']) {
       summary.addSelect(`COUNT(*) FILTER (WHERE o.status = '${status}')`, status);
     }
@@ -126,7 +130,7 @@ export class ListingService {
     for (const status of ['placed', 'preparing', 'ready', 'completed', 'cancelled']) filterCounts[status] = Number(aggregate[status]);
     filterCounts.history = filterCounts.completed + filterCounts.cancelled;
     filterCounts.active = filterCounts.all - filterCounts.history;
-    const stats = { total: filterCounts.all, items: Number(aggregate.items), tables: Number(aggregate.tables), ...(financials ? { revenue: Number(aggregate.revenue ?? 0) } : {}) };
+    const stats = { total: filterCounts.all, items: Number(aggregate.items), tables: Number(aggregate.tables), ...(financials ? { revenue: Number(aggregate.revenue ?? 0), payableTotal: Number(aggregate.payableTotal ?? 0) } : {}) };
     const status = query.status;
     if (status === 'active') qb.andWhere("o.status IN ('placed', 'preparing', 'ready')");
     else if (status === 'history') qb.andWhere("o.status IN ('completed', 'cancelled')");
@@ -174,6 +178,25 @@ export class ListingService {
     if (query.status === 'inactive') qb.andWhere('t.isActive = false');
     qb.orderBy('t.number', 'ASC').addOrderBy('t.id', 'ASC');
     const result = await this.page(qb, query);
-    return { ...result, unfilteredTotal: stats.total, stats, items: result.items.map(table => { const { sessions, ...rest } = table; return { ...tableResponse(user, rest as DiningTable, locale), activeSession: sessions?.[0] ?? null }; }) };
+    const canViewRevenue = getEffectivePermissions(user).includes(Permission.REVENUE_VIEW);
+    const sessionIds = canViewRevenue ? result.items.flatMap(table => table.sessions?.map(session => session.id) ?? []) : [];
+    const totals = sessionIds.length
+      ? await this.db.getRepository(Order).createQueryBuilder('o')
+        .select('o.sessionId', 'sessionId')
+        .addSelect(payableOrderTotal, 'total')
+        .where('o.sessionId IN (:...sessionIds)', { sessionIds })
+        .groupBy('o.sessionId')
+        .getRawMany<{ sessionId: string; total: string }>()
+      : [];
+    const totalBySession = new Map(totals.map(row => [row.sessionId, Number(row.total)]));
+    return { ...result, unfilteredTotal: stats.total, stats, items: result.items.map(table => {
+      const { sessions, ...rest } = table;
+      const activeSession = sessions?.[0] ?? null;
+      return {
+        ...tableResponse(user, rest as DiningTable, locale),
+        activeSession,
+        ...(canViewRevenue ? { activeOrderTotal: activeSession ? totalBySession.get(activeSession.id) ?? 0 : null } : {}),
+      };
+    }) };
   }
 }

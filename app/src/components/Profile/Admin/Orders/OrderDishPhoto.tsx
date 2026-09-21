@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { TbPhotoOff, TbZoomIn } from 'react-icons/tb';
 import type { MenuCard } from '@/types';
 import { resolveMenuImageSrc } from '@/lib/menuImages';
+import { ImageSkeleton } from '@/components/Common/SkeletonImage/SkeletonImage';
 import css from './Orders.module.css';
 
 export default function OrderDishPhoto({ item }: { item: MenuCard }) {
@@ -17,5 +18,6 @@ export default function OrderDishPhoto({ item }: { item: MenuCard }) {
   );
   return <Image src={src} alt={item.title} width={76} height={76} loading="lazy"
     className={css.dishPhoto} onError={() => setFailedSrc(src)}
+    placeholder={<ImageSkeleton />}
     preview={{ mask: <TbZoomIn aria-label={t('board.enlargePhoto')} /> }} />;
 }

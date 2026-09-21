@@ -50,7 +50,7 @@ export default function ClientDashboard() {
   const [session, setSession] = useState<DiningSession | null>(null);
   const [sessionUnavailable, setSessionUnavailable] = useState(false);
   const [sessionLoading, setSessionLoading] = useState(true);
-  const { orders, total: ordersTotal, pageData: ordersPage, onPageChange: onOrdersPageChange, loading: ordersLoading, error: ordersError, refreshOrders } = useClientOrders(
+  const { orders, total: ordersTotal, payableTotal: ordersPayableTotal, pageData: ordersPage, onPageChange: onOrdersPageChange, loading: ordersLoading, error: ordersError, refreshOrders } = useClientOrders(
     sessionId, Boolean(session && session.id === sessionId && !closed && !sessionUnavailable && session.status === 'open'), liveOrders, connectionVersion, orderChange,
   );
 
@@ -173,9 +173,11 @@ export default function ClientDashboard() {
   const [fetchBasket] = useFetching(async () => {
     const { data: raw } = await clientAPI.getBasketItems();
     setBasket(
-      (raw ?? []).map((item: BasketItemRecord) =>
-        basketItemToMenuCard(item, locale),
-      ),
+      (raw ?? []).map((item: BasketItemRecord) => {
+        const card = basketItemToMenuCard(item, locale);
+        const pending = quantitySyncRef.current.get(item.id);
+        return pending ? { ...card, count: pending.desired } : card;
+      }),
     );
   });
 
@@ -306,6 +308,18 @@ export default function ClientDashboard() {
     } catch {
       message.error(t('dashboard.deleteFailed'));
     }
+  };
+
+  const decreaseFromCard = (lines: MenuCard[]) => {
+    if (lines.length > 1) {
+      setOrderTab('basket');
+      setCartOpen(true);
+      return;
+    }
+    const line = lines[0];
+    if (!line) return;
+    if ((line.count ?? 1) > 1) void changeCount(line, (line.count ?? 1) - 1);
+    else void removeItem(line);
   };
 
   const total = basket.reduce((sum, item) => sum + getMenuLineTotal(item), 0);
@@ -455,9 +469,11 @@ export default function ClientDashboard() {
             <ClientMenuGrid
               items={menuCards}
               images={images}
+              basket={basket}
               hasMore={false}
               onOpen={openDetail}
               onQuickAdd={quickAdd}
+              onDecrease={decreaseFromCard}
               onLoadMore={() => {}}
             />
             </div>
@@ -477,6 +493,7 @@ export default function ClientDashboard() {
             onTabChange={setOrderTab}
             orders={orders}
             ordersTotal={ordersTotal}
+            ordersPayableTotal={ordersPayableTotal}
             historyPagination={<div className={css.historyPagination}><ListPagination data={ordersPage} loading={ordersLoading} error={ordersError} onRetry={refreshOrders} onChange={onOrdersPageChange} /></div>}
             ordersLoading={ordersLoading}
             ordersError={ordersError}

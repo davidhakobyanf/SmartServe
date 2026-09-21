@@ -10,6 +10,7 @@ import { useFetching } from '@/hoc/fetchingHook';
 import clientAPI from '@/api/api';
 import type { MenuCard, MenuImage } from '@/types';
 import { formatAmount } from '@/lib/formatters';
+import SkeletonImage from '@/components/Common/SkeletonImage/SkeletonImage';
 
 interface ClientCardModalProps {
   setCardModalOpen: (open: boolean) => void;
@@ -137,7 +138,7 @@ export default function ClientCardModal({
           <div className={css.top}>
             <div className={css.hero}>
               {imageSrc ? (
-                <img src={imageSrc} alt={item.title} className={css.heroImg} />
+                <SkeletonImage src={imageSrc} alt={item.title} className={css.heroImg} loading="eager" fallback={<div className={css.heroFallback} />} />
               ) : (
                 <div className={css.heroFallback} />
               )}

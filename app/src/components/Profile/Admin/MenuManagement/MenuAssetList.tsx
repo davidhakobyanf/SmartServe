@@ -3,6 +3,7 @@ import { Avatar, Button, List, Switch } from 'antd';
 import { PictureOutlined } from '@ant-design/icons';
 import type { CategoryRecord, SauceRecord } from '@/types/restaurant';
 import { getMenuAssetImageUrl, type MenuAssetKind, type MenuAssetRecord } from './menuAsset';
+import SkeletonImage from '@/components/Common/SkeletonImage/SkeletonImage';
 import css from './AssetManagementModal.module.css';
 
 interface MenuAssetListProps {
@@ -25,23 +26,33 @@ export default function MenuAssetList({ kind, assets, editingId, onEdit, onDelet
       <List
         dataSource={assets}
         locale={{ emptyText: t('empty') }}
-        renderItem={(asset) => (
-          <List.Item actions={[
-            <Button key="edit" type="link" disabled={editingId === asset.id} onClick={() => onEdit(asset)}>
-              {editingId === asset.id ? t('editingNow') : t('edit')}
-            </Button>,
-            <Button key="delete" type="link" danger onClick={() => onDelete(asset)}>{commonT('delete')}</Button>,
-            <Switch key="active" checked={asset.isActive} onChange={(checked) => void onToggle(asset, checked)} />,
-          ]}>
-            <List.Item.Meta
-              avatar={<Avatar shape="square" size={48} src={getMenuAssetImageUrl(kind, asset)} icon={<PictureOutlined />} />}
-              title={asset.name}
-              description={isCategory
-                ? t('sortOrderValue', { value: (asset as CategoryRecord).sortOrder })
-                : `${Number((asset as SauceRecord).price)} ֏`}
-            />
-          </List.Item>
-        )}
+        renderItem={(asset) => {
+          const imageSrc = getMenuAssetImageUrl(kind, asset);
+          return (
+            <List.Item actions={[
+              <Button key="edit" type="link" disabled={editingId === asset.id} onClick={() => onEdit(asset)}>
+                {editingId === asset.id ? t('editingNow') : t('edit')}
+              </Button>,
+              <Button key="delete" type="link" danger onClick={() => onDelete(asset)}>{commonT('delete')}</Button>,
+              <Switch key="active" checked={asset.isActive} onChange={(checked) => void onToggle(asset, checked)} />,
+            ]}>
+              <List.Item.Meta
+                avatar={
+                  <span className={css.assetAvatar}>
+                    <Avatar shape="square" size={48} icon={<PictureOutlined />} />
+                    {imageSrc && (
+                      <SkeletonImage src={imageSrc} alt={asset.name} fallback={null} />
+                    )}
+                  </span>
+                }
+                title={asset.name}
+                description={isCategory
+                  ? t('sortOrderValue', { value: (asset as CategoryRecord).sortOrder })
+                  : `${Number((asset as SauceRecord).price)} ֏`}
+              />
+            </List.Item>
+          );
+        }}
       />
     </section>
   );

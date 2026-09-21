@@ -19,6 +19,7 @@ export interface RestaurantTable extends SessionTable {
   publicToken?: string;
   isActive: boolean;
   activeSession: DiningSession | null;
+  activeOrderTotal?: number | null;
   createdAt: string;
   updatedAt: string;
 }

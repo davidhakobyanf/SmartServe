@@ -18,6 +18,7 @@ import { useTranslations } from 'next-intl';
 import clientAPI from '@/api/api';
 import { fileToDataUrl, fileToImagePayload } from '@/lib/fileToImagePayload';
 import LocalizedTextFields from '@/components/Common/LocalizedTextFields';
+import UploadImageSkeleton from '@/components/Common/SkeletonImage/UploadImageSkeleton';
 import {
   cleanLocalizedText,
   hasLocalizedText,
@@ -292,6 +293,7 @@ export default function MenuAssetManagementPanel({
           <Form.Item label={t('imageLabel')} extra={t('imageHint')}>
             <Upload
               listType="picture-card"
+              itemRender={(node, file) => <UploadImageSkeleton node={node} file={file} />}
               fileList={fileList}
               onChange={({ fileList: nextFiles }) => setFileList(nextFiles)}
               beforeUpload={(file) => {

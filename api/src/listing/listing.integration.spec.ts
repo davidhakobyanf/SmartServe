@@ -155,13 +155,29 @@ integration('Paginated read models on PostgreSQL', () => {
   it('scopes guest order pages to the authenticated dining session, ignoring forged query scope', async () => {
     const result = await get('orders', { sessionId: otherSession.id, pageSize: 1 }, ownSession.id, true);
     expect(result.body.total).toBe(2);
+    expect(result.body.stats.payableTotal).toBe(6000);
     expect(result.body.items.every((o: Order) => o.sessionId === ownSession.id)).toBe(true);
-    expect((await get('orders', {}, otherSession.id, true)).body.total).toBe(1);
+    const otherResult = await get('orders', {}, otherSession.id, true);
+    expect(otherResult.body.total).toBe(1);
+    expect(otherResult.body.stats.payableTotal).toBe(3000);
+
+    const cancelled = await db.getRepository(Order).save({ tableId: ownSession.tableId, sessionId: ownSession.id, status: 'cancelled', total: 5000 });
+    try {
+      const updated = await get('orders', { pageSize: 1 }, ownSession.id, true);
+      expect(updated.body.total).toBe(3);
+      expect(updated.body.stats.payableTotal).toBe(6000);
+      const tablePage = await get('tables', { pageSize: 1 });
+      expect(tablePage.body.items[0].activeOrderTotal).toBe(6000);
+    } finally {
+      await db.getRepository(Order).delete(cancelled.id);
+    }
   });
   it('preserves permissions and strips revenue, passwords and QR tokens', async () => {
     const orders = await get('orders', {}, viewerToken);
     expect(orders.body.stats.revenue).toBeUndefined();
+    expect(orders.body.stats.payableTotal).toBeUndefined();
     expect(orders.body.items[0].total).toBeNull();
+    expect((await get('tables', {}, viewerToken)).body.items[0].activeOrderTotal).toBeUndefined();
     expect((await get('tables', {}, viewerToken)).body.items[0].publicToken).toBeUndefined();
     expect((await get('users', {}, viewerToken)).status).toBe(403);
     expect((await get('users')).body.items.every((u: Record<string, unknown>) => !('password' in u))).toBe(true);
@@ -173,7 +189,9 @@ integration('Paginated read models on PostgreSQL', () => {
     expect((await get('roles', { search: 'kitchen' })).body.total).toBe(1);
     expect((await get('tables', { search: 'ПАТУՀАН' })).body.total).toBe(0);
     expect((await get('tables', { search: 'ՊԱՏՈՒՀԱՆ' })).body.total).toBe(1);
-    expect((await get('tables', { status: 'open', pageSize: 1 })).body).toMatchObject({ total: 2, stats: { total: 3, open: 2, available: 0, inactive: 1 } });
+    const openTables = await get('tables', { status: 'open', pageSize: 1 });
+    expect(openTables.body).toMatchObject({ total: 2, stats: { total: 3, open: 2, available: 0, inactive: 1 } });
+    expect(openTables.body.items[0].activeOrderTotal).toBe(6000);
   });
   it.each<Record<string, string | number>>([{page: 0}, {pageSize: 101}, {sort: 'DROP TABLE'}, {categoryId: 'invalid'}])('rejects invalid HTTP parameters %j', async query => {
     expect((await get('products', query)).status).toBe(400);
