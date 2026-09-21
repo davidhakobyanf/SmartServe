@@ -62,6 +62,7 @@ export default function ProfileDashboardPage() {
   const canViewTables = permissions.includes('tables.view');
   const canViewMenu = permissions.includes('menu.view');
   const canViewWaiterCalls = permissions.includes('waiter_calls.view');
+  const summaryCount = Number(canViewOrders) * 2 + Number(canViewTables) + Number(canViewRevenue);
   const { ready: menuReady, revision: menuRevision } = useMenuConnection(canViewMenu);
   const [period, setPeriod] = useState<DashboardPeriod>('today');
   const connectionsReady =
@@ -155,7 +156,12 @@ export default function ProfileDashboardPage() {
         <>
           {dashboard.error && <Alert type="warning" showIcon message={t('refreshError')} />}
 
-          <div className={css.bento}>
+          <div
+            className={css.bento}
+            data-summary-count={summaryCount}
+            data-has-revenue={canViewRevenue}
+            data-has-orders={canViewOrders}
+          >
             {/* ── Revenue hero ─────────────────────────────── */}
             {canViewRevenue && (
               <section className={`${css.tile} ${css.hero}`}>
