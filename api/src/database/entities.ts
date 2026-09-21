@@ -10,6 +10,7 @@ import { Role } from "src/entities/role.entity";
 import { Sauce } from "src/entities/sauce.entity";
 import { User } from "src/entities/user.entity";
 import { VenueSettings } from "src/entities/venue-settings.entity";
+import { WaiterCall } from "src/entities/waiter-call.entity";
 
 export const ENTITIES = [
   User,
@@ -24,4 +25,5 @@ export const ENTITIES = [
   VenueSettings,
   Sauce,
   ProductSauce,
+  WaiterCall,
 ];

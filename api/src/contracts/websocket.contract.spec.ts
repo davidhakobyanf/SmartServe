@@ -23,6 +23,12 @@ describe("WebSocket compatibility", () => {
     getEffectivePermissions: UsersService.prototype.getEffectivePermissions,
   };
   const sessions = { assertOpen: jest.fn(async () => sessionFixture()) };
+  const waiterCalls = {
+    pending: jest.fn(async () => []),
+    call: jest.fn(async () => ({ id: ID, table: "7", calledAt: new Date().toISOString() })),
+    resolve: jest.fn(async () => undefined),
+    resolveAll: jest.fn(async () => undefined),
+  };
   let ordersGateway: OrdersGateway;
   let waiterGateway: WaiterGateway;
   let sessionsGateway: SessionsGateway;
@@ -35,7 +41,7 @@ describe("WebSocket compatibility", () => {
     actor = userFixture([Permission.ORDERS_VIEW, Permission.WAITER_CALLS_VIEW]);
     const staffAuth = new StaffSocketAuthService(jwt, users as never);
     ordersGateway = new OrdersGateway(staffAuth);
-    waiterGateway = new WaiterGateway(staffAuth, sessions as never);
+    waiterGateway = new WaiterGateway(staffAuth, sessions as never, waiterCalls as never);
     sessionsGateway = new SessionsGateway(sessions as never);
     menuGateway = new MenuGateway();
     for (const gateway of [ordersGateway, waiterGateway, sessionsGateway]) gateway.server = { to } as unknown as Server;
@@ -45,7 +51,7 @@ describe("WebSocket compatibility", () => {
   function client(auth: Record<string, string> = {}) {
     const join = jest.fn(async () => undefined);
     const leave = jest.fn(async () => undefined);
-    return { socket: { handshake: { auth }, join, leave } as unknown as Socket, join, leave };
+    return { socket: { handshake: { auth }, join, leave, emit: jest.fn() } as unknown as Socket, join, leave };
   }
 
   it("freezes namespaces, subscribed messages and domain events", () => {
@@ -58,7 +64,7 @@ describe("WebSocket compatibility", () => {
       }),
     }))).toEqual([
       { namespace: "orders", events: ["join"] },
-      { namespace: "waiter", events: ["join", "waiter:call"] },
+      { namespace: "waiter", events: ["join", "waiter:call", "waiter:resolve", "waiter:resolve-all"] },
       { namespace: "sessions", events: ["join"] },
       { namespace: "menu", events: [] },
       { namespace: "tables", events: ["join"] },
@@ -97,6 +103,7 @@ describe("WebSocket compatibility", () => {
     expect(socket.join).toHaveBeenCalledWith(revenue ? "revenue" : "orders");
     expect(await waiterGateway.handleJoin(socket.socket)).toEqual({ ok: true });
     expect(socket.join).toHaveBeenLastCalledWith("admin");
+    expect(socket.socket.emit).toHaveBeenCalledWith("waiter:pending", []);
   });
 
   it("preserves acknowledgements when room joining fails", async () => {
@@ -172,9 +179,21 @@ describe("WebSocket compatibility", () => {
     expect(result).toEqual({ ok: true, call: { id: expect.any(String), table: "7", calledAt: expect.any(String) } });
     expect(to).toHaveBeenCalledWith("admin");
     expect(emit).toHaveBeenCalledWith("waiter:called", result.call);
+    expect(waiterCalls.call).toHaveBeenCalledWith(SESSION_ID, 7);
     sessions.assertOpen.mockRejectedValueOnce(new Error("closed"));
     emit.mockClear();
     expect(await waiterGateway.handleCall(socket.socket)).toEqual({ ok: false, error: "Session is closed or invalid" });
     expect(emit).not.toHaveBeenCalled();
+  });
+
+  it("resolves waiter calls for authorized staff and broadcasts to other admins", async () => {
+    const socket = client({ accessToken: jwt.sign({ sub: ID }) });
+    expect(await waiterGateway.handleResolve(socket.socket, ID)).toEqual({ ok: true });
+    expect(waiterCalls.resolve).toHaveBeenCalledWith(ID);
+    expect(emit).toHaveBeenCalledWith("waiter:resolved", ID);
+    expect(await waiterGateway.handleResolveAll(socket.socket)).toEqual({ ok: true });
+    expect(waiterCalls.resolveAll).toHaveBeenCalled();
+    expect(emit).toHaveBeenCalledWith("waiter:cleared");
+    expect(await waiterGateway.handleResolve(client().socket, ID)).toEqual({ ok: false });
   });
 });

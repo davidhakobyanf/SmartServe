@@ -187,6 +187,18 @@
   background: rgba(255, 255, 255, .13);
 }
 
+.orderAttentionIcon {
+  transform-origin: center;
+  animation: orderReadyShake 1.6s ease-in-out infinite;
+}
+
+@keyframes orderReadyShake {
+  0%, 45%, 100% { transform: translateX(0) rotate(0); }
+  8%, 24% { transform: translateX(-3px) rotate(-10deg); }
+  16%, 32% { transform: translateX(3px) rotate(10deg); }
+  40% { transform: translateX(-2px) rotate(-5deg); }
+}
+
 .toggleLabel {
   position: absolute;
   width: 1px;
@@ -1414,6 +1426,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .orderAttentionIcon {
+    animation: none;
+    color: #ff6773;
+  }
+
   .card,
   .img,
   .order {

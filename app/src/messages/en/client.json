@@ -21,7 +21,7 @@
     "orderPlaced": "Your order has been placed.",
     "orderFailed": "Couldn't place the order"
   },
-  "history": {"panelTitle":"Your basket and orders","basket":"Basket","title":"My orders","empty":"No orders yet. Choose dishes and place your first order.","loading":"Loading orders…","refresh":"Refresh","loadError":"Could not load orders. Please try again.","orderNumber":"Order #{id}","totalToPay":"Total to pay","readyTitle":"Your order is ready!","readyDescription":"Order #{id} is ready. Enjoy your meal!"},
+  "history": {"panelTitle":"Your basket and orders","basket":"Basket","title":"My orders","empty":"No orders yet. Choose dishes and place your first order.","loading":"Loading orders…","refresh":"Refresh","loadError":"Could not load orders. Please try again.","orderNumber":"Order #{id}","totalToPay":"Total to pay","statusAttention":"Order status updated","preparingTitle":"Your order is being prepared","preparingDescription":"Order #{id} is now being prepared.","readyTitle":"Your order is ready!","readyDescription":"Order #{id} is ready. Enjoy your meal!"},
   "filters": {
     "category": "Category",
     "active": "Filter is on",

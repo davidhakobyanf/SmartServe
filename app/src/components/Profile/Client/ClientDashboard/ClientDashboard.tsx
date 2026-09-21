@@ -50,8 +50,10 @@ export default function ClientDashboard() {
   const [session, setSession] = useState<DiningSession | null>(null);
   const [sessionUnavailable, setSessionUnavailable] = useState(false);
   const [sessionLoading, setSessionLoading] = useState(true);
-  const { orders, total: ordersTotal, payableTotal: ordersPayableTotal, pageData: ordersPage, onPageChange: onOrdersPageChange, loading: ordersLoading, error: ordersError, refreshOrders } = useClientOrders(
-    sessionId, Boolean(session && session.id === sessionId && !closed && !sessionUnavailable && session.status === 'open'), liveOrders, connectionVersion, orderChange,
+  const [cartOpen, setCartOpen] = useState(false);
+  const [orderTab, setOrderTab] = useState<'basket' | 'orders'>('basket');
+  const { orders, total: ordersTotal, payableTotal: ordersPayableTotal, orderAttention, clearOrderAttention, pageData: ordersPage, onPageChange: onOrdersPageChange, loading: ordersLoading, error: ordersError, refreshOrders } = useClientOrders(
+    sessionId, Boolean(session && session.id === sessionId && !closed && !sessionUnavailable && session.status === 'open'), liveOrders, connectionVersion, orderChange, cartOpen && orderTab === 'orders',
   );
 
   const SORT_OPTIONS = useMemo(
@@ -85,6 +87,8 @@ export default function ClientDashboard() {
   }, [sessionId]);
 
   const { callWaiter } = useWaiterClient(sessionId);
+  const [waiterCalling, setWaiterCalling] = useState(false);
+  const waiterCallingRef = useRef(false);
 
   const [images, setImages] = useState<MenuImage[]>([]);
   const [category, setCategory] = useState('all');
@@ -137,8 +141,6 @@ export default function ClientDashboard() {
     confirmed: number;
     running: boolean;
   }>());
-  const [cartOpen, setCartOpen] = useState(false);
-  const [orderTab, setOrderTab] = useState<'basket' | 'orders'>('basket');
   const placingRef = useRef(false);
   const [cardModalOpen, setCardModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuCard | null>(null);
@@ -191,9 +193,17 @@ export default function ClientDashboard() {
   }, [cardModalOpen, fetchBasket]);
 
   const handleCallWaiter = useCallback(async () => {
-    const result = await callWaiter();
-    if (result.ok) message.success(t('dashboard.waiterCalled'));
-    else message.error(t('dashboard.waiterFailed'));
+    if (waiterCallingRef.current) return;
+    waiterCallingRef.current = true;
+    setWaiterCalling(true);
+    try {
+      const result = await callWaiter();
+      if (result.ok) message.success(t('dashboard.waiterCalled'));
+      else message.error(t('dashboard.waiterFailed'));
+    } finally {
+      waiterCallingRef.current = false;
+      setWaiterCalling(false);
+    }
   }, [callWaiter, message, t]);
 
   const openDetail = (item: MenuCard) => {
@@ -330,6 +340,7 @@ export default function ClientDashboard() {
     try {
       await clientAPI.placeOrder();
       setBasket([]);
+      clearOrderAttention();
       setOrderTab('orders');
       setCartOpen(true);
       message.success(t('dashboard.orderPlaced'));
@@ -368,7 +379,9 @@ export default function ClientDashboard() {
           <div className={css.tableChip}>
             <span className={css.liveDot} aria-hidden="true" />
             <span className={css.tableLabel}>{t('dashboard.tableChip', { table: session?.table.number ?? '…' })}</span>
-            <strong className={css.tableTotal}>{formatAmount(total)} ֏</strong>
+            <strong className={css.tableTotal} title={t('history.totalToPay')}>
+              {ordersPayableTotal === null ? '…' : formatAmount(ordersPayableTotal)} ֏
+            </strong>
           </div>
           <div className={css.languageControl}>
             <LanguageSwitcher size="small" />
@@ -377,6 +390,7 @@ export default function ClientDashboard() {
             type="button"
             className={css.callBtn}
             onClick={() => void handleCallWaiter()}
+            disabled={waiterCalling}
             aria-label={t('dashboard.callWaiter')}
           >
             <TbBell /> <span className={css.actionLabel}>{t('dashboard.callWaiter')}</span>
@@ -392,8 +406,8 @@ export default function ClientDashboard() {
             <span className={css.toggleLabel}>{t('history.basket')}</span>
             <span className={css.orderCount}>{count}</span>
           </button>
-          <button type="button" className={css.orderToggle} onClick={() => { setOrderTab('orders'); setCartOpen(true); }} aria-label={t('history.title')}>
-            <TbClipboardList /> <span className={css.toggleLabel}>{t('history.title')}</span>
+          <button type="button" className={css.orderToggle} onClick={() => { clearOrderAttention(); setOrderTab('orders'); setCartOpen(true); }} aria-label={orderAttention ? `${t('history.title')}. ${t('history.statusAttention')}` : t('history.title')}>
+            <TbClipboardList className={orderAttention ? css.orderAttentionIcon : undefined} /> <span className={css.toggleLabel}>{t('history.title')}</span>
             <span className={css.orderCount}>{ordersTotal}</span>
           </button>
           </div>
@@ -490,7 +504,7 @@ export default function ClientDashboard() {
             onPlaceOrder={placeOrder}
             placing={placing}
             tab={orderTab}
-            onTabChange={setOrderTab}
+            onTabChange={(tab) => { setOrderTab(tab); if (tab === 'orders') clearOrderAttention(); }}
             orders={orders}
             ordersTotal={ordersTotal}
             ordersPayableTotal={ordersPayableTotal}

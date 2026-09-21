@@ -3,6 +3,7 @@
   "subtitle": "Manage customer service requests",
   "resolveAll": "Resolve all",
   "resolve": "Resolve",
+  "resolveFailed": "Could not resolve the call. Please try again.",
   "new": "New",
   "needsAssistance": "Customer needs assistance",
   "table": "Table {n}",

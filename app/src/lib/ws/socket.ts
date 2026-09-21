@@ -12,7 +12,7 @@ export function createSocket(
       typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
     return io(`${API_URL}${namespace}`, {
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'],
       autoConnect: true,
       auth: {
         ...(accessToken ? { accessToken } : {}),
