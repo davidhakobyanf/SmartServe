@@ -1,8 +1,13 @@
 // SmartServe — PostgreSQL schema (paste into https://dbdiagram.io)
 // Source of truth: api/src/entities/*.entity.ts and api/src/migrations/*.ts
-// Updated: 2026-09-09, through AddListingIndexes1788930000000.
+// Updated: 2026-09-22, through AddWaiterCalls1788940000000.
 // Application tables only; TypeORM's internal migration history is omitted.
 // This diagram documents the schema; apply database changes using migrations.
+
+Project SmartServe_Current_Database {
+  database_type: 'PostgreSQL'
+  Note: 'Current application schema after all committed migrations.'
+}
 
 Enum user_status_enum {
   pending
@@ -13,10 +18,10 @@ Enum user_status_enum {
 
 Enum order_status_enum {
   placed
-  preparing
-  ready
   completed
   cancelled
+  preparing
+  ready
 }
 
 Table roles {
@@ -40,11 +45,11 @@ Table users {
   avatarName varchar(255) [null]
   avatarMimeType varchar(100) [null]
   avatarData bytea [null, note: 'select:false; served via GET /api/profile-images/:id']
-  roleId uuid [null, ref: > roles.id, note: 'ON DELETE SET NULL']
+  roleId uuid [null]
   status user_status_enum [not null, default: 'pending']
   permissionAllow jsonb [not null, default: `[]`, note: 'Permission[] — grants on top of role']
   permissionDeny jsonb [not null, default: `[]`, note: 'Permission[] — revokes from role']
-  approvedByUserId uuid [null, ref: > users.id, note: 'self-FK, ON DELETE SET NULL']
+  approvedByUserId uuid [null]
   approvedAt timestamptz [null]
   rejectionReason text [null]
   lastLoginAt timestamptz [null]
@@ -71,7 +76,7 @@ Table categories {
 
 Table products {
   id uuid [pk]
-  categoryId uuid [not null, ref: > categories.id, note: 'ON DELETE RESTRICT']
+  categoryId uuid [not null]
   title varchar(160) [not null]
   titleTranslations jsonb [not null, default: `{}`, note: 'LocalizedText {en,am,ru}']
   description text [not null, default: '']
@@ -106,8 +111,8 @@ Table sauces {
 
 // Join table: products *—* sauces (composite PK)
 Table product_sauces {
-  productId uuid [not null, ref: > products.id, note: 'ON DELETE CASCADE']
-  sauceId uuid [not null, ref: > sauces.id, note: 'ON DELETE CASCADE']
+  productId uuid [not null]
+  sauceId uuid [not null]
 
   indexes {
     (productId, sauceId) [pk]
@@ -128,7 +133,7 @@ Table tables {
 
 Table dining_sessions {
   id uuid [pk]
-  tableId uuid [not null, ref: > tables.id, note: 'ON DELETE RESTRICT']
+  tableId uuid [not null]
   status varchar [not null, default: 'open', note: 'open | closed']
   createdAt timestamp [not null]
   closedAt timestamptz [null]
@@ -140,11 +145,25 @@ Table dining_sessions {
   }
 }
 
+// A call keeps the table number from the time it was made. It is not a FK to tables.number.
+Table waiter_calls {
+  id uuid [pk]
+  sessionId uuid [not null]
+  tableNumber int [not null]
+  calledAt timestamptz [not null]
+  resolvedAt timestamptz [null]
+
+  indexes {
+    // Partial unique: at most one unresolved call per session.
+    sessionId [unique, name: 'uq_pending_waiter_call_per_session', note: 'WHERE "resolvedAt" IS NULL']
+  }
+}
+
 // Guest cart lines (live). sauces is a frozen snapshot value object.
 Table basket_items {
   id uuid [pk]
-  sessionId uuid [not null, ref: > dining_sessions.id, note: 'ON DELETE CASCADE']
-  productId uuid [not null, ref: > products.id, note: 'ON DELETE RESTRICT']
+  sessionId uuid [not null]
+  productId uuid [not null]
   quantity int [not null, default: 1, note: 'CHECK quantity > 0']
   sauces jsonb [not null, default: `[]`, note: 'SauceSnapshot[] {id,name,nameTranslations,unitPrice}']
   unitPrice numeric(10,2) [not null]
@@ -159,8 +178,8 @@ Table basket_items {
 
 Table orders {
   id uuid [pk]
-  tableId uuid [not null, ref: > tables.id, note: 'ON DELETE RESTRICT']
-  sessionId uuid [not null, ref: > dining_sessions.id, note: 'ON DELETE RESTRICT']
+  tableId uuid [not null]
+  sessionId uuid [not null]
   status order_status_enum [not null, default: 'placed']
   total numeric(12,2) [not null]
   completedAt timestamptz [null]
@@ -180,8 +199,8 @@ Table orders {
 // the product is later deleted (ON DELETE SET NULL).
 Table order_items {
   id uuid [pk]
-  orderId uuid [not null, ref: > orders.id, note: 'ON DELETE CASCADE']
-  productId uuid [null, ref: > products.id, note: 'ON DELETE SET NULL']
+  orderId uuid [not null]
+  productId uuid [null]
   titleSnapshot varchar(160) [not null]
   descriptionSnapshot text [not null, default: '']
   titleTranslationsSnapshot jsonb [not null, default: `{}`, note: 'Frozen LocalizedText {en,am,ru} at order time']
@@ -207,3 +226,17 @@ Table venue_settings {
   createdAt timestamptz [not null]
   updatedAt timestamptz [not null]
 }
+
+Ref roles_users: users.roleId > roles.id [delete: set null]
+Ref approver_users: users.approvedByUserId > users.id [delete: set null]
+Ref category_products: products.categoryId > categories.id [delete: restrict]
+Ref product_available_sauces: product_sauces.productId > products.id [delete: cascade]
+Ref sauce_available_products: product_sauces.sauceId > sauces.id [delete: cascade]
+Ref table_sessions: dining_sessions.tableId > tables.id [delete: restrict]
+Ref session_waiter_calls: waiter_calls.sessionId > dining_sessions.id [delete: cascade]
+Ref session_basket_items: basket_items.sessionId > dining_sessions.id [delete: cascade]
+Ref product_basket_items: basket_items.productId > products.id [delete: restrict]
+Ref table_orders: orders.tableId > tables.id [delete: restrict]
+Ref session_orders: orders.sessionId > dining_sessions.id [delete: restrict]
+Ref order_order_items: order_items.orderId > orders.id [delete: cascade]
+Ref product_order_items: order_items.productId > products.id [delete: set null]

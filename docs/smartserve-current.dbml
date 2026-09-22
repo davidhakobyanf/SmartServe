@@ -1,6 +1,12 @@
+// SmartServe — PostgreSQL schema (paste into https://dbdiagram.io)
+// Source of truth: api/src/entities/*.entity.ts and api/src/migrations/*.ts
+// Updated: 2026-09-22, through AddWaiterCalls1788940000000.
+// Application tables only; TypeORM's internal migration history is omitted.
+// This diagram documents the schema; apply database changes using migrations.
+
 Project SmartServe_Current_Database {
   database_type: 'PostgreSQL'
-  Note: 'CURRENT — фактическая схема NestJS/TypeORM после миграций InitialSchema и AddPricedSauces.'
+  Note: 'Current application schema after all committed migrations.'
 }
 
 Enum user_status_enum {
@@ -14,13 +20,16 @@ Enum order_status_enum {
   placed
   completed
   cancelled
+  preparing
+  ready
 }
 
 Table roles {
   id uuid [pk]
   name varchar(100) [not null]
-  code varchar(50) [not null, unique]
-  permissions jsonb [not null, default: `[]`, note: 'Массив прав роли']
+  nameTranslations jsonb [not null, default: `{}`, note: 'LocalizedText {en,am,ru}']
+  code varchar(50) [not null, unique, note: 'owner | manager | administrator | waiter ...']
+  permissions jsonb [not null, default: `[]`, note: 'Permission[]']
   isSystem boolean [not null, default: false]
   isActive boolean [not null, default: true]
   createdAt timestamp [not null]
@@ -32,43 +41,35 @@ Table users {
   name varchar [not null]
   surname varchar [not null]
   email varchar [not null, unique]
-  password varchar [not null]
-  roleId uuid
+  password varchar [not null, note: 'bcrypt hash']
+  avatarName varchar(255) [null]
+  avatarMimeType varchar(100) [null]
+  avatarData bytea [null, note: 'select:false; served via GET /api/profile-images/:id']
+  roleId uuid [null]
   status user_status_enum [not null, default: 'pending']
-  permissionAllow jsonb [not null, default: `[]`]
-  permissionDeny jsonb [not null, default: `[]`]
-  approvedByUserId uuid
-  approvedAt timestamptz
-  rejectionReason text
-  lastLoginAt timestamptz
+  permissionAllow jsonb [not null, default: `[]`, note: 'Permission[] — grants on top of role']
+  permissionDeny jsonb [not null, default: `[]`, note: 'Permission[] — revokes from role']
+  approvedByUserId uuid [null]
+  approvedAt timestamptz [null]
+  rejectionReason text [null]
+  lastLoginAt timestamptz [null]
   createdAt timestamp [not null]
   updatedAt timestamp [not null]
-}
 
-Table venue_settings {
-  id smallint [pk, note: 'Singleton: всегда id = 1']
-  venueName varchar(160) [not null, default: 'SmartServe']
-  currency varchar(3) [not null, default: 'AMD']
-  timezone varchar(100) [not null, default: 'Asia/Yerevan']
-  createdAt timestamptz [not null]
-  updatedAt timestamptz [not null]
-}
-
-Table tables {
-  id uuid [pk]
-  number int [not null, unique]
-  name varchar(100)
-  publicToken uuid [not null, unique, note: 'Постоянный токен QR-кода стола']
-  isActive boolean [not null, default: true]
-  createdAt timestamptz [not null]
-  updatedAt timestamptz [not null]
+  indexes {
+    (createdAt, id) [name: 'IDX_users_created_page', note: 'createdAt DESC, id ASC']
+  }
 }
 
 Table categories {
   id uuid [pk]
   name varchar(100) [not null, unique]
+  nameTranslations jsonb [not null, default: `{}`, note: 'LocalizedText {en,am,ru}']
   sortOrder int [not null, default: 0]
   isActive boolean [not null, default: true]
+  imageName varchar(255) [null]
+  imageMimeType varchar(100) [null]
+  imageData bytea [null, note: 'select:false; served via GET /api/category-images/:id']
   createdAt timestamptz [not null]
   updatedAt timestamptz [not null]
 }
@@ -77,25 +78,38 @@ Table products {
   id uuid [pk]
   categoryId uuid [not null]
   title varchar(160) [not null]
+  titleTranslations jsonb [not null, default: `{}`, note: 'LocalizedText {en,am,ru}']
   description text [not null, default: '']
+  descriptionTranslations jsonb [not null, default: `{}`, note: 'LocalizedText {en,am,ru}']
   price numeric(10,2) [not null]
+  stockQuantity int [null, note: 'NULL = unlimited; CHECK stockQuantity IS NULL OR stockQuantity >= 0 (CHK_products_stock_quantity)']
   isActive boolean [not null, default: true]
-  imageName varchar(255)
-  imageMimeType varchar(100)
-  imageData bytea [note: 'Бинарные данные изображения; не выбираются обычными запросами']
+  imageName varchar(255) [null]
+  imageMimeType varchar(100) [null]
+  imageData bytea [null, note: 'select:false; served via GET /api/product-images/:id']
   createdAt timestamptz [not null]
   updatedAt timestamptz [not null]
+
+  indexes {
+    (categoryId, id) [name: 'IDX_products_category_page']
+    (createdAt, id) [name: 'IDX_products_created_page', note: 'createdAt DESC, id ASC']
+  }
 }
 
 Table sauces {
   id uuid [pk]
   name varchar(100) [not null, unique]
+  nameTranslations jsonb [not null, default: `{}`, note: 'LocalizedText {en,am,ru}']
   price numeric(10,2) [not null]
   isActive boolean [not null, default: true]
+  imageName varchar(255) [null]
+  imageMimeType varchar(100) [null]
+  imageData bytea [null, note: 'select:false; served via GET /api/sauce-images/:id']
   createdAt timestamptz [not null]
   updatedAt timestamptz [not null]
 }
 
+// Join table: products *—* sauces (composite PK)
 Table product_sauces {
   productId uuid [not null]
   sauceId uuid [not null]
@@ -104,30 +118,55 @@ Table product_sauces {
     (productId, sauceId) [pk]
     sauceId [name: 'IDX_product_sauces_sauceId']
   }
+}
 
-  Note: 'Junction-таблица: какие соусы доступны для каждого товара'
+Table tables {
+  id uuid [pk]
+  number int [not null, unique]
+  name varchar(100) [null]
+  nameTranslations jsonb [not null, default: `{}`, note: 'LocalizedText {en,am,ru}']
+  publicToken uuid [not null, unique, note: 'QR / public link token']
+  isActive boolean [not null, default: true]
+  createdAt timestamptz [not null]
+  updatedAt timestamptz [not null]
 }
 
 Table dining_sessions {
-  id uuid [pk, note: 'Новый UUID создаётся после закрытия предыдущей сессии']
+  id uuid [pk]
   tableId uuid [not null]
   status varchar [not null, default: 'open', note: 'open | closed']
   createdAt timestamp [not null]
-  closedAt timestamptz
+  closedAt timestamptz [null]
 
   indexes {
     tableId
-    tableId [name: 'uq_open_session_per_table', unique, note: 'Частичный индекс: WHERE status = open']
+    // Partial unique: only ONE open session per table
+    (tableId) [unique, name: 'uq_open_session_per_table', note: "WHERE status = 'open'"]
   }
 }
 
+// A call keeps the table number from the time it was made. It is not a FK to tables.number.
+Table waiter_calls {
+  id uuid [pk]
+  sessionId uuid [not null]
+  tableNumber int [not null]
+  calledAt timestamptz [not null]
+  resolvedAt timestamptz [null]
+
+  indexes {
+    // Partial unique: at most one unresolved call per session.
+    sessionId [unique, name: 'uq_pending_waiter_call_per_session', note: 'WHERE "resolvedAt" IS NULL']
+  }
+}
+
+// Guest cart lines (live). sauces is a frozen snapshot value object.
 Table basket_items {
   id uuid [pk]
   sessionId uuid [not null]
   productId uuid [not null]
   quantity int [not null, default: 1, note: 'CHECK quantity > 0']
-  sauces jsonb [not null, default: `[]`, note: 'Снимки выбранных соусов: id, name, unitPrice']
-  unitPrice numeric(10,2) [not null, note: 'Цена товара на момент добавления']
+  sauces jsonb [not null, default: `[]`, note: 'SauceSnapshot[] {id,name,nameTranslations,unitPrice}']
+  unitPrice numeric(10,2) [not null]
   createdAt timestamptz [not null]
   updatedAt timestamptz [not null]
 
@@ -143,25 +182,32 @@ Table orders {
   sessionId uuid [not null]
   status order_status_enum [not null, default: 'placed']
   total numeric(12,2) [not null]
-  completedAt timestamptz
+  completedAt timestamptz [null]
   createdAt timestamptz [not null]
   updatedAt timestamptz [not null]
 
   indexes {
     tableId
     sessionId
+    (status, createdAt, id) [name: 'IDX_orders_status_page']
+    (sessionId, createdAt, id) [name: 'IDX_orders_session_page', note: 'sessionId ASC, createdAt DESC, id ASC']
   }
 }
 
+// Order lines. title/description, their translations and sauces are FROZEN snapshots at order time,
+// so the order is immune to later menu edits. productId may become null if
+// the product is later deleted (ON DELETE SET NULL).
 Table order_items {
   id uuid [pk]
   orderId uuid [not null]
-  productId uuid [note: 'Nullable: история остаётся после удаления товара']
+  productId uuid [null]
   titleSnapshot varchar(160) [not null]
   descriptionSnapshot text [not null, default: '']
+  titleTranslationsSnapshot jsonb [not null, default: `{}`, note: 'Frozen LocalizedText {en,am,ru} at order time']
+  descriptionTranslationsSnapshot jsonb [not null, default: `{}`, note: 'Frozen LocalizedText {en,am,ru} at order time']
   unitPrice numeric(10,2) [not null]
   quantity int [not null, note: 'CHECK quantity > 0']
-  sauces jsonb [not null, default: `[]`, note: 'Снимки выбранных соусов: id, name, unitPrice']
+  sauces jsonb [not null, default: `[]`, note: 'SauceSnapshot[]']
   lineTotal numeric(12,2) [not null]
   createdAt timestamptz [not null]
 
@@ -171,12 +217,23 @@ Table order_items {
   }
 }
 
+// Singleton config row (id = 1)
+Table venue_settings {
+  id smallint [pk, note: 'always 1']
+  venueName varchar(160) [not null, default: 'SmartServe']
+  currency varchar(3) [not null, default: 'AMD']
+  timezone varchar(100) [not null, default: 'Asia/Yerevan']
+  createdAt timestamptz [not null]
+  updatedAt timestamptz [not null]
+}
+
 Ref roles_users: users.roleId > roles.id [delete: set null]
 Ref approver_users: users.approvedByUserId > users.id [delete: set null]
 Ref category_products: products.categoryId > categories.id [delete: restrict]
 Ref product_available_sauces: product_sauces.productId > products.id [delete: cascade]
 Ref sauce_available_products: product_sauces.sauceId > sauces.id [delete: cascade]
 Ref table_sessions: dining_sessions.tableId > tables.id [delete: restrict]
+Ref session_waiter_calls: waiter_calls.sessionId > dining_sessions.id [delete: cascade]
 Ref session_basket_items: basket_items.sessionId > dining_sessions.id [delete: cascade]
 Ref product_basket_items: basket_items.productId > products.id [delete: restrict]
 Ref table_orders: orders.tableId > tables.id [delete: restrict]
